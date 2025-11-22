@@ -1,0 +1,314 @@
+<div class="login-page-container">
+  <div class="welcome-header">
+    <p class="welcome-text">Welcome to Roomlocus</p>
+    <div class="owner-zone-links">
+      <a href="#" class="owner-zone-link">Owner Zone</a>
+      <a href="#" class="list-property-link">List Property</a>
+    </div>
+  </div>
+
+  <div class="login-card">
+    <ng-container [ngSwitch]="authView">
+      <div *ngSwitchCase="'login'">
+        <h2>Login</h2>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSignIn()">
+          <div class="input-group">
+            <label for="whatsappNo">Whatsapp No:</label>
+            <div class="input-with-icon">
+              <i class="fas fa-mobile-alt icon"></i>
+              <input
+                type="tel"
+                id="whatsappNo"
+                formControlName="whatsappNo"
+                placeholder="Number"
+                aria-label="Whatsapp Number"
+              />
+            </div>
+            <div
+              *ngIf="f['whatsappNo'].invalid && (f['whatsappNo'].dirty || f['whatsappNo'].touched)"
+              class="validation-error"
+            >
+              <div *ngIf="f['whatsappNo'].errors?.['required']">Whatsapp Number is required.</div>
+              <div *ngIf="f['whatsappNo'].errors?.['pattern']">
+                Please enter a valid 10-digit number.
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="password">Password:</label>
+            <div class="input-with-icon password-input">
+              <i class="fas fa-lock icon"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                id="password"
+                formControlName="password"
+                placeholder="Password"
+                aria-label="Password"
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                (click)="togglePasswordVisibility()"
+                aria-label="Toggle password visibility"
+              >
+                <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+              </button>
+            </div>
+            <div
+              *ngIf="f['password'].invalid && (f['password'].dirty || f['password'].touched)"
+              class="validation-error"
+            >
+              <ng-container *ngIf="passwordErrorMessage as message">
+                {{ message }}
+              </ng-container>
+            </div>
+          </div>
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            class="sign-in-button"
+            [disabled]="!loginForm.valid"
+          >
+            Sign In
+          </button>
+        </form>
+
+        <div class="login-footer-links">
+          <span>Forgot </span>
+          <a
+            href=""
+            class="forgot-password-link"
+            (click)="switchView('forgot'); $event.preventDefault()"
+          >
+            <span class="blue-text">Password</span>
+          </a>
+          <p>
+            Create an Account
+            <a href="" class="sign-up-link blue-text" (click)="switchView('signup'); $event.preventDefault()">
+              Sign Up
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <div *ngSwitchCase="'signup'">
+        <h2>Create Account</h2>
+
+        <form [formGroup]="signupForm" (ngSubmit)="onSignupSubmit()">
+          <div class="input-group">
+            <label for="signup-name">Full Name:</label>
+            <div class="input-with-icon">
+              <i class="fas fa-user icon"></i>
+              <input
+                type="text"
+                id="signup-name"
+                formControlName="name"
+                placeholder="Full Name"
+                aria-label="Full Name"
+              />
+            </div>
+            <div
+              *ngIf="signupControls['name'].invalid && (signupControls['name'].dirty || signupControls['name'].touched)"
+              class="validation-error"
+            >
+              <div *ngIf="signupControls['name'].errors?.['required']">Full Name is required.</div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="signup-email">Email:</label>
+            <div class="input-with-icon">
+              <i class="fas fa-envelope icon"></i>
+              <input
+                type="email"
+                id="signup-email"
+                formControlName="email"
+                placeholder="Email"
+                aria-label="Email"
+              />
+            </div>
+            <div
+              *ngIf="signupControls['email'].invalid && (signupControls['email'].dirty || signupControls['email'].touched)"
+              class="validation-error"
+            >
+              <div *ngIf="signupControls['email'].errors?.['required']">Email is required.</div>
+              <div *ngIf="signupControls['email'].errors?.['email']">Invalid email.</div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="signup-mobile">Whatsapp No:</label>
+            <div class="input-with-icon">
+              <i class="fas fa-mobile-alt icon"></i>
+              <input
+                type="tel"
+                id="signup-mobile"
+                formControlName="mobile"
+                placeholder="Number"
+                aria-label="Whatsapp Number"
+              />
+            </div>
+            <div
+              *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
+              class="validation-error"
+            >
+              <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
+              <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="signup-password">Password:</label>
+            <div class="input-with-icon password-input">
+              <i class="fas fa-lock icon"></i>
+              <input
+                type="password"
+                id="signup-password"
+                formControlName="password"
+                placeholder="Password"
+                aria-label="Password"
+              />
+            </div>
+            <div
+              *ngIf="signupControls['password'].invalid && (signupControls['password'].dirty || signupControls['password'].touched)"
+              class="validation-error"
+            >
+              <div *ngIf="signupControls['password'].errors?.['required']">Password is required.</div>
+              <div *ngIf="signupControls['password'].errors?.['minlength']">Password must be at least 6 characters.</div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="signup-confirm">Confirm Password:</label>
+            <div class="input-with-icon password-input">
+              <i class="fas fa-lock icon"></i>
+              <input
+                type="password"
+                id="signup-confirm"
+                formControlName="confirmPassword"
+                placeholder="Confirm Password"
+                aria-label="Confirm Password"
+              />
+            </div>
+            <div
+              *ngIf="signupControls['confirmPassword'].invalid && (signupControls['confirmPassword'].dirty || signupControls['confirmPassword'].touched)"
+              class="validation-error"
+            >
+              <div *ngIf="signupControls['confirmPassword'].errors?.['required']">Confirm password is required.</div>
+              <div *ngIf="signupControls['confirmPassword'].errors?.['mismatch']">Passwords must match.</div>
+            </div>
+          </div>
+
+          <button mat-flat-button color="primary" type="submit" class="sign-in-button">
+            Sign Up
+          </button>
+        </form>
+
+        <div class="login-footer-links">
+          <p>
+            Already have an account?
+            <a href="" (click)="switchView('login'); $event.preventDefault();" class="blue-text">Sign In</a>
+          </p>
+        </div>
+      </div>
+
+      <div *ngSwitchCase="'forgot'">
+        <h2>Forgot Password</h2>
+        <p class="sub-text">Enter your WhatsApp number to receive an OTP.</p>
+
+        <form [formGroup]="forgotForm" (ngSubmit)="onForgotSubmit()">
+          <div class="input-group">
+            <label for="forgot-mobile">Whatsapp No:</label>
+            <div class="input-with-icon">
+              <i class="fas fa-mobile-alt icon"></i>
+              <input
+                type="tel"
+                id="forgot-mobile"
+                formControlName="mobile"
+                placeholder="Number"
+                aria-label="Whatsapp Number"
+              />
+            </div>
+            <div
+              *ngIf="forgotControls['mobile'].invalid && (forgotControls['mobile'].dirty || forgotControls['mobile'].touched)"
+              class="validation-error"
+            >
+              <div *ngIf="forgotControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
+              <div *ngIf="forgotControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
+            </div>
+          </div>
+
+          <button mat-flat-button color="primary" type="submit" class="sign-in-button">
+            Send OTP
+          </button>
+        </form>
+
+        <div class="login-footer-links">
+          <p>
+            Remembered your password?
+            <a href="" class="blue-text" (click)="switchView('login'); $event.preventDefault();">Sign In</a>
+          </p>
+        </div>
+      </div>
+      <div *ngSwitchCase="'otp'">
+        <h2>Verify OTP</h2>
+        <p class="sub-text">
+          We sent an OTP {{ pendingMobile ? 'to ' + pendingMobile : 'to your number' }}.
+          <br />
+          <small>
+            (Context: {{ otpContext === 'signup' ? 'Account Verification' : 'Password Reset' }})
+          </small>
+        </p>
+
+        <form (ngSubmit)="confirmOtp()">
+          <div class="input-group">
+            <label for="otp-input">Enter OTP:</label>
+            <div class="input-with-icon">
+              <i class="fas fa-key icon"></i>
+              <input
+                id="otp-input"
+                type="text"
+                placeholder="XXXX"
+                [(ngModel)]="otpCode"
+                maxlength="4"
+                name="otpCode"
+                class="otp-input"
+                required
+                autocomplete="one-time-code"
+              />
+            </div>
+          </div>
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            class="sign-in-button"
+            [disabled]="otpCode.trim().length < 4"
+          >
+            Verify & Proceed
+          </button>
+        </form>
+
+        <div class="login-footer-links">
+          <p>
+            Didn't receive code?
+            <a href="" class="blue-text" (click)="resendOtp(); $event.preventDefault();">Resend</a>
+          </p>
+          <p>
+            <a
+              class="blue-text"
+              (click)="switchView('login'); returnToLogin(); $event.preventDefault()"
+            >
+              Cancel
+            </a>
+          </p>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

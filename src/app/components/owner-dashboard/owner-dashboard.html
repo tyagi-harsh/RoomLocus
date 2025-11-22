@@ -1,0 +1,89 @@
+<div class="owner-container">
+  
+  <!-- Top Section: Lead Counter -->
+  <div class="top-stats">
+    <h2>Lead Left: {{ leadCount }}</h2>
+    <button class="btn-buy-lead" (click)="buyLead()">Buy Lead</button>
+  </div>
+
+  <!-- Teal Tab Bar -->
+  <div class="owner-tabs">
+    <div 
+      class="tab-item" 
+      [class.active]="activeTab === 'rentals'" 
+      (click)="setActiveTab('rentals')">
+      My Rentals
+    </div>
+    <div 
+      class="tab-item" 
+      [class.active]="activeTab === 'used-lead'" 
+      (click)="setActiveTab('used-lead')">
+      Used Lead
+    </div>
+    <div 
+      class="tab-item" 
+      [class.active]="activeTab === 'guide'" 
+      (click)="setActiveTab('guide')">
+      Guide
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="main-content">
+    
+    <!-- SECTION: Used Lead (Active) -->
+    <div *ngIf="activeTab === 'used-lead'">
+      
+      <!-- Sub Header (Gray Bar) -->
+      <div class="sub-header">
+        Customer Visited Your Profile
+      </div>
+
+      <!-- Responsive Grid for Cards -->
+      <div class="card-grid">
+        <div class="card" *ngFor="let item of leads">
+          
+          <!-- Card Header -->
+          <div class="card-top">
+            <span class="cat">{{ item.category }}</span> | 
+            <span class="loc">{{ item.location }}</span> | 
+            <span class="loc">{{ item.subLocation }}</span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="card-body">
+            <!-- Left Info -->
+            <div class="info-col">
+              <div class="name-row">Name: <span class="name-val">{{ item.name }}</span></div>
+              <div class="detail-row">Mob No.: {{ item.mobile }}</div>
+              <div class="detail-row">Date: {{ item.date }}</div>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="action-col">
+              <button class="btn-call" (click)="callLead(item.mobile)">Call</button>
+              <button class="btn-delete" (click)="deleteLead(item.id)">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+    <!-- End Used Lead Section -->
+
+    <!-- Placeholders for other tabs -->
+    <div *ngIf="activeTab === 'rentals'" class="placeholder-tab">
+      <h3>My Rentals</h3>
+      <p>List of your properties will appear here.</p>
+    </div>
+
+    <div *ngIf="activeTab === 'guide'" class="placeholder-tab">
+      <h3>Owner Guide</h3>
+      <p>Helpful tips for owners.</p>
+    </div>
+
+  </div>
+</div>

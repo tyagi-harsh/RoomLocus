@@ -1,0 +1,213 @@
+/* ================= CONTAINER ================= */
+.owner-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  min-height: 100vh;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+}
+
+/* ================= TOP STATS ================= */
+.top-stats {
+  text-align: center;
+  padding: 20px 0;
+  background-color: #fff;
+}
+
+.top-stats h2 {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+.btn-buy-lead {
+  background-color: #28a745; /* Standard Green */
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-buy-lead:hover {
+  background-color: #218838;
+}
+
+/* ================= TEAL TAB BAR ================= */
+.owner-tabs {
+  display: flex;
+  background-color: #17a2b8; /* The specific Teal color from image */
+  color: white;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 15px 0;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  opacity: 0.8;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-item:hover {
+  opacity: 1;
+  background-color: rgba(255,255,255,0.1);
+}
+
+/* Active State */
+.tab-item.active {
+  opacity: 1;
+  font-weight: 600;
+  background-color: rgba(0,0,0,0.05); /* Slight darken effect */
+  border-bottom: 3px solid #fff; /* White underline for active tab */
+}
+
+/* ================= SUB HEADER ================= */
+.sub-header {
+  background-color: #f1f3f5; /* Light Gray */
+  padding: 15px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* ================= CARD GRID LAYOUT ================= */
+.main-content {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 150px);
+}
+
+.card-grid {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr; /* Mobile Default */
+  gap: 20px;
+}
+
+/* Tablet Responsive */
+@media (min-width: 768px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
+  .owner-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 1200px;
+  margin: 20px auto;
+  background-color: #fff;
+  min-height: 100vh;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+}
+}
+
+/* Laptop Responsive */
+@media (min-width: 1024px) {
+  .card-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ================= CARD STYLING ================= */
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  border: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-top {
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 500;
+}
+
+.card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Info Column */
+.info-col {
+  flex: 1;
+}
+
+.name-row {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.name-val {
+  font-weight: 600;
+  color: #000;
+}
+
+.detail-row {
+  font-size: 0.85rem;
+  color: #777;
+  margin-bottom: 2px;
+}
+
+/* Action Column */
+.action-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Call Button (Green Pill) */
+.btn-call {
+  background-color: #03bd51 !important;
+  color: white !important;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-call:hover {
+  background-color: #03df75 !important;
+}
+
+/* Delete Button (Trash Icon) */
+.btn-delete {
+  background: #fff;
+  border: 1px solid #ffCDD2;
+  color: #ef5350;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.4s ease;
+}
+
+.btn-delete:hover {
+  background: #ffebeec1;
+}
+
+/* Placeholder Tab Styling */
+.placeholder-tab {
+  padding: 40px;
+  text-align: center;
+  color: #777;
+}

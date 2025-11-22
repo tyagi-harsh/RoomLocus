@@ -1,0 +1,62 @@
+<div class="dashboard-container">
+  <header class="header">
+    <h2>My Dashboard</h2>
+  </header>
+
+  <div class="tabs">
+    <div 
+      class="tab-item" 
+      [class.active]="activeTab === 'wishlist'" 
+      (click)="setActiveTab('wishlist')">
+      Wishlist ({{ wishlistItems.length }})
+    </div>
+    <div 
+      class="tab-item" 
+      [class.active]="activeTab === 'recent'" 
+      (click)="setActiveTab('recent')">
+      Recent Contacts ({{ contacts.length }})
+    </div>
+  </div>
+
+  <div class="content-area" *ngIf="activeTab === 'recent'">
+    <div class="card" *ngFor="let item of contacts">
+      <div class="card-top">
+        <span>{{ item.category }}</span> | <span>{{ item.location }}</span> | <span>{{ item.subLocation }}</span>
+      </div>
+      <div class="card-body">
+        <div class="info-col">
+          <div class="name-row">Name: <span class="name-val">{{ item.name }}</span></div>
+          <div class="detail-row">Mob No.: {{ item.mobile }}</div>
+          <div class="detail-row">Date: {{ item.date }}</div>
+        </div>
+        <div class="action-col">
+          <button class="btn-call" (click)="callContact(item.mobile)">Call</button>
+          <button class="btn-delete" (click)="deleteContact(item.id)">
+            <i class="fa-regular fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-area" *ngIf="activeTab === 'wishlist'">
+    <div class="card wishlist-card" *ngFor="let item of wishlistItems">
+      
+      <div class="wishlist-img-container">
+        <img [src]="item.imageUrl" alt="Property Image">
+        <button class="btn-wishlist-delete" (click)="deleteWishlistItem(item.id)">
+           <i class="fa-regular fa-trash-can"></i>
+        </button>
+      </div>
+
+      <div class="wishlist-details">
+        <div class="w-location">{{ item.location }} , {{ formatCity(item.city) }}</div>
+        <div class="w-subtext">{{ item.hotelName }} | {{ item.type }}</div>
+        <div class="w-price">{{ item.price }}</div>
+        <a href="#" class="w-link">View Details</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>

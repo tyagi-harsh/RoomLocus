@@ -1,0 +1,27 @@
+<a [routerLink]="['/property', property.id]" class="card-link" (click)="onCardClick()">
+  <div class="card">
+    <div class="card-image-container">
+      <img [src]="property.imageUrl" [alt]="property.location" />
+
+      <img
+        *ngIf="property.isVerified"
+        src="../../../assets/images/icons/new_verified_logo_n.png"
+        alt="Verified Property"
+        class="verified-badge"
+      />
+    </div>
+
+    <div class="card-content">
+      <h2>{{ property.location }}, {{ property.subLocation }}</h2>
+
+      <div class="details-row">
+        <span class="property-type">{{ property.type }}</span>
+        <span class="price">
+          ₹{{ property.priceMin | number }} - ₹{{ property.priceMax | number }}
+        </span>
+      </div>
+
+      <p class="disclaimer">All Flat Prices can be Different</p>
+    </div>
+  </div>
+</a>

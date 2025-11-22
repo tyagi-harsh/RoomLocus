@@ -1,0 +1,261 @@
+/* login-signup.component.css */
+.login-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 400px); /* Adjust based on header/footer height */
+  background-color: #ffffff; /* Light grey background */
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  box-sizing: border-box; /* Include padding in element's total width and height */
+  padding-bottom: 70px;
+  padding-top: 30px;
+}
+
+.welcome-header {
+  width: 100%;
+  max-width: 436px; /* match login card max width */
+  align-self: center; /* center block like the card */
+  text-align: right; /* align content to the right edge */
+  margin-bottom: 30px;
+}
+
+.welcome-text {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.owner-zone-links {
+  display: flex;
+  flex-direction: column; /* Stack vertically on small screens */
+  gap: 5px;
+  align-items: flex-end; /* align to the right edge */
+}
+
+.owner-zone-link,
+.list-property-link {
+  color: #17a2b8; /* Teal color */
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.list-property-link {
+  color: #6c757d; /* Grey color for list property */
+  font-weight: normal;
+  font-size: 1.1rem;
+}
+
+.owner-zone-link:hover,
+.list-property-link:hover {
+  text-decoration: underline;
+}
+
+/* Login Card Styling */
+.login-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+  border: 2px solid gray;
+  padding: 30px;
+  width: 100%;
+  max-width: 380px; /* Max width for the card */
+  text-align: center;
+  margin: 0px 10px;
+}
+
+.login-card h2 {
+  font-size: 1.82rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 32px;
+  line-height: 25px;
+}
+
+/* Input Group */
+.input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid #707171;
+  border-radius: 5px;
+  background-color: #f8f9fa; /* Light background for input area */
+}
+
+.input-with-icon .icon {
+  position: absolute; /* Position the icon inside the input field */
+  left: 15px;
+  color: #494848; /* Icon color from image */
+  font-size: 1rem;
+  z-index: 2; /* Ensure icon is above input if needed */
+}
+
+.password-input .icon {
+  position: absolute;
+}
+
+.password-input .icon::after {
+  content: '';
+  position: absolute;
+  top: 65%;
+  left: 50%;
+  transform: translate(-50%, -25%);
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: -3px 0 0 #ffffff, 3px 0 0 #ffffff;
+}
+
+.input-with-icon input {
+  width: 100%;
+  padding: 12px 45px 12px 45px; /* Adjust padding for left and right icons */
+  border: none;
+  background-color: transparent;
+  font-size: 1rem;
+  color: #333;
+  outline: none;
+  border-radius: 5px; /* Match parent border-radius */
+}
+
+.input-with-icon.password-input input {
+  padding-right: 50px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #6b6a6a57;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-password:focus {
+  outline: none;
+}
+
+.input-with-icon input::placeholder {
+  color: #858484;
+}
+
+/* Validation Error Styles */
+.validation-error {
+  color: #dc3545; /* Bootstrap red for errors */
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+/* Sign In Button */
+.sign-in-button {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 5px;
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin-top: 15px;
+  transition: transform 0.15s ease;
+  background-color: #17a2b8 !important;
+
+}
+
+.sign-in-button.cdk-focused,
+.sign-in-button.cdk-program-focused,
+.sign-in-button:hover {
+  transform: translateY(0px);
+}
+
+.sign-in-button[disabled] {
+  opacity: 0.8;
+  background-color: #17a3b8a7 !important;
+  color: white;
+}
+
+/* Footer Links */
+.login-footer-links {
+  margin-top: 25px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.sub-text {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.login-footer-links p {
+  margin-top: 10px;
+}
+
+.forgot-password-link,
+.sign-up-link {
+  text-decoration: none;
+  color: #555;
+}
+
+.blue-text {
+  color: #17a2b8; /* Teal color for "Password" and "Sign Up" */
+  font-weight: 500;
+}
+
+.forgot-password-link:hover,
+.sign-up-link:hover {
+  text-decoration: underline;
+  text-decoration-color: #17a2b8;
+}
+
+.otp-input {
+  letter-spacing: 5px;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .owner-zone-links {
+    flex-direction: row; /* Display horizontally on larger screens */
+    justify-content: flex-end; /* keep to the right edge */
+    gap: 15px; /* More space between links */
+  }
+}
+
+@media (max-width: 550px) {
+  .login-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+    border: 2px solid gray;
+    padding: 30px;
+    width: 100%;
+    max-width: 260px; /* Max width for the card */
+    text-align: center;
+  }
+  .welcome-header {
+    width: 100%;
+    max-width: 310px; /* match login card max width */
+    align-self: center; /* center block like the card */
+    text-align: right; /* align content to the right edge */
+    margin-bottom: 30px;
+  }
+}

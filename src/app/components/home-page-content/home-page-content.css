@@ -1,0 +1,403 @@
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1rem;
+  /* Space above footer */
+  padding-top: 0.6rem;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+/* --- City Carousel --- */
+.city-carousel-wrapper {
+  width: 100%;
+  padding: 0.8rem 1rem !important;
+  margin: 8px 0;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure carousel does not expand beyond container */
+:ng-deep .owl-carousel,
+:ng-deep .owl-stage-outer,
+:ng-deep .owl-stage {
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Remove extra horizontal padding that can cause overflow */
+:ng-deep .owl-carousel {
+  padding: 0;
+}
+
+/* Keep slide items from exceeding container */
+:ng-deep .owl-item {
+  box-sizing: border-box;
+}
+
+.city-card {
+  width: 100%;
+  max-width: 135px;
+  height: 115px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+}
+
+.city-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.city-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  color: rgba(255, 255, 255, 0.858);
+  /* Semi-transparent overlay */
+  background-color: rgba(0, 0, 0, 0.552);
+  padding: 6px;
+  font-weight: bold;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+/* Owl Carousel Custom Styling */
+::ng-deep .owl-theme .owl-dots .owl-dot span {
+  background: #50505068;
+  width: 8px;
+  height: 8px;
+  margin: 5px;
+  transition: all 0.3s ease;
+}
+
+::ng-deep .owl-theme .owl-dots .owl-dot.active span {
+  background: #3030309e;
+  transform: scale(1.2);
+}
+
+::ng-deep .owl-theme .owl-dots {
+  margin-top: 15px;
+}
+
+::ng-deep .owl-carousel {
+  padding: 0 2px;
+}
+
+::ng-deep .owl-carousel .owl-stage {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --- Search Form Card --- */
+.search-form-card {
+  margin: 1.2rem;
+  width: 90%;
+  max-width: 500px;
+  /* Max width for the form card */
+  padding: 1.4rem;
+  padding-top: 5px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  margin-top: 0px;
+  /* Overlap with carousel */
+  position: relative;
+  z-index: 10;
+  /* Ensure it's above the carousel */
+  background-color: #ffffff;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.1);
+}
+
+.for-rent-toggle {
+  text-align: left;
+  /* Align "For Rent" button to the right */
+  margin-bottom: 0.8rem;
+}
+
+.for-rent-button {
+  background-color: #d0d0d0 !important;
+  /* Light background for the button */
+  color: #000000 !important;
+  font-size: medium;
+  padding: 0 0.1rem;
+  height: 37px;
+  /* Smaller height for the button */
+  width: 90px;
+  line-height: 35px;
+  border-radius: 5px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.mat-mdc-text-field-wrapper{
+  height: 20px !important;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0rem;
+  /* Space between form fields */
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Custom styling for mat-form-field to match image */
+::ng-deep .mat-form-field-wrapper {
+  margin-bottom: -1.25em;
+  /* Reduce extra space below input */
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+  color: #bdbdbd !important;
+  /* Lighter outline color */
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-focused .mat-form-field-outline-thick {
+  color: #009494;
+  /* Focused outline color */
+}
+
+::ng-deep .mat-form-field-label {
+  color: #616161 !important;
+  /* Label color */
+}
+
+::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
+  color: #009494 !important;
+  /* Focused label color */
+}
+
+::ng-deep .mat-form-field-prefix,
+::ng-deep .mat-form-field-suffix {
+  margin-right: 8px;
+  /* Space for prefix/suffix icons */
+  color: #757575;
+  /* Icon color */
+}
+
+/* Size and align local PNG used as matPrefix */
+::ng-deep .mat-form-field-prefix img,
+::ng-deep img[matPrefix],
+.looking-for-icon {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+  display: inline-block;
+  margin-right: 8px;
+  /* keep spacing consistent with mat icons */
+  margin-left: 8px;
+}
+
+/* Specific sizes for city and village/sector prefix icons */
+.city-search-icon,
+.village-search-icon,
+::ng-deep img.city-search-icon[matPrefix],
+::ng-deep img.village-search-icon[matPrefix] {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+  display: inline-block;
+  margin-right: 8px;
+  margin-left: 8px;
+}
+
+.search-button {
+  background-color: #00a0af !important;
+  /* Accent color from image (cyan-like) */
+  color: white;
+  height: 50px;
+  font-size: 1.2em;
+  font-weight: 500;
+  border-radius: 5px;
+  /* Slightly rounded corners */
+  word-spacing: 4px;
+  margin-top: 5px;
+}
+
+/* --- Action Buttons --- */
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 4rem;
+  margin-top: 1rem;
+}
+
+.near-me-button {
+  /* flex: 1.5; */
+  width: 105px;
+  /* Distribute space equally */
+  height: 35px;
+  border-radius: 5px;
+  background-color: #00a0af !important;
+  /* Primary blue border */
+  color: #ffffff !important;
+  font-weight: 500;
+  display: flex;
+  /* align-items: center; */
+  font-size: 13px !important;
+}
+
+.add-rental-button {
+  width: 180px;
+  /* Distribute space equally */
+  height: 35px;
+  border-radius: 0px;
+  background-color: #d0d0d0 !important;
+  /* Primary blue border */
+  color: #000000 !important;
+  font-weight: 500;
+  font-size: 13px !important;
+  border: none;
+  padding: 0px;
+}
+
+/* PNG used in Add Rental button (replaces Material 'home' icon) */
+.add-rental-icon {
+  width: 21px;
+  height: 21px;
+  object-fit: contain;
+  display: inline-block;
+  margin-right: 2px;
+  vertical-align: middle;
+
+  /* match mat-icon spacing */
+}
+
+.near-me-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: inline-block;
+  margin-right: 2px;
+  vertical-align: middle;
+}
+
+/* --- Tagline --- */
+.tagline {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 0 0rem;
+  margin-left: 11rem;
+}
+
+.tagline h3 {
+  color: #00a0af;
+  font-size: 1.6em;
+  margin-bottom: 0.2rem;
+  font-weight: 400;
+  text-align: right;
+}
+
+.tagline p {
+  color: #2a2a2a;
+  font-size: 1.5em;
+  font-weight: 500;
+  margin: 5px 0px;
+  text-align: right;
+}
+
+/* --- Spinner within mat-option --- */
+::ng-deep .mat-option .mat-spinner {
+  display: inline-block;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.ng-star-inserted {
+  margin-bottom: 15px;
+}
+
+/* --- Responsiveness --- */
+@media (min-width: 768px) {
+  .home-container {
+    padding-bottom: 3rem;
+  }
+
+  .city-carousel-wrapper {
+    padding: 1.5rem 0;
+  }
+
+  .city-carousel {
+    justify-content: center;
+    /* Center cards on desktop */
+  }
+
+  .city-card {
+    max-width: 180px;
+    height: 130px;
+  }
+
+  .city-card img {
+    height: 100%;
+  }
+
+  .search-form-card {
+    width: 600px;
+    /* Wider card on desktop */
+    padding: 1.2rem;
+    margin-top: 0px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .city-card {
+    max-width: 195px;
+    height: 140px;
+  }
+}
+
+.near-me-button {
+  padding: 8px;
+}
+
+@media (max-width: 767px) {
+
+  .near-me-button,
+  .add-rental-button {
+    padding: 0px 3px !important;
+  }
+}
+
+@media (max-width: 550px) {
+  .tagline {
+    width: 100vw;
+    margin-top: 0rem;
+    padding: 0 0rem;
+    margin-left: 6rem;
+    margin-right: 10rem;
+  }
+
+  .tagline p {
+    color: #2f2f2f;
+    font-size: 1.4em;
+    text-align: right;
+    font-weight: 500;
+  }
+
+  .tagline h3 {
+    color: #00a0af;
+    font-size: 1.5em;
+    margin-bottom: 0.1rem;
+    font-weight: 400;
+    text-align: right;
+  }
+}

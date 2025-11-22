@@ -1,0 +1,78 @@
+.listings-container {
+  padding: 39px;
+  background-color: #ffffff; /* Light grey background for the page */
+  font-family: Arial, sans-serif;
+}
+
+.search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.116);
+  margin-bottom: 24px;
+  gap: 12px;
+}
+
+.location-info h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.location-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.search-box input {
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 29px;
+}
+
+@media (max-width: 768px) {
+  .search-box input {
+    width: 100px;
+    font-size: small;
+  }
+
+  .location-info h3 {
+    font-size: 0.9rem;
+  }
+
+  .location-info p {
+    font-size: 0.7rem;
+  }
+
+  .listings-grid {
+    grid-template-columns: 1fr;
+    gap: 29px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Laptop and up: show 3 cards per row */
+@media (min-width: 1024px) {
+  .listings-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

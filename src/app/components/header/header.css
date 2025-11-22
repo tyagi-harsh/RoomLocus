@@ -1,0 +1,181 @@
+.app-header {
+  height: 60px; /* Specific height from image */
+  background-color: #027fa5; /* CHANGED */
+  padding: 4px 16px; /* Padding for mobile */
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  cursor: pointer;
+  color: white !important;
+  padding: 0;
+}
+
+.logo-container:link,
+.logo-container:visited,
+.logo-container:hover,
+.logo-container:active,
+.logo-container:focus {
+  color: white !important;
+  text-decoration: none;
+}
+
+.logo-container * {
+  color: inherit !important;
+}
+
+.logo-icon {
+  height: 34px; /* Adjust size as needed */
+  margin-right: 8px;
+  /* If you don't have a logo image, use font awesome or text */
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+}
+
+.roomlocus-name {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: white;
+}
+
+.country-name {
+  font-size: 0.6em;
+  opacity: 0.8;
+  display: inline-block;
+  margin-top: 0px;
+  color: white;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user-icon {
+  background-color: rgba(255, 255, 255, 0.1); /* Slightly darker background for the icon button */
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-icon mat-icon {
+  font-size: 24px;
+  height: 24px;
+  width: 24px;
+  color: white;
+}
+
+/* Use a local PNG inside the user button */
+.user-icon .person-pic,
+.user-icon img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.user-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  min-width: 160px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  padding: 4px 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-5px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 20;
+}
+
+.user-menu:hover .user-dropdown,
+.user-menu:focus-within .user-dropdown,
+.user-menu.open .user-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-dropdown a {
+  display: block;
+  padding: 10px 16px;
+  color: #4d4b4b;
+  font-weight: 500;
+  font-size: 1rem;
+  text-decoration: none;
+  background-color: #fdfdfd;
+  border-radius: 4px;
+  margin: 8px 8px;
+  box-shadow:  0 2px 5px rgba(0, 0, 0, 0.104);
+}
+.user-menu,
+.user-icon {
+  transition: transform 0.2s ease;
+}
+
+
+.user-dropdown a:hover,
+.user-dropdown a:focus {
+  background: #027fa5c3;
+  color: white;
+}
+
+.header-accent {
+  width: 100%;
+  height: 5px;
+  background-color: #00b1b1;
+}
+
+@media (max-width: 600px) {
+  .user-menu {
+    margin-right: 5px;
+  }
+
+  .user-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .user-icon .person-pic,
+  .user-icon img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .user-dropdown {
+    min-width: 140px;
+    top: calc(100% + 4px);
+  }
+}
+
+/* Desktop adjustments */
+@media (min-width: 768px) {
+  .app-header {
+    padding: 0 24px; /* More padding on larger screens */
+  }
+  .logo-text {
+    flex-direction: row;
+    align-items: baseline;
+    line-height: 1.5;
+  }
+  .country-name {
+    margin-left: 5px;
+  }
+}

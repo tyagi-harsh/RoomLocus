@@ -1,0 +1,100 @@
+/* Main container */
+.footer-container {
+  background-color: #ebeaea; /* Light grey background from image */
+  padding-top: 25px; /* Space above icons */
+  font-family: Arial, sans-serif;
+  text-align: center;
+  overflow: hidden; /* Ensures the copyright bar renders correctly */
+  margin-top: 24px;
+}
+
+/* Social Icons Section */
+.social-icons {
+  margin-bottom: 20px;
+}
+
+.social-icons a {
+  display: inline-block;
+  width: 44px;
+  height: 44px;
+  line-height: 44px; /* Vertically centers the icon font */
+  border-radius: 50%; /* Makes it circular */
+  margin: 0 8px;
+  color: white;
+  font-size: 22px; /* Icon size */
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.social-icons a:hover {
+  transform: scale(1.1); /* Simple hover effect */
+}
+
+/* Icon-specific colors */
+.icon-facebook {
+  background-color: #3b5998;
+}
+
+.icon-linkedin {
+  background-color: #0077b5;
+}
+
+.icon-instagram {
+  /* Instagram Gradient */
+  background: linear-gradient(
+    45deg,
+    #f09433 0%,
+    #e6683c 25%,
+    #dc2743 50%,
+    #cc2366 75%,
+    #bc1888 100%
+  );
+}
+
+/* Footer Links (common styles) */
+.footer-links {
+  margin-bottom: 15px;
+}
+
+.footer-links a {
+  text-decoration: none;
+  margin: 0 5px;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+.footer-links span {
+  color: #555;
+  margin: 0 5px; /* Space around the divider */
+}
+
+/* Primary Links (About Us, Contact Us) */
+.primary-links a {
+  color: #333; /* Darker text */
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Secondary Links (Privacy, etc.) */
+.secondary-links {
+  margin-bottom: 25px; /* More space before the copyright bar */
+}
+
+.secondary-links a {
+  color: #555; /* Lighter grey text */
+  font-size: 0.9rem;
+}
+
+/* Copyright Bar */
+.copyright-bar {
+  background-color: #c5c9cc; /* Dark grey bar from image */
+  color: #000000; /* Light text */
+  padding: 15px 10px;
+}
+
+.copyright-bar p {
+  margin: 0;
+  font-size: 0.85rem;
+}

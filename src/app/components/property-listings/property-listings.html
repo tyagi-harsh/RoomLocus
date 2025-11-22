@@ -1,0 +1,24 @@
+<div class="listings-container">
+  
+
+  <div class="search-header">
+    <div class="location-info">
+      <h3>{{ capitalizeFirstLetter(city) }} - {{ sector ? sector : 'All Sector' }}</h3>
+      <p>
+        Total {{ type ? type : 'Property' }} Search -
+        {{ totalResults ?? filteredProperties.length }}
+      </p>
+    </div>
+    <div class="search-box">
+      <input type="text" placeholder="Search Area" />
+    </div>
+  </div>
+
+  <div class="listings-grid">
+   
+    <app-property-card *ngFor="let property of filteredProperties" [property]="property">
+    </app-property-card>
+  
+    <!-- <app-property-card *ngFor="let prop of properties" [property]="prop"> </app-property-card> -->
+  </div>
+</div>

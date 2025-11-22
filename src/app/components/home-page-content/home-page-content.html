@@ -1,0 +1,126 @@
+<div class="home-container">
+  <div class="city-carousel-wrapper">
+    <owl-carousel-o [options]="carouselOptions" *ngIf="cities$ | async as cities">
+      <ng-container *ngFor="let city of cities">
+        <ng-template carouselSlide>
+          <mat-card class="city-card">
+            <img mat-card-image [src]="city.imageUrl" [alt]="city.name" />
+            <div class="city-name">{{ city.name }}</div>
+          </mat-card>
+        </ng-template>
+      </ng-container>
+    </owl-carousel-o>
+  </div>
+
+  <mat-card class="search-form-card">
+    <!-- Debug panel: shows last /townSector request & response for troubleshooting
+    <div class="debug-panel" style="padding:8px; background:#fff8c6; border:1px solid #f0e68c; margin:8px 0;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+        <div style="font-weight:600;">Debug — last townSector request</div>
+        <button mat-stroked-button color="warn" (click)="clearLocationCache()" style="padding:0 8px;">
+          Clear cache
+        </button>
+      </div>
+      <div style="font-size:12px; color:#333; word-break:break-all;">
+        URL:
+        <span *ngIf="lastLocationsRequest$ | async as req; else noReq">{{ req }}</span>
+        <ng-template #noReq>n/a</ng-template>
+      </div>
+
+      <div style="margin-top:6px; font-weight:600;">Parsed response:</div>
+
+      <div style="font-size:12px; color:#333; white-space:pre-wrap; max-height:120px; overflow:auto;">
+        {{ (lastLocationsResponse$ | async) | json }}
+      </div>
+    </div> -->
+
+    <div class="for-rent-toggle">
+      <button mat-flat-button color="primary" class="for-rent-button">For Rent</button>
+    </div>
+
+    <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="search-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Looking for</mat-label>
+        <img matPrefix src="/assets/images/icons/looking_for_search_bar.png" alt="Looking for"
+          class="looking-for-icon" />
+        <mat-select formControlName="lookingFor" yPosition="below">
+          <ng-container *ngIf="lookingForOptions$ | async as options; else spinnerTemplate">
+            <mat-option *ngFor="let option of options" [value]="option">
+              {{ option }}
+            </mat-option>
+          </ng-container>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Select City</mat-label>
+        <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
+        <mat-select formControlName="city" yPosition="below" (openedChange)="onCityDropdownOpened($event)">
+          <ng-container *ngIf="cities$ | async as cities; else spinnerTemplate">
+            <mat-option *ngFor="let city of cities" [value]="city.id">
+              {{ city.name }}
+            </mat-option>
+          </ng-container>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Village & Sector</mat-label>
+        <img matPrefix src="/assets/images/icons/icon_location.png" alt="Village and Sector"
+          class="village-search-icon" />
+        <mat-select formControlName="location" (openedChange)="onLocationDropdownOpened($event)">
+          <mat-option *ngIf="isLocationLoading$ | async" disabled>
+            Loading locations...
+          </mat-option>
+
+          <ng-container *ngIf="!(isLocationLoading$ | async)">
+            <ng-container *ngIf="locations$ | async as locations">
+              <mat-option *ngIf="searchForm.get('city')?.value && !searchForm.get('lookingFor')?.value" disabled>
+                Select a property type to load locations
+              </mat-option>
+              <mat-option *ngIf="locations.length === 0 && searchForm.get('city')?.value" disabled>
+                No locations found for selected city
+              </mat-option>
+              <mat-option *ngIf="locations.length === 0 && !searchForm.get('city')?.value" disabled>
+                Please select a city first
+              </mat-option>
+              <mat-option *ngFor="let loc of locations" [value]="loc">
+                {{ loc }}
+              </mat-option>
+            </ng-container>
+          </ng-container>
+        </mat-select>
+        <mat-error *ngIf="
+            searchForm.get('location')?.touched && searchForm.get('location')?.hasError('required')
+          ">
+          Please select a location
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-flat-button color="accent" type="submit" class="search-button">
+        Let's Search..
+      </button>
+    </form>
+
+    <ng-template #spinnerTemplate>
+      <div class="spinner-container">
+        <mat-spinner diameter="30"></mat-spinner>
+      </div>
+    </ng-template>
+
+    <div class="action-buttons">
+      <button mat-flat-button color="primary" class="near-me-button">
+        <img src="/assets/images/icons/near_me.png" alt="Near Me" class="near-me-icon" />Near Me
+      </button>
+      <button mat-flat-button color="primary" class="add-rental-button">
+        <img src="/assets/images/icons/add_rental_2.png" alt="Add Rental" class="add-rental-icon" />
+        Add Rental Free >
+      </button>
+    </div>
+  </mat-card>
+
+  <div class="tagline">
+    <h3>India's Largest Room Collection</h3>
+    <p>Trust on Verified Room</p>
+  </div>
+</div>

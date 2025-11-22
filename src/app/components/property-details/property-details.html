@@ -1,0 +1,176 @@
+<div class="details-page">
+  <div class="top-content-wrapper">
+    <div class="gallery-section">
+      <div class="main-image-container">
+        <img [src]="selectedImage" alt="Main property view" class="property-image" />
+
+        <img
+          *ngIf="!details.isVerified"
+          src="/assets/images/icons/not_verified_n.png"
+          alt="Property not verified"
+          class="not-verified-img"
+        />
+
+        <div class="top-right-buttons">
+          <button
+            class="fav-btn"
+            [class.liked]="liked"
+            [class.popping]="animateHeart"
+            (click)="toggleFavorite()"
+            aria-label="Toggle favorite"
+            [title]="liked ? 'Added to Wishlist' : 'Add to Wishlist'"
+          >
+            <i class="fas fa-heart"></i>
+          </button>
+          <div class="loved-pop" *ngIf="showLoved">Liked</div>
+          <button
+            class="share-btn"
+            (click)="shareProperty()"
+            aria-label="Share property"
+            title="Share"
+          >
+            <i class="fas fa-share-alt"></i>
+          </button>
+        </div>
+
+        <button
+          class="nav-btn prev"
+          (click)="prevImage()"
+          aria-label="Previous image"
+          title="Previous"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="nav-btn next" (click)="nextImage()" aria-label="Next image" title="Next">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="thumbnail-list">
+        <img
+          *ngFor="let img of details.gallery"
+          [src]="img"
+          (click)="selectImage(img)"
+          [class.active]="img === selectedImage"
+          alt="Property thumbnail"
+        />
+      </div>
+    </div>
+
+    <div class="right-pane">
+      <div class="primary-info-section">
+        <h2>{{ details.location }}</h2>
+        <p class="price">
+          ₹{{ details.priceMin | number }} - ₹{{ details.priceMax | number }}
+          {{ details.pricePeriod }}
+        </p>
+
+        <div class="details-grid-small">
+          <div class="grid-item">
+            <h3>Security</h3>
+            <p>{{ details.keyDetails.security }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Maintenance</h3>
+            <p>{{ details.keyDetails.maintenance }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Type</h3>
+            <p>{{ details.keyDetails.type }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Furnishing</h3>
+            <p>{{ details.keyDetails.furnishing }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Accommodation</h3>
+            <p>{{ details.keyDetails.accommodation }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Gender</h3>
+            <p>{{ details.keyDetails.gender }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="secondary-info-section">
+        <div class="details-grid-large">
+          <div class="grid-item">
+            <h3>Room Type</h3>
+            <p>{{ details.specs.roomType }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Total Room</h3>
+            <p>{{ details.specs.totalRoom }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Water Supply</h3>
+            <p>{{ details.specs.waterSupply }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Power Backup</h3>
+            <p>{{ details.specs.powerBackup }}</p>
+          </div>
+          <div class="grid-item">
+            <h3>Room Available</h3>
+            <p>{{ details.specs.roomAvailable }}</p>
+          </div>
+        </div>
+
+        <div class="info-section isx">
+          <h2>Offer</h2>
+          <p>{{ details.offer }}</p>
+        </div>
+
+        <div class="info-section">
+          <h2>Address</h2>
+          <div class="address-box">
+            <p>
+              <strong>{{ details.address.area }}</strong>
+            </p>
+            <p>Landmark: {{ details.address.landmark }}</p>
+            <p>Location: {{ details.address.location }}</p>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h2>Prefer Tenants</h2>
+          <ul class="facility-list">
+            <li *ngFor="let tenant of details.preferTenants">
+              <i class="fas fa-check"></i> {{ tenant }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="info-section">
+          <h2>Parking</h2>
+          <ul class="facility-list">
+            <li *ngFor="let item of details.parking"><i class="fas fa-check"></i> {{ item }}</li>
+          </ul>
+        </div>
+
+        <div class="info-section">
+          <h2>Room Inside Facilities :</h2>
+          <ul class="facility-list">
+            <li *ngFor="let item of details.roomInsideFacilities">
+              <i class="fas fa-check"></i> {{ item }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="info-section">
+          <h2>Room Outside Facilities :</h2>
+          <ul class="facility-list">
+            <li *ngFor="let item of details.roomOutsideFacilities">
+              <i class="fas fa-check"></i> {{ item }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact-section">
+    <button mat-flat-button color="primary" class="contact-btn">Contact Owner</button>
+  </div>
+</div>

@@ -1,0 +1,33 @@
+<mat-toolbar color="primary" class="app-header">
+  <a routerLink="/home" class="logo-container">
+    <img src="/assets/images/FINAL_LOGO_ROOMLOCUS.png" alt="Roomlocus Logo" class="logo-icon" />
+    <!-- <div class="logo-text">
+      <span class="roomlocus-name">room<span style="font-weight: 300;">locus</span></span>
+      <span class="country-name" >India</span>
+    </div> <-- add if logo doesnt have text -->
+  </a>
+  <span class="spacer"></span>
+  <div
+    class="user-menu"
+    [class.open]="dropdownOpen"
+    (mouseenter)="openDropdown()"
+    (mouseleave)="closeDropdown()"
+  >
+    <button
+      mat-icon-button
+      class="user-icon"
+      type="button"
+      aria-haspopup="true"
+      [attr.aria-expanded]="dropdownOpen"
+      (click)="toggleDropdown()"
+    >
+      <img src="/assets/images/icons/user_icon_+.png" alt="User" class="person-pic" />
+    </button>
+    <div class="user-dropdown" role="menu">
+      <a role="menuitem" routerLink="/login" (click)="closeDropdown()">User Login</a>
+      <a role="menuitem" routerLink="/login" (click)="closeDropdown()">Agent Login</a>
+      <a role="menuitem" routerLink="/login" (click)="closeDropdown()">Owner Login</a>
+    </div>
+  </div>
+</mat-toolbar>
+<div class="header-accent"></div>
