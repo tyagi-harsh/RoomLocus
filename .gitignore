@@ -38,6 +38,14 @@ testem.log
 /typings
 __screenshots__/
 
+# Generated log files
+build-output.log
+ng-animations-versions.log
+ng-build-versions.log
+ng-cli-versions.log
+npm-install-legacy.log
+npm-install-verbose.log
+
 # System files
 .DS_Store
 Thumbs.db
