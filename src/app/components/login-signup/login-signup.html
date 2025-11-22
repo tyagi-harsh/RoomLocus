@@ -99,107 +99,109 @@
         <h2>Create Account</h2>
 
         <form [formGroup]="signupForm" (ngSubmit)="onSignupSubmit()">
-          <div class="input-group">
-            <label for="signup-name">Full Name:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-user icon"></i>
-              <input
-                type="text"
-                id="signup-name"
-                formControlName="name"
-                placeholder="Full Name"
-                aria-label="Full Name"
-              />
+          <div class="signup-grid">
+            <div class="input-group">
+              <label for="signup-name">Full Name:</label>
+              <div class="input-with-icon">
+                <i class="fas fa-user icon"></i>
+                <input
+                  type="text"
+                  id="signup-name"
+                  formControlName="name"
+                  placeholder="Full Name"
+                  aria-label="Full Name"
+                />
+              </div>
+              <div
+                *ngIf="signupControls['name'].invalid && (signupControls['name'].dirty || signupControls['name'].touched)"
+                class="validation-error"
+              >
+                <div *ngIf="signupControls['name'].errors?.['required']">Full Name is required.</div>
+              </div>
             </div>
-            <div
-              *ngIf="signupControls['name'].invalid && (signupControls['name'].dirty || signupControls['name'].touched)"
-              class="validation-error"
-            >
-              <div *ngIf="signupControls['name'].errors?.['required']">Full Name is required.</div>
-            </div>
-          </div>
 
-          <div class="input-group">
-            <label for="signup-email">Email:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-envelope icon"></i>
-              <input
-                type="email"
-                id="signup-email"
-                formControlName="email"
-                placeholder="Email"
-                aria-label="Email"
-              />
+            <div class="input-group">
+              <label for="signup-email">Email:</label>
+              <div class="input-with-icon">
+                <i class="fas fa-envelope icon"></i>
+                <input
+                  type="email"
+                  id="signup-email"
+                  formControlName="email"
+                  placeholder="Email"
+                  aria-label="Email"
+                />
+              </div>
+              <div
+                *ngIf="signupControls['email'].invalid && (signupControls['email'].dirty || signupControls['email'].touched)"
+                class="validation-error"
+              >
+                <div *ngIf="signupControls['email'].errors?.['required']">Email is required.</div>
+                <div *ngIf="signupControls['email'].errors?.['email']">Invalid email.</div>
+              </div>
             </div>
-            <div
-              *ngIf="signupControls['email'].invalid && (signupControls['email'].dirty || signupControls['email'].touched)"
-              class="validation-error"
-            >
-              <div *ngIf="signupControls['email'].errors?.['required']">Email is required.</div>
-              <div *ngIf="signupControls['email'].errors?.['email']">Invalid email.</div>
-            </div>
-          </div>
 
-          <div class="input-group">
-            <label for="signup-mobile">Whatsapp No:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-mobile-alt icon"></i>
-              <input
-                type="tel"
-                id="signup-mobile"
-                formControlName="mobile"
-                placeholder="Number"
-                aria-label="Whatsapp Number"
-              />
+            <div class="input-group">
+              <label for="signup-mobile">Whatsapp No:</label>
+              <div class="input-with-icon">
+                <i class="fas fa-mobile-alt icon"></i>
+                <input
+                  type="tel"
+                  id="signup-mobile"
+                  formControlName="mobile"
+                  placeholder="Number"
+                  aria-label="Whatsapp Number"
+                />
+              </div>
+              <div
+                *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
+                class="validation-error"
+              >
+                <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
+                <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
+              </div>
             </div>
-            <div
-              *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
-              class="validation-error"
-            >
-              <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
-              <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
-            </div>
-          </div>
 
-          <div class="input-group">
-            <label for="signup-password">Password:</label>
-            <div class="input-with-icon password-input">
-              <i class="fas fa-lock icon"></i>
-              <input
-                type="password"
-                id="signup-password"
-                formControlName="password"
-                placeholder="Password"
-                aria-label="Password"
-              />
+            <div class="input-group">
+              <label for="signup-password">Password:</label>
+              <div class="input-with-icon password-input">
+                <i class="fas fa-lock icon"></i>
+                <input
+                  type="password"
+                  id="signup-password"
+                  formControlName="password"
+                  placeholder="Password"
+                  aria-label="Password"
+                />
+              </div>
+              <div
+                *ngIf="signupControls['password'].invalid && (signupControls['password'].dirty || signupControls['password'].touched)"
+                class="validation-error"
+              >
+                <div *ngIf="signupControls['password'].errors?.['required']">Password is required.</div>
+                <div *ngIf="signupControls['password'].errors?.['minlength']">Password must be at least 6 characters.</div>
+              </div>
             </div>
-            <div
-              *ngIf="signupControls['password'].invalid && (signupControls['password'].dirty || signupControls['password'].touched)"
-              class="validation-error"
-            >
-              <div *ngIf="signupControls['password'].errors?.['required']">Password is required.</div>
-              <div *ngIf="signupControls['password'].errors?.['minlength']">Password must be at least 6 characters.</div>
-            </div>
-          </div>
 
-          <div class="input-group">
-            <label for="signup-confirm">Confirm Password:</label>
-            <div class="input-with-icon password-input">
-              <i class="fas fa-lock icon"></i>
-              <input
-                type="password"
-                id="signup-confirm"
-                formControlName="confirmPassword"
-                placeholder="Confirm Password"
-                aria-label="Confirm Password"
-              />
-            </div>
-            <div
-              *ngIf="signupControls['confirmPassword'].invalid && (signupControls['confirmPassword'].dirty || signupControls['confirmPassword'].touched)"
-              class="validation-error"
-            >
-              <div *ngIf="signupControls['confirmPassword'].errors?.['required']">Confirm password is required.</div>
-              <div *ngIf="signupControls['confirmPassword'].errors?.['mismatch']">Passwords must match.</div>
+            <div class="input-group">
+              <label for="signup-confirm">Confirm Password:</label>
+              <div class="input-with-icon password-input">
+                <i class="fas fa-lock icon"></i>
+                <input
+                  type="password"
+                  id="signup-confirm"
+                  formControlName="confirmPassword"
+                  placeholder="Confirm Password"
+                  aria-label="Confirm Password"
+                />
+              </div>
+              <div
+                *ngIf="signupControls['confirmPassword'].invalid && (signupControls['confirmPassword'].dirty || signupControls['confirmPassword'].touched)"
+                class="validation-error"
+              >
+                <div *ngIf="signupControls['confirmPassword'].errors?.['required']">Confirm password is required.</div>
+                <div *ngIf="signupControls['confirmPassword'].errors?.['mismatch']">Passwords must match.</div>
+              </div>
             </div>
           </div>
 

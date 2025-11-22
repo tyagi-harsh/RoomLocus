@@ -3,7 +3,32 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button'; // For the button
 import { PropertyDetails as PropertyDetailsInterface } from '../../interface/Property';
+import { PropertySearchService } from '../../services/property-search.service';
 // import { Footer } from '../footer/footer';
+
+interface ApiPropertyDetailsResponse {
+  id: number;
+  city: string;
+  townSector: string;
+  roomType: string;
+  minprice: number;
+  maxprice: number;
+  security: number;
+  maintenance: number;
+  totalRoom: number;
+  waterSupply: number;
+  powerBackup: number;
+  offer: string;
+  bhk: string;
+  roomAvailable: string;
+  furnishingType: string;
+  accomoType: string;
+  genderPrefer: string;
+  parking: string[];
+  preferTenants: string[];
+  insideFacilities: string[];
+  outsideFacilities: string[];
+}
 
 @Component({
   selector: 'app-property-details',
@@ -70,14 +95,29 @@ export class PropertyDetails implements OnInit {
     ],
   };
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private propertySearch: PropertySearchService) {}
   selectedImage: string = '';
 
   ngOnInit(): void {
-    // Set the default selected image to the first one in the gallery
-    if (this.details.gallery.length > 0) {
-      this.selectedImage = this.details.gallery[0];
-    }
+    this.selectedImage = this.details.gallery.length > 0 ? this.details.gallery[0] : '';
+
+    this.route.paramMap.subscribe((params) => {
+      this.propertyId = params.get('id');
+      const propertyType = params.get('type') || 'room';
+
+      if (this.propertyId) {
+        const numericId = Number(this.propertyId);
+        if (!Number.isNaN(numericId)) {
+          this.propertySearch.getPropertyDetails(propertyType, numericId).subscribe((response) => {
+            if (response) {
+              this.applyApiResponse(response);
+            }
+          });
+        }
+      }
+
+      this.restoreLikedState();
+    });
   }
 
   // Function to change the main image
@@ -103,19 +143,66 @@ export class PropertyDetails implements OnInit {
     this.selectedImage = this.details.gallery[newIndex];
   }
 
-  ngAfterViewInit(): void {
-    // Get the property ID from the route parameter
-    this.route.paramMap.subscribe((params) => {
-      this.propertyId = params.get('id');
-      // Here you would typically fetch property details based on the ID
-      // For now, we'll use the mock data
-      console.log('Property ID:', this.propertyId);
+  private restoreLikedState(): void {
+    const key = this.getStorageKey();
+    const saved = localStorage.getItem(key);
+    this.liked = saved === '1';
+  }
 
-      // Initialize liked state from localStorage once we have an id
-      const key = this.getStorageKey();
-      const saved = localStorage.getItem(key);
-      this.liked = saved === '1';
-    });
+  private applyApiResponse(data: ApiPropertyDetailsResponse): void {
+    const formattedLocation = data.city
+      ? `${data.city}${data.townSector ? ', ' + data.townSector : ''}`
+      : this.details.location;
+
+    this.details = {
+      ...this.details,
+      location: formattedLocation,
+      priceMin: data.minprice ?? this.details.priceMin,
+      priceMax: data.maxprice ?? this.details.priceMax,
+      keyDetails: {
+        security: this.toDisplayNumber(data.security),
+        maintenance: this.toDisplayNumber(data.maintenance),
+        type: data.bhk || data.roomType || this.details.keyDetails.type,
+        furnishing: data.furnishingType || this.details.keyDetails.furnishing,
+        accommodation: data.accomoType || this.details.keyDetails.accommodation,
+        gender: data.genderPrefer || this.details.keyDetails.gender,
+      },
+      specs: {
+        roomType: data.roomType || this.details.specs.roomType,
+        totalRoom: data.totalRoom ?? this.details.specs.totalRoom,
+        waterSupply: this.formatHours(data.waterSupply),
+        powerBackup: this.formatHours(data.powerBackup),
+        roomAvailable: data.roomAvailable || this.details.specs.roomAvailable,
+      },
+      offer: data.offer || this.details.offer,
+      address: {
+        area: data.townSector || this.details.address.area,
+        landmark: this.details.address.landmark,
+        location: data.city || this.details.address.location,
+      },
+      preferTenants: data.preferTenants ?? [],
+      parking: data.parking ?? [],
+      roomInsideFacilities: data.insideFacilities ?? [],
+      roomOutsideFacilities: data.outsideFacilities ?? [],
+    };
+
+    if (this.details.gallery.length > 0) {
+      this.selectedImage = this.details.gallery[0];
+    }
+  }
+
+  private toDisplayNumber(value?: number): string {
+    if (value === undefined || value === null) {
+      return '0';
+    }
+    return value.toLocaleString('en-IN');
+  }
+
+  private formatHours(value?: number): string {
+    if (value === undefined || value === null) {
+      return 'N/A';
+    }
+    return `${value} hr`;
   }
 
   private getStorageKey(): string {

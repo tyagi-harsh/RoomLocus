@@ -67,6 +67,18 @@
   margin: 0px 10px;
 }
 
+.signup-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.signup-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .login-card h2 {
   font-size: 1.82rem;
   font-weight: 500;
@@ -173,7 +185,7 @@
   border-radius: 5px;
   font-size: 1.15rem;
   font-weight: 500;
-  margin-top: 15px;
+  margin-top: 28px;
   transition: transform 0.15s ease;
   background-color: #17a2b8 !important;
 
@@ -196,6 +208,22 @@
   margin-top: 25px;
   font-size: 0.95rem;
   color: #555;
+}
+
+@media (min-width: 960px) {
+  .signup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+  }
+
+  .signup-grid .input-group {
+    margin-bottom: 0;
+  }
+
+  .signup-grid .input-group:nth-child(odd) {
+    margin-right: 8px;
+  }
 }
 
 .sub-text {
@@ -237,6 +265,22 @@
     flex-direction: row; /* Display horizontally on larger screens */
     justify-content: flex-end; /* keep to the right edge */
     gap: 15px; /* More space between links */
+  }
+}
+
+@media (min-width: 960px) {
+  .signup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+  }
+
+  .signup-grid .input-group {
+    margin-bottom: 0;
+  }
+
+  .signup-grid .input-group:nth-child(odd) {
+    margin-right: 8px;
   }
 }
 
