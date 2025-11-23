@@ -7,7 +7,7 @@
     </div>
   </div>
 
-  <div class="login-card">
+  <div class="login-card" [class.signup-active]="authView === 'signup'">
     <ng-container [ngSwitch]="authView">
       <div *ngSwitchCase="'login'">
         <h2>Login</h2>
@@ -205,7 +205,7 @@
             </div>
           </div>
 
-          <button mat-flat-button color="primary" type="submit" class="sign-in-button">
+          <button mat-flat-button color="primary" type="submit" class="sign-in-button sib-sug">
             Sign Up
           </button>
         </form>

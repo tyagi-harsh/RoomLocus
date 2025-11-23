@@ -10,7 +10,7 @@
   padding: 20px;
   box-sizing: border-box; /* Include padding in element's total width and height */
   padding-bottom: 70px;
-  padding-top: 30px;
+  padding-top: 7px;
 }
 
 .welcome-header {
@@ -70,13 +70,7 @@
 .signup-grid {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-.signup-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .login-card h2 {
@@ -178,6 +172,8 @@
   margin-top: 5px;
 }
 
+
+
 /* Sign In Button */
 .sign-in-button {
   width: 100%;
@@ -185,11 +181,22 @@
   border-radius: 5px;
   font-size: 1.15rem;
   font-weight: 500;
-  margin-top: 28px;
+  margin-top: 18px;
   transition: transform 0.15s ease;
   background-color: #17a2b8 !important;
 
 }
+
+.signup-grid {
+  margin-bottom: 5px;
+}
+
+
+.sib-sug{
+  height: 45px;
+  margin-bottom: 10px;
+}
+
 
 .sign-in-button.cdk-focused,
 .sign-in-button.cdk-program-focused,
@@ -211,17 +218,30 @@
 }
 
 @media (min-width: 960px) {
+  .login-card.signup-active {
+    max-width: 860px;
+  }
   .signup-grid {
+  margin-bottom: 25px;
+}
+
+.sib-sug{
+  max-width: 32%;
+  height: 45px;
+  margin-bottom: 10px;
+}
+
+  .login-card.signup-active .signup-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 24px;
   }
 
-  .signup-grid .input-group {
+  .login-card.signup-active .signup-grid .input-group {
     margin-bottom: 0;
   }
 
-  .signup-grid .input-group:nth-child(odd) {
+  .login-card.signup-active .signup-grid .input-group:nth-child(odd) {
     margin-right: 8px;
   }
 }
@@ -266,22 +286,19 @@
     justify-content: flex-end; /* keep to the right edge */
     gap: 15px; /* More space between links */
   }
+  .login-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 400px); /* Adjust based on header/footer height */
+  background-color: #ffffff; /* Light grey background */
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  box-sizing: border-box; /* Include padding in element's total width and height */
+  padding-bottom: 70px;
+  padding-top: 30px;
 }
-
-@media (min-width: 960px) {
-  .signup-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 24px;
-  }
-
-  .signup-grid .input-group {
-    margin-bottom: 0;
-  }
-
-  .signup-grid .input-group:nth-child(odd) {
-    margin-right: 8px;
-  }
 }
 
 @media (max-width: 550px) {
