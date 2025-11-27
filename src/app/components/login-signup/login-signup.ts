@@ -58,6 +58,8 @@ export class LoginSignup implements OnInit {
   signupForm!: FormGroup;
   forgotForm!: FormGroup;
   showPassword = false;
+  showSignupPassword = false;
+  showSignupConfirmPassword = false;
   otpCode = '';
   otpContext: 'signup' | 'forgot' = 'signup';
   pendingMobile?: string;
@@ -78,11 +80,7 @@ export class LoginSignup implements OnInit {
   ngOnInit(): void {
     this.loginForm = new FormGroup({
       whatsappNo: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
-      password: new FormControl('', [
-        Validators.required,
-        Validators.minLength(6),
-        passwordValidator(),
-      ]),
+      password: new FormControl('', [Validators.required, Validators.minLength(6)]),
     });
 
     this.signupForm = new FormGroup({
@@ -192,6 +190,14 @@ export class LoginSignup implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
+  toggleSignupPasswordVisibility(field: 'password' | 'confirmPassword'): void {
+    if (field === 'password') {
+      this.showSignupPassword = !this.showSignupPassword;
+    } else {
+      this.showSignupConfirmPassword = !this.showSignupConfirmPassword;
+    }
+  }
+
   get passwordErrorMessage(): string | null {
     const control = this.loginForm.get('password');
     const errors = control?.errors;
@@ -206,6 +212,30 @@ export class LoginSignup implements OnInit {
     if (errors['minlength']) {
       return 'Password must be at least 6 characters.';
     }
+    if (errors['missingUppercase']) {
+      return 'Password must include at least one uppercase letter.';
+    }
+    if (errors['missingLowercase']) {
+      return 'Password must include at least one lowercase letter.';
+    }
+    if (errors['missingNumber']) {
+      return 'Password must include at least one number.';
+    }
+    if (errors['missingSpecial']) {
+      return 'Password must include at least one special character.';
+    }
+
+    return null;
+  }
+
+  get signupPasswordErrorMessage(): string | null {
+    const control = this.signupForm.get('password');
+    const errors = control?.errors;
+
+    if (!errors) {
+      return null;
+    }
+
     if (errors['missingUppercase']) {
       return 'Password must include at least one uppercase letter.';
     }

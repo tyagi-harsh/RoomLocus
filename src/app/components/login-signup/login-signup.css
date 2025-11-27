@@ -134,7 +134,7 @@
   padding: 12px 45px 12px 45px; /* Adjust padding for left and right icons */
   border: none;
   background-color: transparent;
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: #333;
   outline: none;
   border-radius: 5px; /* Match parent border-radius */
@@ -151,10 +151,14 @@
   border: none;
   color: #6b6a6a57;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.toggle-password i {
+  font-size: 0.85em;
 }
 
 .toggle-password:focus {

@@ -167,12 +167,20 @@
               <div class="input-with-icon password-input">
                 <i class="fas fa-lock icon"></i>
                 <input
-                  type="password"
+                  [type]="showSignupPassword ? 'text' : 'password'"
                   id="signup-password"
                   formControlName="password"
                   placeholder="Password"
                   aria-label="Password"
                 />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="toggleSignupPasswordVisibility('password')"
+                  aria-label="Toggle password visibility"
+                >
+                  <i class="fas" [ngClass]="showSignupPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                </button>
               </div>
               <div
                 *ngIf="signupControls['password'].invalid && (signupControls['password'].dirty || signupControls['password'].touched)"
@@ -180,6 +188,9 @@
               >
                 <div *ngIf="signupControls['password'].errors?.['required']">Password is required.</div>
                 <div *ngIf="signupControls['password'].errors?.['minlength']">Password must be at least 6 characters.</div>
+                <ng-container *ngIf="signupPasswordErrorMessage as message">
+                  {{ message }}
+                </ng-container>
               </div>
             </div>
 
@@ -188,12 +199,20 @@
               <div class="input-with-icon password-input">
                 <i class="fas fa-lock icon"></i>
                 <input
-                  type="password"
+                  [type]="showSignupConfirmPassword ? 'text' : 'password'"
                   id="signup-confirm"
                   formControlName="confirmPassword"
                   placeholder="Confirm Password"
                   aria-label="Confirm Password"
                 />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="toggleSignupPasswordVisibility('confirmPassword')"
+                  aria-label="Toggle confirm password visibility"
+                >
+                  <i class="fas" [ngClass]="showSignupConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                </button>
               </div>
               <div
                 *ngIf="signupControls['confirmPassword'].invalid && (signupControls['confirmPassword'].dirty || signupControls['confirmPassword'].touched)"
