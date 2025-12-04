@@ -55,9 +55,103 @@ const lookingForOptions: string[] = ['Flat', 'Room', 'PG', 'Hourly Room'];
   providedIn: 'root',
 })
 export class ApiService {
-  private readonly API_URL = 'http://localhost:8082';
+  // Backend base includes the internal API prefix used by the server
+  private readonly API_URL = 'http://localhost:8082/api/v1/internal';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
+
+  /**
+   * Fetch the RSA public key from the backend as plain text (PEM).
+   * Expected endpoint: GET /api/auth/public-key
+   */
+  getPublicKey(): Observable<string> {
+    return this.http.get(`${this.API_URL}/auth/public-key`, { responseType: 'text' }).pipe(
+      catchError((error) => {
+        console.error('Failed to fetch public key:', error);
+        return of('');
+      })
+    );
+  }
+
+  /**
+   * Register a new user with the backend. Expects a payload matching UserRegistrationRequest.
+   */
+  register(payload: { username: string; email: string; mobile: string; password: string; userType: string }): Observable<any> {
+    // Backend returns a plain map with accessToken/refreshToken on success.
+    return this.http.post<any>(`${this.API_URL}/auth/register`, payload).pipe(
+      map((response) => {
+        // If backend returns an object with accessToken, treat as success.
+        return response;
+      }),
+      catchError((error) => {
+        console.error('Register API error:', error);
+        // Normalize error shape for the UI
+        const message = (error && error.error && (error.error.message || error.error.error)) || error.message || 'Unknown error';
+        return of({ success: false, error: message });
+      })
+    );
+  }
+
+  /**
+   * Login with mobile, encrypted password and userType.
+   */
+  login(payload: { mobile: string; password: string; userType: string }): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/auth/login`, payload).pipe(
+      map((resp) => resp),
+      catchError((error) => {
+        console.error('Login API error:', error);
+        const message = (error && error.error && (error.error.message || error.error.error)) || error.message || 'Unknown error';
+        return of({ success: false, error: message });
+      })
+    );
+  }
+
+  /**
+   * Request an OTP for the given mobile and userType. Purpose is 'S' (signup) or 'F' (forgot).
+   */
+  getOtp(payload: { mobile: string; userType: string; purpose: string }): Observable<any> {
+    // Debug: log endpoint and payload to help trace calls from the UI
+    try {
+      console.debug('ApiService.getOtp -> POST', `${this.API_URL}/auth/get-otp`, payload);
+    } catch (e) {
+      /* ignore when server-side or non-browser env */
+    }
+    return this.http.post<any>(`${this.API_URL}/auth/get-otp`, payload).pipe(
+      map((resp) => {
+        // Backend wraps result in ApiResponse.success -> { success: true, data: {...} }
+        if (resp && resp.success && resp.data) return resp.data;
+        // If backend returned the raw map (older style), return it directly
+        return resp;
+      }),
+      catchError((error) => {
+        console.error('getOtp API error:', error);
+        const message = (error && error.error && error.error.message) || error.message || 'Unknown error';
+        return of({ success: false, error: message });
+      })
+    );
+  }
+
+  /**
+   * Verify OTP for the given mobile and userType and purpose.
+   */
+  verifyOtp(payload: { mobile: string; userType: string; otp: string; purpose: string }): Observable<any> {
+    try {
+      console.debug('ApiService.verifyOtp -> POST', `${this.API_URL}/auth/verify-otp`, payload);
+    } catch (e) {
+      /* ignore */
+    }
+    return this.http.post<any>(`${this.API_URL}/auth/verify-otp`, payload).pipe(
+      map((resp) => {
+        if (resp && resp.success && resp.data) return resp.data;
+        return resp;
+      }),
+      catchError((error) => {
+        console.error('verifyOtp API error:', error);
+        const message = (error && error.error && error.error.message) || error.message || 'Unknown error';
+        return of({ success: false, error: message });
+      })
+    );
+  }
 
   getCities(): Observable<City[]> {
     return of(citiesData).pipe(delay(500));
