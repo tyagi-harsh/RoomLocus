@@ -2,7 +2,7 @@
   <div class="welcome-header">
     <p class="welcome-text">Welcome to Roomlocus</p>
     <div class="owner-zone-links">
-      <a href="#" class="owner-zone-link">Owner Zone</a>
+      <a href="#" class="zone-link" [ngClass]="zoneLinkClass">{{ zoneLinkLabel }}</a>
       <a href="#" class="list-property-link">List Property</a>
     </div>
   </div>
@@ -121,7 +121,7 @@
             </div>
 
 
-            <div class="input-group">
+            <div class="input-group mobile-group">
               <label for="signup-mobile">Whatsapp No:</label>
               <div class="input-with-icon">
                 <i class="fas fa-mobile-alt icon"></i>
@@ -133,45 +133,50 @@
                   aria-label="Whatsapp Number"
                 />
               </div>
-              <div class="otp-cta">
-                <button
-                  type="button"
-                  class="otp-button"
-                  (click)="startSignupOtpFlow()"
-                  [disabled]="otpRequested && !otpVerifiedFlag"
+              <div class="mobile-extra">
+                <div class="otp-cta">
+                  <div
+                  *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
+                  class="validation-error"
                 >
-                  Get OTP
-                </button>
-                <small *ngIf="otpRequested && !otpVerifiedFlag">OTP sent to {{ signupForm.get('mobile')?.value }}</small>
-              </div>
-              <div *ngIf="otpRequested" class="otp-panel">
-                <div class="otp-block">
-                  <!-- <label for="signup-otp">Enter OTP</label> -->
-                  <input
-                    id="signup-otp"
-                    type="tel"
-                    maxlength="6"
-                    [(ngModel)]="signupOtpInput"
-                    placeholder="XXXX"
-                    name="signupOtp"
-                  />
-                </div>
-                <div class="otp-block">
-                  <button type="button" class="otp-verify-button" (click)="verifySignupOtp()">
-                    Verify OTP
+                  <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
+                  <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
+                  </div>
+                  <div class="get-otp-div">
+                  <button
+                    type="button"
+                    class="otp-button"
+                    (click)="startSignupOtpFlow()"
+                    [disabled]="otpRequested && !otpVerifiedFlag"
+                  >
+                    Get OTP
                   </button>
+                  <small *ngIf="otpRequested && !otpVerifiedFlag">OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i></small>
                 </div>
-              </div>
-              <div *ngIf="otpVerifiedFlag" class="otp-status">
-                <i class="fas fa-check-circle"></i>
-                <span>Verified</span>
-              </div>
-              <div
-                *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
-                class="validation-error"
-              >
-                <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
-                <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
+                </div>
+                <div *ngIf="otpRequested" class="otp-panel">
+                  <div class="otp-block">
+                    <input
+                      id="signup-otp"
+                      type="tel"
+                      maxlength="6"
+                      [(ngModel)]="signupOtpInput"
+                      placeholder="XXXX"
+                      name="signupOtp"
+                    />
+                  </div>
+                  <div class="otp-block">
+                    <button type="button" class="otp-verify-button" (click)="verifySignupOtp()">
+                      Verify OTP
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="otpVerifiedFlag" class="otp-status">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Verified</span>
+                </div>
+                
+                
               </div>
             </div>
 

@@ -35,7 +35,7 @@
   align-items: flex-end; /* align to the right edge */
 }
 
-.owner-zone-link,
+.zone-link,
 .list-property-link {
   color: #17a2b8; /* Teal color */
   text-decoration: none;
@@ -49,10 +49,16 @@
   font-size: 1.1rem;
 }
 
-.owner-zone-link:hover,
+.zone-link:hover,
 .list-property-link:hover {
   text-decoration: underline;
 }
+
+/* .zone-link.owner-zone-link,
+.zone-link.agent-zone-link,
+.zone-link.user-zone-link {
+  font-weight: 600;
+} */
 
 /* Login Card Styling */
 .login-card {
@@ -86,6 +92,17 @@
 .input-group {
   margin-bottom: 20px;
   text-align: left;
+}
+
+.mobile-group {
+  margin-bottom: 10px;
+}
+
+.mobile-extra {
+  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
 }
 
 .input-group label {
@@ -227,31 +244,42 @@
   text-align: right;
   display: flex;
   justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 0px;
+}
+.otp-cta .validation-error {
+  flex: 1;
+  margin-top: 0;
+  text-align: left;
+}
+.otp-cta .get-otp-div {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 9px;
 }
 
 .otp-button {
   border: none;
   background-color: #17a2b8;
   color: white;
-  padding: 4px 12px;
+  padding: 6px 12px;
   font-size: 0.85rem;
-  border-radius: 1px;
+  border-radius: 3px;
   cursor: pointer;
   margin-top: 5px;
-  box-shadow: 0 2px 6px rgba(23, 162, 184, 0.4);
+  box-shadow: 0 2px 6px rgba(23, 163, 184, 0.23);
 }
 
 .otp-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  opacity: 0;
+  cursor: default !important;
 }
 
 .otp-panel {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .otp-block {

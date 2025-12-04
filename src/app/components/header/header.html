@@ -24,15 +24,15 @@
       <img src="/assets/images/icons/user_icon_+.png" alt="User" class="person-pic" />
     </button>
     <div class="user-dropdown" role="menu">
-      <a role="menuitem" routerLink="/login" (click)="closeDropdown()">
+      <a role="menuitem" routerLink="/login" [queryParams]="{ userType: 'END_USER' }" (click)="closeDropdown()">
         <i class="fas fa-user dropdown-icon" aria-hidden="true" title="User"></i>
         <span>User Login</span>
       </a>
-      <a role="menuitem" routerLink="/login" (click)="closeDropdown()">
+      <a role="menuitem" routerLink="/login" [queryParams]="{ userType: 'AGENT' }" (click)="closeDropdown()">
         <i class="fas fa-user-tie dropdown-icon" aria-hidden="true" title="Agent"></i>
         <span>Agent Login</span>
       </a>
-      <a role="menuitem" routerLink="/login" (click)="closeDropdown()">
+      <a role="menuitem" routerLink="/login" [queryParams]="{ userType: 'OWNER' }" (click)="closeDropdown()">
         <i class="fas fa-house-user dropdown-icon" aria-hidden="true" title="Owner"></i>
         <span>Owner Login</span>
       </a>

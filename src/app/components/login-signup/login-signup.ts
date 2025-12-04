@@ -10,8 +10,11 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute } from '@angular/router';
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'otp';
+type ZoneType = 'owner' | 'agent' | 'user';
+type ZoneParam = 'OWNER' | 'AGENT' | 'END_USER';
 
 export function passwordValidator(): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
@@ -66,6 +69,24 @@ export class LoginSignup implements OnInit {
   signupOtpInput = '';
   otpRequested = false;
   otpVerifiedFlag = false;
+  zoneType: ZoneType = 'owner';
+
+  private readonly zoneLabels: Record<ZoneType, string> = {
+    owner: 'Owner Zone',
+    agent: 'Agent Zone',
+    user: 'User Zone',
+  };
+  private readonly zoneParamMap: Record<ZoneParam, ZoneType> = {
+    OWNER: 'owner',
+    AGENT: 'agent',
+    END_USER: 'user',
+  };
+
+  private readonly zoneClasses: Record<ZoneType, string> = {
+    owner: 'owner-zone-link',
+    agent: 'agent-zone-link',
+    user: 'user-zone-link',
+  };
 
   @Output() loginAttempt = new EventEmitter<{ whatsappNo: string; password: string }>();
   @Output() signupRequest = new EventEmitter<{
@@ -78,7 +99,7 @@ export class LoginSignup implements OnInit {
   @Output() otpSent = new EventEmitter<{ mobile: string; context: 'signup' | 'forgot' }>();
   @Output() otpVerified = new EventEmitter<{ mobile?: string; context: 'signup' | 'forgot' }>();
 
-  constructor() {}
+  constructor(private route: ActivatedRoute) {}
 
   ngOnInit(): void {
     this.loginForm = new FormGroup({
@@ -97,6 +118,8 @@ export class LoginSignup implements OnInit {
     this.forgotForm = new FormGroup({
       mobile: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
     });
+
+    this.initializeZoneType();
   }
 
   onSignIn(): void {
@@ -287,5 +310,23 @@ export class LoginSignup implements OnInit {
     }
 
     return null;
+  }
+
+  get zoneLinkLabel(): string {
+    return this.zoneLabels[this.zoneType];
+  }
+
+  get zoneLinkClass(): string {
+    return this.zoneClasses[this.zoneType];
+  }
+
+  private initializeZoneType(): void {
+    const rawType = this.route.snapshot.queryParamMap.get('userType');
+    const normalized = rawType ? rawType.toUpperCase() : undefined;
+    if (normalized && Object.prototype.hasOwnProperty.call(this.zoneParamMap, normalized)) {
+      this.zoneType = this.zoneParamMap[normalized as ZoneParam];
+      return;
+    }
+    this.zoneType = 'owner';
   }
 }

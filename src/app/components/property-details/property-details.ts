@@ -110,7 +110,8 @@ export class PropertyDetails implements OnInit {
 
     this.route.paramMap.subscribe((params) => {
       this.propertyId = params.get('id');
-      const propertyType = params.get('type') || 'room';
+      const queryType = this.route.snapshot.queryParamMap.get('type');
+      const propertyType = queryType || params.get('type') || 'room';
 
       if (this.propertyId) {
         const numericId = Number(this.propertyId);

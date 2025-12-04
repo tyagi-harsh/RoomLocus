@@ -19,7 +19,7 @@ export class PropertyCard {
   constructor(private propertySearchService: PropertySearchService) {}
 
   onCardClick(): void {
-    const typeParam = this.normalizeType(this.property.category ?? this.property.type) ?? 'flat';
+    const typeParam = this.detailType;
 
     this.propertySearchService
       .getPropertyDetails(typeParam, this.property.id)
@@ -27,6 +27,10 @@ export class PropertyCard {
       .subscribe((details: any) => {
         console.log('Fetched property details before navigation:', details);
       });
+  }
+
+  get detailType(): string {
+    return this.normalizeType(this.property.category ?? this.property.type) ?? 'flat';
   }
 
   private normalizeType(rawType?: string | null): string | null {
