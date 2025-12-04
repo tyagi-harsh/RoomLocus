@@ -63,6 +63,9 @@ export class LoginSignup implements OnInit {
   otpCode = '';
   otpContext: 'signup' | 'forgot' = 'signup';
   pendingMobile?: string;
+  signupOtpInput = '';
+  otpRequested = false;
+  otpVerifiedFlag = false;
 
   @Output() loginAttempt = new EventEmitter<{ whatsappNo: string; password: string }>();
   @Output() signupRequest = new EventEmitter<{
@@ -107,6 +110,9 @@ export class LoginSignup implements OnInit {
 
   onSignupSubmit(): void {
     if (this.signupForm.valid) {
+      if (!this.otpVerifiedFlag) {
+        return;
+      }
       const values = this.signupForm.value;
       if (values.password !== values.confirmPassword) {
         this.signupForm.get('confirmPassword')?.setErrors({ mismatch: true });
@@ -123,6 +129,33 @@ export class LoginSignup implements OnInit {
     } else {
       this.signupForm.markAllAsTouched();
     }
+  }
+
+  startSignupOtpFlow(): void {
+    const mobileControl = this.signupForm.get('mobile');
+    if (mobileControl?.invalid) {
+      mobileControl.markAsTouched();
+      return;
+    }
+    const mobile = mobileControl?.value;
+    this.pendingMobile = mobile;
+    this.signupOtpInput = '';
+    this.otpRequested = true;
+    this.otpVerifiedFlag = false;
+    this.otpSent.emit({ mobile, context: 'signup' });
+    this.signupForm.get('password')?.disable({ emitEvent: false });
+    this.signupForm.get('confirmPassword')?.disable({ emitEvent: false });
+  }
+
+  verifySignupOtp(): void {
+    if (this.signupOtpInput.trim().length < 4) {
+      this.signupOtpInput = this.signupOtpInput.trim();
+      return;
+    }
+    this.otpVerifiedFlag = true;
+    this.otpRequested = false;
+    this.signupForm.get('password')?.enable({ emitEvent: false });
+    this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
   }
 
   onForgotSubmit(): void {
@@ -168,6 +201,10 @@ export class LoginSignup implements OnInit {
     this.authView = 'login';
     this.otpCode = '';
     this.pendingMobile = undefined;
+    this.otpRequested = false;
+    this.otpVerifiedFlag = false;
+    this.signupForm.get('password')?.enable({ emitEvent: false });
+    this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
   }
 
   get loginControls() {

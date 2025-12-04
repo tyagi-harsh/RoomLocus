@@ -7,7 +7,7 @@
     </div>
   </div>
 
-  <div class="login-card" [class.signup-active]="authView === 'signup'">
+  <div class="login-card">
     <ng-container [ngSwitch]="authView">
       <div *ngSwitchCase="'login'">
         <h2>Login</h2>
@@ -120,6 +120,62 @@
               </div>
             </div>
 
+
+            <div class="input-group">
+              <label for="signup-mobile">Whatsapp No:</label>
+              <div class="input-with-icon">
+                <i class="fas fa-mobile-alt icon"></i>
+                <input
+                  type="tel"
+                  id="signup-mobile"
+                  formControlName="mobile"
+                  placeholder="Number"
+                  aria-label="Whatsapp Number"
+                />
+              </div>
+              <div class="otp-cta">
+                <button
+                  type="button"
+                  class="otp-button"
+                  (click)="startSignupOtpFlow()"
+                  [disabled]="otpRequested && !otpVerifiedFlag"
+                >
+                  Get OTP
+                </button>
+                <small *ngIf="otpRequested && !otpVerifiedFlag">OTP sent to {{ signupForm.get('mobile')?.value }}</small>
+              </div>
+              <div *ngIf="otpRequested" class="otp-panel">
+                <div class="otp-block">
+                  <!-- <label for="signup-otp">Enter OTP</label> -->
+                  <input
+                    id="signup-otp"
+                    type="tel"
+                    maxlength="6"
+                    [(ngModel)]="signupOtpInput"
+                    placeholder="XXXX"
+                    name="signupOtp"
+                  />
+                </div>
+                <div class="otp-block">
+                  <button type="button" class="otp-verify-button" (click)="verifySignupOtp()">
+                    Verify OTP
+                  </button>
+                </div>
+              </div>
+              <div *ngIf="otpVerifiedFlag" class="otp-status">
+                <i class="fas fa-check-circle"></i>
+                <span>Verified</span>
+              </div>
+              <div
+                *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
+                class="validation-error"
+              >
+                <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
+                <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
+              </div>
+            </div>
+
+
             <div class="input-group">
               <label for="signup-email">Email:</label>
               <div class="input-with-icon">
@@ -141,26 +197,6 @@
               </div>
             </div>
 
-            <div class="input-group">
-              <label for="signup-mobile">Whatsapp No:</label>
-              <div class="input-with-icon">
-                <i class="fas fa-mobile-alt icon"></i>
-                <input
-                  type="tel"
-                  id="signup-mobile"
-                  formControlName="mobile"
-                  placeholder="Number"
-                  aria-label="Whatsapp Number"
-                />
-              </div>
-              <div
-                *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
-                class="validation-error"
-              >
-                <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
-                <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
-              </div>
-            </div>
 
             <div class="input-group">
               <label for="signup-password">Password:</label>
@@ -170,6 +206,7 @@
                   [type]="showSignupPassword ? 'text' : 'password'"
                   id="signup-password"
                   formControlName="password"
+                  [disabled]="otpRequested && !otpVerifiedFlag"
                   placeholder="Password"
                   aria-label="Password"
                 />
@@ -202,6 +239,7 @@
                   [type]="showSignupConfirmPassword ? 'text' : 'password'"
                   id="signup-confirm"
                   formControlName="confirmPassword"
+                  [disabled]="otpRequested && !otpVerifiedFlag"
                   placeholder="Confirm Password"
                   aria-label="Confirm Password"
                 />
@@ -224,7 +262,7 @@
             </div>
           </div>
 
-          <button mat-flat-button color="primary" type="submit" class="sign-in-button sib-sug">
+          <button mat-flat-button color="primary" type="submit" class="sign-in-button sib-sug" [disabled]="!otpVerifiedFlag">
             Sign Up
           </button>
         </form>

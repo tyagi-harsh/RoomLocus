@@ -28,6 +28,13 @@ interface ApiPropertyDetailsResponse {
   preferTenants: string[];
   insideFacilities: string[];
   outsideFacilities: string[];
+  location?: string;
+  landmark?: string;
+  address?: {
+    location?: string;
+    landmark?: string;
+    area?: string;
+  };
 }
 
 @Component({
@@ -150,9 +157,10 @@ export class PropertyDetails implements OnInit {
   }
 
   private applyApiResponse(data: ApiPropertyDetailsResponse): void {
-    const formattedLocation = data.city
-      ? `${data.city}${data.townSector ? ', ' + data.townSector : ''}`
-      : this.details.location;
+    const addressLocation = data.address?.location || data.location;
+    const fallbackLocation = data.city ? `${data.city}${data.townSector ? ', ' + data.townSector : ''}` : undefined;
+    const formattedLocation = addressLocation ?? fallbackLocation ?? this.details.location;
+    const apiLandmark = data.address?.landmark || data.landmark || this.details.address.landmark;
 
     this.details = {
       ...this.details,
@@ -176,9 +184,9 @@ export class PropertyDetails implements OnInit {
       },
       offer: data.offer || this.details.offer,
       address: {
-        area: data.townSector || this.details.address.area,
-        landmark: this.details.address.landmark,
-        location: data.city || this.details.address.location,
+        area: data.address?.area || data.townSector || this.details.address.area,
+        landmark: apiLandmark,
+        location: addressLocation || this.details.address.location,
       },
       preferTenants: data.preferTenants ?? [],
       parking: data.parking ?? [],
@@ -189,6 +197,15 @@ export class PropertyDetails implements OnInit {
     if (this.details.gallery.length > 0) {
       this.selectedImage = this.details.gallery[0];
     }
+  }
+
+  get primaryHeading(): string {
+    const location = this.details.address.location || this.details.address.area || this.details.location || '';
+    const landmark = this.details.address.landmark || '';
+    if (location && landmark) {
+      return `${location}, ${landmark}`;
+    }
+    return location || landmark || 'Property';
   }
 
   private toDisplayNumber(value?: number): string {

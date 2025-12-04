@@ -62,23 +62,24 @@
   border: 2px solid gray;
   padding: 30px;
   width: 100%;
-  max-width: 380px; /* Max width for the card */
+  max-width: 420px; /* Slightly wider to match mobile layout across all screens */
   text-align: center;
   margin: 0px 10px;
 }
 
+
 .signup-grid {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 5px;
 }
 
 .login-card h2 {
-  font-size: 1.82rem;
+  font-size: 1.65rem;
   font-weight: 500;
   color: #333;
-  margin-bottom: 32px;
-  line-height: 25px;
+  margin-bottom: 30px;
+  line-height: 20px;
 }
 
 /* Input Group */
@@ -221,32 +222,114 @@
   color: #555;
 }
 
+.otp-cta {
+  margin-top: 5px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.otp-button {
+  border: none;
+  background-color: #17a2b8;
+  color: white;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  border-radius: 1px;
+  cursor: pointer;
+  margin-top: 5px;
+  box-shadow: 0 2px 6px rgba(23, 162, 184, 0.4);
+}
+
+.otp-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.otp-panel {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.otp-block {
+  flex: 1;
+  /* background: #f1f9fb;
+  border: 1px solid #cde7ed; */
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.otp-block input {
+  border: 1px solid #b3dfe6;
+  border-radius: 4px;
+  padding: 8px;
+  width: 100%;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.otp-verify-button {
+  width: 100%;
+  border: none;
+  background-color: #17a2b8;
+  color: #fff;
+  padding: 8px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.otp-status {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1f8a46;
+  font-weight: 600;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.otp-status i {
+  font-size: 1.15rem;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
 @media (min-width: 960px) {
-  .login-card.signup-active {
-    max-width: 860px;
-  }
   .signup-grid {
-  margin-bottom: 25px;
-}
-
-.sib-sug{
-  max-width: 32%;
-  height: 45px;
-  margin-bottom: 10px;
-}
-
-  .login-card.signup-active .signup-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 24px;
+    margin-bottom: 25px;
   }
 
-  .login-card.signup-active .signup-grid .input-group {
-    margin-bottom: 0;
+  .sib-sug {
+    height: 45px;
+    margin-bottom: 10px;
   }
 
-  .login-card.signup-active .signup-grid .input-group:nth-child(odd) {
-    margin-right: 8px;
+  .login-card {
+    max-width: 500px;
+    padding: 36px;
+  }
+  .input-with-icon input {
+    font-size: 1.05rem;
+  }
+  .toggle-password {
+    font-size: 1rem;
   }
 }
 
@@ -311,9 +394,9 @@
     border-radius: 8px;
     /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
     border: 2px solid gray;
-    padding: 30px;
+    padding: 20px 25px;
     width: 100%;
-    max-width: 260px; /* Max width for the card */
+    max-width: 326px; /* Max width for the card */
     text-align: center;
   }
   .welcome-header {
