@@ -17,18 +17,11 @@
             <label for="whatsappNo">Whatsapp No:</label>
             <div class="input-with-icon">
               <i class="fas fa-mobile-alt icon"></i>
-              <input
-                type="tel"
-                id="whatsappNo"
-                formControlName="whatsappNo"
-                placeholder="Number"
-                aria-label="Whatsapp Number"
-              />
+              <input type="tel" id="whatsappNo" formControlName="whatsappNo" placeholder="Number"
+                aria-label="Whatsapp Number" />
             </div>
-            <div
-              *ngIf="f['whatsappNo'].invalid && (f['whatsappNo'].dirty || f['whatsappNo'].touched)"
-              class="validation-error"
-            >
+            <div *ngIf="f['whatsappNo'].invalid && (f['whatsappNo'].dirty || f['whatsappNo'].touched)"
+              class="validation-error">
               <div *ngIf="f['whatsappNo'].errors?.['required']">Whatsapp Number is required.</div>
               <div *ngIf="f['whatsappNo'].errors?.['pattern']">
                 Please enter a valid 10-digit number.
@@ -40,50 +33,31 @@
             <label for="password">Password:</label>
             <div class="input-with-icon password-input">
               <i class="fas fa-lock icon"></i>
-              <input
-                [type]="showPassword ? 'text' : 'password'"
-                id="password"
-                formControlName="password"
-                placeholder="Password"
-                aria-label="Password"
-              />
-              <button
-                type="button"
-                class="toggle-password"
-                (click)="togglePasswordVisibility()"
-                aria-label="Toggle password visibility"
-              >
+              <input [type]="showPassword ? 'text' : 'password'" id="password" formControlName="password"
+                placeholder="Password" aria-label="Password" />
+              <button type="button" class="toggle-password" (click)="togglePasswordVisibility()"
+                aria-label="Toggle password visibility">
                 <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
               </button>
             </div>
-            <div
-              *ngIf="f['password'].invalid && (f['password'].dirty || f['password'].touched)"
-              class="validation-error"
-            >
+            <div *ngIf="f['password'].invalid && (f['password'].dirty || f['password'].touched)"
+              class="validation-error">
               <ng-container *ngIf="passwordErrorMessage as message">
                 {{ message }}
               </ng-container>
             </div>
           </div>
 
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-            class="sign-in-button"
-            [disabled]="!loginForm.valid"
-          >
-            Sign In
+          <button mat-flat-button color="primary" type="submit" class="sign-in-button"
+            [disabled]="!loginForm.valid || isLoadingLogin">
+            <span *ngIf="!isLoadingLogin">Sign In</span>
+            <mat-progress-spinner *ngIf="isLoadingLogin" diameter="18" mode="indeterminate"></mat-progress-spinner>
           </button>
         </form>
 
         <div class="login-footer-links">
           <span>Forgot </span>
-          <a
-            href=""
-            class="forgot-password-link"
-            (click)="switchView('forgot'); $event.preventDefault()"
-          >
+          <a href="" class="forgot-password-link" (click)="switchView('forgot'); $event.preventDefault()">
             <span class="blue-text">Password</span>
           </a>
           <p>
@@ -104,18 +78,12 @@
               <label for="signup-name">Full Name:</label>
               <div class="input-with-icon">
                 <i class="fas fa-user icon"></i>
-                <input
-                  type="text"
-                  id="signup-name"
-                  formControlName="name"
-                  placeholder="Full Name"
-                  aria-label="Full Name"
-                />
+                <input type="text" id="signup-name" formControlName="name" placeholder="Full Name"
+                  aria-label="Full Name" />
               </div>
               <div
                 *ngIf="signupControls['name'].invalid && (signupControls['name'].dirty || signupControls['name'].touched)"
-                class="validation-error"
-              >
+                class="validation-error">
                 <div *ngIf="signupControls['name'].errors?.['required']">Full Name is required.</div>
               </div>
             </div>
@@ -125,58 +93,56 @@
               <label for="signup-mobile">Whatsapp No:</label>
               <div class="input-with-icon">
                 <i class="fas fa-mobile-alt icon"></i>
-                <input
-                  type="tel"
-                  id="signup-mobile"
-                  formControlName="mobile"
-                  placeholder="Number"
-                  aria-label="Whatsapp Number"
-                />
+                <input type="tel" id="signup-mobile" formControlName="mobile" placeholder="Number"
+                  aria-label="Whatsapp Number" />
               </div>
               <div class="mobile-extra">
                 <div class="otp-cta">
                   <div
-                  *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
-                  class="validation-error"
-                >
-                  <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
-                  <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
+                    *ngIf="signupControls['mobile'].invalid && (signupControls['mobile'].dirty || signupControls['mobile'].touched)"
+                    class="validation-error">
+                    <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
+                    <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
                   </div>
                   <div class="get-otp-div">
-                  <button
-                    type="button"
-                    class="otp-button"
-                    (click)="startSignupOtpFlow()"
-                    [disabled]="otpRequested && !otpVerifiedFlag"
-                  >
-                    Get OTP
-                  </button>
-                  <small *ngIf="otpRequested && !otpVerifiedFlag">OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i></small>
-                </div>
+                    <button type="button" class="otp-button" (click)="startSignupOtpFlow()"
+                      [disabled]="(otpRequested && !otpVerifiedFlag) || isSendingOtp">
+                      <span *ngIf="!isSendingOtp">Get OTP</span>
+                      <mat-progress-spinner *ngIf="isSendingOtp" diameter="18"
+                        mode="indeterminate"></mat-progress-spinner>
+                    </button>
+                    <small *ngIf="otpRequested && !otpVerifiedFlag">OTP sent successfully <i class="fas fa-check-circle"
+                        style="color: rgb(3, 152, 3);"></i></small>
+                  </div>
                 </div>
                 <div *ngIf="otpRequested" class="otp-panel">
                   <div class="otp-block">
-                    <input
-                      id="signup-otp"
-                      type="tel"
-                      maxlength="6"
-                      [(ngModel)]="signupOtpInput"
-                      placeholder="XXXX"
-                      name="signupOtp"
-                    />
+                    <input id="signup-otp" type="tel" maxlength="6" [(ngModel)]="signupOtpInput" placeholder="XXXX"
+                      name="signupOtp" />
                   </div>
+                  <div *ngIf="otpError" class="validation-error" style="margin-top:6px">{{ otpError }}</div>
                   <div class="otp-block">
                     <button type="button" class="otp-verify-button" (click)="verifySignupOtp()">
-                      Verify OTP
+                      <span *ngIf="!isVerifyingOtp">Verify OTP</span>
+                      <mat-progress-spinner *ngIf="isVerifyingOtp" diameter="18"
+                        mode="indeterminate"></mat-progress-spinner>
+                    </button>
+                    <!-- Debug button: forces verify-otp call directly -->
+                    <button type="button" class="otp-debug-button" (click)="debugCallVerify()" style="margin-left:8px">
+                      Debug: Call verify-otp
                     </button>
                   </div>
+                </div>
+                <div *ngIf="lastVerifyPayload" class="otp-debug" style="margin-top:8px; font-size:12px; color: #666;">
+                  <div><strong>Debug:</strong> verify-otp payload at {{ lastVerifyCallAt }}</div>
+                  <pre>{{ lastVerifyPayload | json }}</pre>
                 </div>
                 <div *ngIf="otpVerifiedFlag" class="otp-status">
                   <i class="fas fa-check-circle"></i>
                   <span>Verified</span>
                 </div>
-                
-                
+
+
               </div>
             </div>
 
@@ -185,18 +151,11 @@
               <label for="signup-email">Email:</label>
               <div class="input-with-icon">
                 <i class="fas fa-envelope icon"></i>
-                <input
-                  type="email"
-                  id="signup-email"
-                  formControlName="email"
-                  placeholder="Email"
-                  aria-label="Email"
-                />
+                <input type="email" id="signup-email" formControlName="email" placeholder="Email" aria-label="Email" />
               </div>
               <div
                 *ngIf="signupControls['email'].invalid && (signupControls['email'].dirty || signupControls['email'].touched)"
-                class="validation-error"
-              >
+                class="validation-error">
                 <div *ngIf="signupControls['email'].errors?.['required']">Email is required.</div>
                 <div *ngIf="signupControls['email'].errors?.['email']">Invalid email.</div>
               </div>
@@ -207,29 +166,19 @@
               <label for="signup-password">Password:</label>
               <div class="input-with-icon password-input">
                 <i class="fas fa-lock icon"></i>
-                <input
-                  [type]="showSignupPassword ? 'text' : 'password'"
-                  id="signup-password"
-                  formControlName="password"
-                  [disabled]="otpRequested && !otpVerifiedFlag"
-                  placeholder="Password"
-                  aria-label="Password"
-                />
-                <button
-                  type="button"
-                  class="toggle-password"
-                  (click)="toggleSignupPasswordVisibility('password')"
-                  aria-label="Toggle password visibility"
-                >
+                <input [type]="showSignupPassword ? 'text' : 'password'" id="signup-password" formControlName="password"
+                  [disabled]="otpRequested && !otpVerifiedFlag" placeholder="Password" aria-label="Password" />
+                <button type="button" class="toggle-password" (click)="toggleSignupPasswordVisibility('password')"
+                  aria-label="Toggle password visibility">
                   <i class="fas" [ngClass]="showSignupPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
                 </button>
               </div>
               <div
                 *ngIf="signupControls['password'].invalid && (signupControls['password'].dirty || signupControls['password'].touched)"
-                class="validation-error"
-              >
+                class="validation-error">
                 <div *ngIf="signupControls['password'].errors?.['required']">Password is required.</div>
-                <div *ngIf="signupControls['password'].errors?.['minlength']">Password must be at least 6 characters.</div>
+                <div *ngIf="signupControls['password'].errors?.['minlength']">Password must be at least 6 characters.
+                </div>
                 <ng-container *ngIf="signupPasswordErrorMessage as message">
                   {{ message }}
                 </ng-container>
@@ -240,35 +189,28 @@
               <label for="signup-confirm">Confirm Password:</label>
               <div class="input-with-icon password-input">
                 <i class="fas fa-lock icon"></i>
-                <input
-                  [type]="showSignupConfirmPassword ? 'text' : 'password'"
-                  id="signup-confirm"
-                  formControlName="confirmPassword"
-                  [disabled]="otpRequested && !otpVerifiedFlag"
-                  placeholder="Confirm Password"
-                  aria-label="Confirm Password"
-                />
-                <button
-                  type="button"
-                  class="toggle-password"
+                <input [type]="showSignupConfirmPassword ? 'text' : 'password'" id="signup-confirm"
+                  formControlName="confirmPassword" [disabled]="otpRequested && !otpVerifiedFlag"
+                  placeholder="Confirm Password" aria-label="Confirm Password" />
+                <button type="button" class="toggle-password"
                   (click)="toggleSignupPasswordVisibility('confirmPassword')"
-                  aria-label="Toggle confirm password visibility"
-                >
+                  aria-label="Toggle confirm password visibility">
                   <i class="fas" [ngClass]="showSignupConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
                 </button>
               </div>
               <div
                 *ngIf="signupControls['confirmPassword'].invalid && (signupControls['confirmPassword'].dirty || signupControls['confirmPassword'].touched)"
-                class="validation-error"
-              >
+                class="validation-error">
                 <div *ngIf="signupControls['confirmPassword'].errors?.['required']">Confirm password is required.</div>
                 <div *ngIf="signupControls['confirmPassword'].errors?.['mismatch']">Passwords must match.</div>
               </div>
             </div>
           </div>
 
-          <button mat-flat-button color="primary" type="submit" class="sign-in-button sib-sug" [disabled]="!otpVerifiedFlag">
-            Sign Up
+          <button mat-flat-button color="primary" type="submit" class="sign-in-button sib-sug"
+            [disabled]="!otpVerifiedFlag || isRegistering">
+            <span *ngIf="!isRegistering">Sign Up</span>
+            <mat-progress-spinner *ngIf="isRegistering" diameter="18" mode="indeterminate"></mat-progress-spinner>
           </button>
         </form>
 
@@ -289,25 +231,21 @@
             <label for="forgot-mobile">Whatsapp No:</label>
             <div class="input-with-icon">
               <i class="fas fa-mobile-alt icon"></i>
-              <input
-                type="tel"
-                id="forgot-mobile"
-                formControlName="mobile"
-                placeholder="Number"
-                aria-label="Whatsapp Number"
-              />
+              <input type="tel" id="forgot-mobile" formControlName="mobile" placeholder="Number"
+                aria-label="Whatsapp Number" />
             </div>
             <div
               *ngIf="forgotControls['mobile'].invalid && (forgotControls['mobile'].dirty || forgotControls['mobile'].touched)"
-              class="validation-error"
-            >
+              class="validation-error">
               <div *ngIf="forgotControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
               <div *ngIf="forgotControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
             </div>
           </div>
 
-          <button mat-flat-button color="primary" type="submit" class="sign-in-button">
-            Send OTP
+          <button mat-flat-button color="primary" type="submit" class="sign-in-button"
+            [disabled]="isSendingOtp || forgotForm.invalid">
+            <span *ngIf="!isSendingOtp">Send OTP</span>
+            <mat-progress-spinner *ngIf="isSendingOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
           </button>
         </form>
 
@@ -333,28 +271,16 @@
             <label for="otp-input">Enter OTP:</label>
             <div class="input-with-icon">
               <i class="fas fa-key icon"></i>
-              <input
-                id="otp-input"
-                type="text"
-                placeholder="XXXX"
-                [(ngModel)]="otpCode"
-                maxlength="4"
-                name="otpCode"
-                class="otp-input"
-                required
-                autocomplete="one-time-code"
-              />
+              <input id="otp-input" type="text" placeholder="XXXX" [(ngModel)]="otpCode" maxlength="4" name="otpCode"
+                class="otp-input" required autocomplete="one-time-code" />
             </div>
+            <div *ngIf="otpError" class="validation-error" style="margin-top:6px">{{ otpError }}</div>
           </div>
 
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-            class="sign-in-button"
-            [disabled]="otpCode.trim().length < 4"
-          >
-            Verify & Proceed
+          <button mat-flat-button color="primary" type="submit" class="sign-in-button"
+            [disabled]="otpCode.trim().length < 4 || isVerifyingOtp">
+            <span *ngIf="!isVerifyingOtp">Verify & Proceed</span>
+            <mat-progress-spinner *ngIf="isVerifyingOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
           </button>
         </form>
 
@@ -364,10 +290,7 @@
             <a href="" class="blue-text" (click)="resendOtp(); $event.preventDefault();">Resend</a>
           </p>
           <p>
-            <a
-              class="blue-text"
-              (click)="switchView('login'); returnToLogin(); $event.preventDefault()"
-            >
+            <a class="blue-text" (click)="switchView('login'); returnToLogin(); $event.preventDefault()">
               Cancel
             </a>
           </p>
