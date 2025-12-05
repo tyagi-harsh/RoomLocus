@@ -15,16 +15,10 @@
 
 .welcome-header {
   width: 100%;
-  max-width: 468px; /* match login card max width */
+  max-width: 436px; /* match login card max width */
   align-self: center; /* center block like the card */
   text-align: right; /* align content to the right edge */
   margin-bottom: 30px;
-}
-
-@media (min-width: 960px) {
-  .welcome-header {
-    max-width: 560px; /* match login card max width on small screens */
-  }
 }
 
 .welcome-text {
@@ -430,12 +424,12 @@
     border: 2px solid gray;
     padding: 20px 25px;
     width: 100%;
-    max-width: 289px; /* Max width for the card */
+    max-width: 326px; /* Max width for the card */
     text-align: center;
   }
   .welcome-header {
     width: 100%;
-    max-width: 340px; /* match login card max width */
+    max-width: 310px; /* match login card max width */
     align-self: center; /* center block like the card */
     text-align: right; /* align content to the right edge */
     margin-bottom: 30px;

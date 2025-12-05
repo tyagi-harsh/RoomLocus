@@ -13,12 +13,9 @@ interface ApiPropertyDetailsResponse {
   roomType: string;
   minprice: number;
   maxprice: number;
-  minPrice?: number;
-  maxPrice?: number;
   security: number;
   maintenance: number;
   totalRoom: number;
-  totalFloor?: number;
   waterSupply: number;
   powerBackup: number;
   offer: string;
@@ -29,8 +26,8 @@ interface ApiPropertyDetailsResponse {
   genderPrefer: string;
   parking: string[];
   preferTenants: string[];
-  insideFacilities?: string[];
-  outsideFacilities?: string[];
+  insideFacilities: string[];
+  outsideFacilities: string[];
   location?: string;
   landmark?: string;
   address?: {
@@ -38,30 +35,7 @@ interface ApiPropertyDetailsResponse {
     landmark?: string;
     area?: string;
   };
-  type?: string;
-  propertyType?: string;
-  flatType?: string;
-  totalFlat?: number;
-  noticePeriod?: string;
-  flatInside?: string[];
-  flatOutside?: string[];
-  pgType?: string;
-  totalPg?: number;
-  foodAvailable?: string | boolean;
-  bedCount?: number;
-  timeRestrict?: string;
-  careTaker?: string;
-  pgInside?: string[];
-  pgOutside?: string[];
-  palaceName?: string;
-  luxury?: string;
-  acType?: string;
-  noOfGuests?: number;
-  roomInside?: string[];
-  roomOutside?: string[];
 }
-
-type PropertyCategory = 'flat' | 'pg' | 'hourlyroom' | 'room';
 
 @Component({
   selector: 'app-property-details',
@@ -74,8 +48,6 @@ export class PropertyDetails implements OnInit {
   liked = false;
   animateHeart = false;
   showLoved = false;
-  propertyCategory: PropertyCategory = 'room';
-  private requestedPropertyType = 'room';
 
   // Mock data created from the images
   // In a real application, you would fetch this based on propertyId
@@ -89,7 +61,6 @@ export class PropertyDetails implements OnInit {
     ],
     isVerified: false,
     location: 'Himmat Nagar',
-    propertyName: 'Sea View Palace',
     priceMin: 4500,
     priceMax: 6000,
     pricePeriod: 'Per Month',
@@ -107,7 +78,7 @@ export class PropertyDetails implements OnInit {
       totalRoom: 5,
       waterSupply: '12 hr',
       powerBackup: '21 hr',
-      roomAvailable: 'Monthly Basis', // "Montly" is from your image
+      roomAvailable: 'Montly Basis', // "Montly" is from your image
     },
     offer: 'No offer',
     address: {
@@ -129,34 +100,6 @@ export class PropertyDetails implements OnInit {
       'Gym',
       'Tiffin/Mess Service',
     ],
-    propertyType: 'room',
-    flatType: 'Private Room',
-    totalFlat: 5,
-    noticePeriod: '1 Month',
-    flatInsideFacilities: ['Single Bed', 'Almirah / Wardrobe', 'Gas / Induction', 'Fridge'],
-    flatOutsideFacilities: [
-      'Railway Station',
-      'School',
-      'College',
-      'Market',
-      'Hospital',
-      'Bank ATM',
-      'Gated Society',
-      'Gym',
-      'Tiffin/Mess Service',
-    ],
-    totalFloor: 8,
-    pgType: 'Single PG',
-    totalPg: 1,
-    foodAvailable: 'Breakfast & Dinner',
-    bedCount: 12,
-    timeRestrict: 'Midnight',
-    careTaker: 'Available',
-    pgInsideFacilities: ['Single Bed', 'Cupboard'],
-    pgOutsideFacilities: ['Laundry Service'],
-    luxury: 'Premium',
-    acType: 'Split AC',
-    guestCapacity: 4,
   };
 
   constructor(private route: ActivatedRoute, private propertySearch: PropertySearchService) {}
@@ -169,8 +112,6 @@ export class PropertyDetails implements OnInit {
       this.propertyId = params.get('id');
       const queryType = this.route.snapshot.queryParamMap.get('type');
       const propertyType = queryType || params.get('type') || 'room';
-      this.requestedPropertyType = propertyType;
-      this.propertyCategory = this.normalizeType(propertyType);
 
       if (this.propertyId) {
         const numericId = Number(this.propertyId);
@@ -222,42 +163,21 @@ export class PropertyDetails implements OnInit {
     const formattedLocation = addressLocation ?? fallbackLocation ?? this.details.location;
     const apiLandmark = data.address?.landmark || data.landmark || this.details.address.landmark;
 
-    const propertyTypeSource = this.requestedPropertyType || data.propertyType || data.type;
-    this.propertyCategory = this.normalizeType(propertyTypeSource);
-    const isFlat = this.propertyCategory === 'flat';
-    const apiTypeSegments = [data.bhk, data.type].filter((segment) => !!segment);
-    const combinedFlatType = apiTypeSegments.join(' | ');
-    const computedRoomType = isFlat
-      ? data.flatType || this.details.flatType || this.details.specs.roomType
-      : data.roomType || this.details.specs.roomType;
-    const roomInsideFacilities =
-      data.roomInside ?? data.insideFacilities ?? this.details.roomInsideFacilities;
-    const roomOutsideFacilities =
-      data.roomOutside ?? data.outsideFacilities ?? this.details.roomOutsideFacilities;
-    const flatInsideFacilities = data.flatInside ?? this.details.flatInsideFacilities ?? [];
-    const flatOutsideFacilities = data.flatOutside ?? this.details.flatOutsideFacilities ?? [];
-    const pgInsideFacilities = data.pgInside ?? this.details.pgInsideFacilities ?? [];
-    const pgOutsideFacilities = data.pgOutside ?? this.details.pgOutsideFacilities ?? [];
-    const foodAvailableSetting = data.foodAvailable ?? this.details.foodAvailable;
-
-    const minPriceFromApi = data.minPrice ?? data.minprice;
-    const maxPriceFromApi = data.maxPrice ?? data.maxprice;
     this.details = {
       ...this.details,
       location: formattedLocation,
-      priceMin: minPriceFromApi ?? this.details.priceMin,
-      priceMax: maxPriceFromApi ?? this.details.priceMax,
-      propertyName: data.palaceName || this.details.propertyName,
+      priceMin: data.minprice ?? this.details.priceMin,
+      priceMax: data.maxprice ?? this.details.priceMax,
       keyDetails: {
         security: this.toDisplayNumber(data.security),
         maintenance: this.toDisplayNumber(data.maintenance),
-        type: combinedFlatType || this.details.keyDetails.type,
+        type: data.bhk || data.roomType || this.details.keyDetails.type,
         furnishing: data.furnishingType || this.details.keyDetails.furnishing,
         accommodation: data.accomoType || this.details.keyDetails.accommodation,
         gender: data.genderPrefer || this.details.keyDetails.gender,
       },
       specs: {
-        roomType: computedRoomType,
+        roomType: data.roomType || this.details.specs.roomType,
         totalRoom: data.totalRoom ?? this.details.specs.totalRoom,
         waterSupply: this.formatHours(data.waterSupply),
         powerBackup: this.formatHours(data.powerBackup),
@@ -269,28 +189,10 @@ export class PropertyDetails implements OnInit {
         landmark: apiLandmark,
         location: addressLocation || this.details.address.location,
       },
-      preferTenants: data.preferTenants ?? this.details.preferTenants,
-      parking: data.parking ?? this.details.parking,
-      roomInsideFacilities: roomInsideFacilities,
-      roomOutsideFacilities: roomOutsideFacilities,
-      propertyType: this.propertyCategory,
-      flatType: data.flatType || this.details.flatType,
-      totalFlat: data.totalFlat ?? this.details.totalFlat,
-      noticePeriod: data.noticePeriod || this.details.noticePeriod,
-      flatInsideFacilities: flatInsideFacilities,
-      flatOutsideFacilities: flatOutsideFacilities,
-      totalFloor: data.totalFloor ?? this.details.totalFloor,
-      pgType: data.pgType || this.details.pgType,
-      totalPg: data.totalPg ?? this.details.totalPg,
-      foodAvailable: foodAvailableSetting,
-      bedCount: data.bedCount ?? this.details.bedCount,
-      timeRestrict: data.timeRestrict || this.details.timeRestrict,
-      careTaker: data.careTaker || this.details.careTaker,
-      pgInsideFacilities: pgInsideFacilities,
-      pgOutsideFacilities: pgOutsideFacilities,
-      luxury: data.luxury || this.details.luxury,
-      acType: data.acType || this.details.acType,
-      guestCapacity: data.noOfGuests ?? this.details.guestCapacity,
+      preferTenants: data.preferTenants ?? [],
+      parking: data.parking ?? [],
+      roomInsideFacilities: data.insideFacilities ?? [],
+      roomOutsideFacilities: data.outsideFacilities ?? [],
     };
 
     if (this.details.gallery.length > 0) {
@@ -299,21 +201,12 @@ export class PropertyDetails implements OnInit {
   }
 
   get primaryHeading(): string {
-    const propertyName = this.details.propertyName;
     const location = this.details.address.location || this.details.address.area || this.details.location || '';
     const landmark = this.details.address.landmark || '';
-    const locationParts = [location, landmark].filter((value) => !!value);
-
-    if (propertyName && locationParts.length > 0) {
-      return `${propertyName} · ${locationParts.join(', ')}`;
+    if (location && landmark) {
+      return `${location}, ${landmark}`;
     }
-    if (propertyName) {
-      return propertyName;
-    }
-    if (locationParts.length > 0) {
-      return locationParts.join(', ');
-    }
-    return 'Property';
+    return location || landmark || 'Property';
   }
 
   private toDisplayNumber(value?: number): string {
@@ -330,131 +223,8 @@ export class PropertyDetails implements OnInit {
     return `${value} hr`;
   }
 
-  get typeDisplayName(): string {
-    switch (this.propertyCategory) {
-      case 'flat':
-        return 'Flat';
-      case 'pg':
-        return 'PG';
-      case 'hourlyroom':
-        return 'Hourly Room';
-      default:
-        return 'Room';
-    }
-  }
-
-  get isFlatProperty(): boolean {
-    return this.propertyCategory === 'flat';
-  }
-
-  get isPGProperty(): boolean {
-    return this.propertyCategory === 'pg';
-  }
-
-  get isHourlyRoomProperty(): boolean {
-    return this.propertyCategory === 'hourlyroom';
-  }
-
-  get roomTypeValue(): string {
-    return this.isFlatProperty
-      ? this.details.flatType || this.details.specs.roomType
-      : this.details.specs.roomType;
-  }
-
-  get totalTypeValue(): number {
-    return this.isFlatProperty ? this.details.totalFlat ?? this.details.specs.totalRoom : this.details.specs.totalRoom;
-  }
-
-  get insideFacilitiesList(): string[] {
-    if (this.isFlatProperty) {
-      return this.details.flatInsideFacilities ?? [];
-    }
-    if (this.isPGProperty) {
-      return this.details.pgInsideFacilities ?? [];
-    }
-    return this.details.roomInsideFacilities ?? [];
-  }
-
-  get outsideFacilitiesList(): string[] {
-    if (this.isFlatProperty) {
-      return this.details.flatOutsideFacilities ?? [];
-    }
-    if (this.isPGProperty) {
-      return this.details.pgOutsideFacilities ?? [];
-    }
-    return this.details.roomOutsideFacilities ?? [];
-  }
-
-  get pgTypeValue(): string | undefined {
-    return this.details.pgType;
-  }
-
-  get totalPgValue(): number | undefined {
-    return this.details.totalPg;
-  }
-
-  get foodAvailableValue(): string | undefined {
-    const value = this.details.foodAvailable;
-    if (value === undefined || value === null) {
-      return undefined;
-    }
-    if (typeof value === 'boolean') {
-      return value ? 'Yes' : 'No';
-    }
-    return value;
-  }
-
-  get bedCountValue(): number | undefined {
-    return this.details.bedCount;
-  }
-
-  get timeRestrictValue(): string | undefined {
-    return this.details.timeRestrict;
-  }
-
-  get careTakerValue(): string | undefined {
-    return this.details.careTaker;
-  }
-
-  get hourlyPropertyName(): string | undefined {
-    return this.details.propertyName;
-  }
-
-  get hourlyGuestCapacity(): number | undefined {
-    return this.details.guestCapacity;
-  }
-
-  get hourlyAcType(): string | undefined {
-    return this.details.acType;
-  }
-
-  get hourlyLuxuryTier(): string | undefined {
-    return this.details.luxury;
-  }
-
-  get totalFloorValue(): number | undefined {
-    return this.details.totalFloor;
-  }
-
   private getStorageKey(): string {
     return `liked:${this.propertyId ?? 'unknown'}`;
-  }
-
-  private normalizeType(input?: string | null): PropertyCategory {
-    if (!input) {
-      return 'room';
-    }
-    const normalized = input.trim().toLowerCase();
-    if (normalized === 'flat') {
-      return 'flat';
-    }
-    if (normalized === 'pg') {
-      return 'pg';
-    }
-    if (normalized.includes('hourly')) {
-      return 'hourlyroom';
-    }
-    return 'room';
   }
 
   toggleFavorite(): void {
