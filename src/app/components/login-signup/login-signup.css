@@ -21,12 +21,6 @@
   margin-bottom: 30px;
 }
 
-@media (min-width: 960px) {
-  .welcome-header {
-    max-width: 560px; /* match login card max width on small screens */
-  }
-}
-
 .welcome-text {
   font-size: 1.5rem;
   font-weight: 500;
@@ -398,6 +392,12 @@
 .otp-input {
   letter-spacing: 5px;
   text-align: center;
+}
+
+@media (min-width: 960px) {
+  .welcome-header {
+    max-width: 560px; /* match login card max width on small screens */
+  }
 }
 
 /* Responsive adjustments */
