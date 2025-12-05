@@ -74,6 +74,8 @@ export class LoginSignup implements OnInit {
   signupOtpInput = '';
   otpRequested = false;
   otpVerifiedFlag = false;
+  // Controls whether password inputs are enabled (false until OTP verified)
+  allowPasswordEntry = false;
   zoneType: ZoneType = 'owner';
 
   // Loading / UX state flags
@@ -330,7 +332,8 @@ export class LoginSignup implements OnInit {
     const userTypeMap: Record<ZoneType, string> = { owner: 'OWNER', agent: 'AGENT', user: 'END_USER' };
     const payload = { mobile, userType: userTypeMap[this.zoneType], purpose: 'S' };
 
-    // Disable password fields while OTP is pending
+    // Disable password fields while OTP is pending and disallow manual entry
+    this.allowPasswordEntry = false;
     this.signupForm.get('password')?.disable({ emitEvent: false });
     this.signupForm.get('confirmPassword')?.disable({ emitEvent: false });
     this.isSendingOtp = true;
@@ -347,6 +350,7 @@ export class LoginSignup implements OnInit {
       this.signupOtpInput = '';
       this.otpRequested = true;
       this.otpVerifiedFlag = false;
+      this.allowPasswordEntry = false;
       if (resp && resp.message) {
         // show small toast — in dev the OTP is returned for testing
         this.snackBar.open(resp.message, 'Close', { duration: 3000 });
@@ -398,15 +402,25 @@ export class LoginSignup implements OnInit {
       this.isVerifyingOtp = false;
       const verified = this.isOtpVerifiedResponse(resp);
       if (verified) {
+        this.otpError = null;
         this.otpVerifiedFlag = true;
         this.otpRequested = false;
+        this.allowPasswordEntry = true;
         this.signupForm.get('password')?.enable({ emitEvent: false });
         this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
         this.otpVerified.emit({ mobile: this.pendingMobile, context: 'signup' });
         this.snackBar.open('OTP verified', 'Close', { duration: 2000 });
+        // Debug: show resulting states so it's easy to confirm in browser console
+        console.debug('verifySignupOtp: enabled password controls', {
+          allowPasswordEntry: this.allowPasswordEntry,
+          passwordDisabled: this.signupForm.get('password')?.disabled,
+          confirmDisabled: this.signupForm.get('confirmPassword')?.disabled,
+        });
         return;
       }
-      const errMsg = (resp && (resp.error || resp.message)) || 'Invalid OTP';
+      // extract message from response body when backend returns { status, body }
+      const respBody = resp && resp.body ? resp.body : resp;
+      const errMsg = (respBody && (respBody.error || respBody.message)) || 'Invalid OTP';
       this.otpError = errMsg;
       this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
     }, (err) => {
@@ -483,13 +497,26 @@ export class LoginSignup implements OnInit {
     this.api.verifyOtp(payload).subscribe((resp: any) => {
       this.isVerifyingOtp = false;
       const verified = this.isOtpVerifiedResponse(resp);
+      console.debug('confirmOtp response', { resp, verified });
       if (verified) {
+        // Enable password entry on the OTP page and allow user to continue registration
+        this.otpError = null;
+        this.allowPasswordEntry = true;
+        this.otpRequested = false;
+        this.otpVerifiedFlag = true;
+        // ensure form controls are enabled so they can type password on OTP page
+        this.signupForm.get('password')?.enable({ emitEvent: false });
+        this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
         this.otpVerified.emit({ mobile: this.pendingMobile, context: this.otpContext });
-        this.snackBar.open('OTP verified!', 'Close', { duration: 2500 });
-        this.returnToLogin();
+        this.snackBar.open('OTP verified! You can now enter your password below.', 'Close', { duration: 2500 });
+        console.debug('OTP verified — password enabled', {
+          allowPasswordEntry: this.allowPasswordEntry,
+          passwordDisabled: this.signupForm.get('password')?.disabled,
+        });
         return;
       }
-      const errMsg = (resp && (resp.error || resp.message)) || 'Invalid OTP';
+      const respBody = resp && resp.body ? resp.body : resp;
+      const errMsg = (respBody && (respBody.error || respBody.message)) || 'Invalid OTP';
       this.otpError = errMsg;
       this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
     }, (err) => {
@@ -540,9 +567,15 @@ export class LoginSignup implements OnInit {
     this.api.verifyOtp(payload).subscribe((resp: any) => {
       console.debug('debug verify-otp response', resp);
       const verified = this.isOtpVerifiedResponse(resp);
+      console.debug('debug verify-otp verified:', verified);
       if (verified) {
         this.otpError = null;
-        this.snackBar.open('Debug: OTP verified', 'Close', { duration: 3000 });
+        this.allowPasswordEntry = true;
+        this.signupForm.get('password')?.enable({ emitEvent: false });
+        this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
+        this.otpVerifiedFlag = true;
+        this.snackBar.open('Debug: OTP verified (password enabled)', 'Close', { duration: 3000 });
+        console.debug('Debug: password enabled state', { disabled: this.signupForm.get('password')?.disabled });
       } else {
         const errMsg = (resp && (resp.error || resp.message)) || 'Invalid OTP';
         this.otpError = errMsg;
@@ -559,6 +592,10 @@ export class LoginSignup implements OnInit {
   // Normalize verify-otp response shapes from backend
   private isOtpVerifiedResponse(resp: any): boolean {
     if (!resp) return false;
+    // If API returns { status, body } (we now return full response for verifyOtp), prefer status
+    if (typeof resp.status === 'number') {
+      return resp.status === 200;
+    }
     if (resp.verified === true) return true;
     if (resp.success === true) return true;
     if (typeof resp.message === 'string' && resp.message.toLowerCase().includes('verified')) return true;
@@ -582,6 +619,7 @@ export class LoginSignup implements OnInit {
     this.pendingMobile = undefined;
     this.otpRequested = false;
     this.otpVerifiedFlag = false;
+    this.allowPasswordEntry = false;
     this.signupForm.get('password')?.enable({ emitEvent: false });
     this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
   }

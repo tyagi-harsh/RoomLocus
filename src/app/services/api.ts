@@ -140,15 +140,17 @@ export class ApiService {
     } catch (e) {
       /* ignore */
     }
-    return this.http.post<any>(`${this.API_URL}/auth/verify-otp`, payload).pipe(
+    // Observe full response so caller can act on HTTP status (200 = verified, 400 = invalid/expired)
+    return this.http.post<any>(`${this.API_URL}/auth/verify-otp`, payload, { observe: 'response' as const }).pipe(
       map((resp) => {
-        if (resp && resp.success && resp.data) return resp.data;
-        return resp;
+        return { status: resp.status, body: resp.body };
       }),
       catchError((error) => {
         console.error('verifyOtp API error:', error);
-        const message = (error && error.error && error.error.message) || error.message || 'Unknown error';
-        return of({ success: false, error: message });
+        // Normalize the error into an object with status and body so callers can inspect status codes
+        const status = (error && error.status) || 0;
+        const body = (error && error.error) || null;
+        return of({ status, body });
       })
     );
   }

@@ -167,7 +167,7 @@
               <div class="input-with-icon password-input">
                 <i class="fas fa-lock icon"></i>
                 <input [type]="showSignupPassword ? 'text' : 'password'" id="signup-password" formControlName="password"
-                  [disabled]="otpRequested && !otpVerifiedFlag" placeholder="Password" aria-label="Password" />
+                  placeholder="Password" aria-label="Password" />
                 <button type="button" class="toggle-password" (click)="toggleSignupPasswordVisibility('password')"
                   aria-label="Toggle password visibility">
                   <i class="fas" [ngClass]="showSignupPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
@@ -190,8 +190,7 @@
               <div class="input-with-icon password-input">
                 <i class="fas fa-lock icon"></i>
                 <input [type]="showSignupConfirmPassword ? 'text' : 'password'" id="signup-confirm"
-                  formControlName="confirmPassword" [disabled]="otpRequested && !otpVerifiedFlag"
-                  placeholder="Confirm Password" aria-label="Confirm Password" />
+                  formControlName="confirmPassword" placeholder="Confirm Password" aria-label="Confirm Password" />
                 <button type="button" class="toggle-password"
                   (click)="toggleSignupPasswordVisibility('confirmPassword')"
                   aria-label="Toggle confirm password visibility">
