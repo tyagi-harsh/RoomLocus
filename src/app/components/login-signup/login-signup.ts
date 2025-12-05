@@ -16,6 +16,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TokenDialogComponent } from './token-dialog.component';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { ApiService } from '../../services/api';
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'otp';
 type ZoneType = 'owner' | 'agent' | 'user';
@@ -56,6 +57,7 @@ export function passwordValidator(): ValidatorFn {
   selector: 'app-login-signup',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule, MatDialogModule, TokenDialogComponent],
+  providers: [ApiService],
   templateUrl: './login-signup.html',
   styleUrls: ['./login-signup.css'],
 })
