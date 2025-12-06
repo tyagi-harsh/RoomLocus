@@ -58,7 +58,6 @@ export function passwordValidator(): ValidatorFn {
   selector: 'app-login-signup',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule, MatDialogModule, TokenDialogComponent],
-  providers: [ApiService],
   templateUrl: './login-signup.html',
   styleUrls: ['./login-signup.css'],
 })

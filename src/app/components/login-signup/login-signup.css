@@ -394,6 +394,7 @@
   text-align: center;
 }
 
+
 @media (min-width: 960px) {
   .welcome-header {
     max-width: 560px; /* match login card max width on small screens */
