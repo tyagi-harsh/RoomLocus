@@ -1,5 +1,4 @@
 ﻿import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -17,6 +16,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TokenDialogComponent } from './token-dialog.component';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { ApiService } from '../../services/api';
 
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'otp';
@@ -57,7 +57,7 @@ export function passwordValidator(): ValidatorFn {
 @Component({
   selector: 'app-login-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule, MatDialogModule, TokenDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule, MatDialogModule],
   templateUrl: './login-signup.html',
   styleUrls: ['./login-signup.css'],
 })
@@ -120,8 +120,12 @@ export class LoginSignup implements OnInit, OnDestroy {
   @Output() otpSent = new EventEmitter<{ mobile: string; context: 'signup' | 'forgot' }>();
   @Output() otpVerified = new EventEmitter<{ mobile?: string; context: 'signup' | 'forgot' }>();
 
-  constructor(private route: ActivatedRoute, private api: ApiService, private snackBar: MatSnackBar, private dialog: MatDialog) { }
-
+ constructor(
+    private route: ActivatedRoute,
+    private api: ApiService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {}
   ngOnInit(): void {
     this.loginForm = new FormGroup({
       whatsappNo: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
