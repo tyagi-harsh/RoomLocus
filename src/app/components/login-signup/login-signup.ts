@@ -1,4 +1,5 @@
-﻿import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+﻿import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -15,7 +16,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TokenDialogComponent } from './token-dialog.component';
 import { ActivatedRoute } from '@angular/router';
-import { ApiService } from '../../services/api';
+import { Subject, takeUntil } from 'rxjs';
+
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'otp';
 type ZoneType = 'owner' | 'agent' | 'user';
@@ -60,7 +62,7 @@ export function passwordValidator(): ValidatorFn {
   templateUrl: './login-signup.html',
   styleUrls: ['./login-signup.css'],
 })
-export class LoginSignup implements OnInit {
+export class LoginSignup implements OnInit, OnDestroy {
   authView: AuthView = 'login';
 
   loginForm!: FormGroup;
@@ -78,6 +80,7 @@ export class LoginSignup implements OnInit {
   // Controls whether password inputs are enabled (false until OTP verified)
   allowPasswordEntry = false;
   zoneType: ZoneType = 'owner';
+  private destroy$ = new Subject<void>();
 
   // Loading / UX state flags
   isLoadingLogin = false;
@@ -139,6 +142,9 @@ export class LoginSignup implements OnInit {
     });
 
     this.initializeZoneType();
+     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      this.initializeZoneType(params.get('userType'));
+    });
   }
 
   onSignIn(): void {
@@ -715,13 +721,17 @@ export class LoginSignup implements OnInit {
     return this.zoneClasses[this.zoneType];
   }
 
-  private initializeZoneType(): void {
-    const rawType = this.route.snapshot.queryParamMap.get('userType');
+   private initializeZoneType(queryParam?: string | null): void {
+    const rawType = queryParam ?? this.route.snapshot.queryParamMap.get('userType');
     const normalized = rawType ? rawType.toUpperCase() : undefined;
     if (normalized && Object.prototype.hasOwnProperty.call(this.zoneParamMap, normalized)) {
       this.zoneType = this.zoneParamMap[normalized as ZoneParam];
       return;
     }
     this.zoneType = 'owner';
+  }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
