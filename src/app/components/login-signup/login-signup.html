@@ -131,35 +131,39 @@
                       <mat-progress-spinner *ngIf="isSendingOtp" diameter="18"
                         mode="indeterminate"></mat-progress-spinner>
                     </button>
-                    <small *ngIf="otpRequested && !otpVerifiedFlag">OTP sent successfully <i class="fas fa-check-circle"
+                    <small *ngIf="showSignupOtpSentMessage && otpRequested && !otpVerifiedFlag">OTP sent successfully <i class="fas fa-check-circle"
                         style="color: rgb(3, 152, 3);"></i></small>
                   </div>
                 </div>
                 <div *ngIf="otpRequested" class="otp-panel">
                   <div class="otp-block">
-                    <input id="signup-otp" type="tel" maxlength="6" [(ngModel)]="signupOtpInput" placeholder="XXXX"
-                      name="signupOtp" />
+                    <input
+                      id="signup-otp"
+                      type="tel"
+                      maxlength="6"
+                      [(ngModel)]="signupOtpInput"
+                      [ngModelOptions]="{ standalone: true }"
+                      placeholder="XXXXXX"
+                      name="signupOtp"
+                    />
                   </div>
-                  <div *ngIf="otpError" class="validation-error" style="margin-top:6px">{{ otpError }}</div>
+                  <div *ngIf="otpError" class="validation-error" style="margin-top:6px">
+                    <!-- {{ otpError }} --><span> <small style="color: red;">Invalid OTP</small></span>
+                    <button *ngIf="showResendOtpOption" type="button" class="resend-link" (click)="resendSignupOtp()">
+                      Resend OTP
+                    </button>
+                  </div>
                   <div class="otp-block">
                     <button type="button" class="otp-verify-button" (click)="verifySignupOtp()">
                       <span *ngIf="!isVerifyingOtp">Verify OTP</span>
                       <mat-progress-spinner *ngIf="isVerifyingOtp" diameter="18"
                         mode="indeterminate"></mat-progress-spinner>
                     </button>
-                    <!-- Debug button: forces verify-otp call directly -->
-                    <button type="button" class="otp-debug-button" (click)="debugCallVerify()" style="margin-left:8px">
-                      Debug: Call verify-otp
-                    </button>
                   </div>
                 </div>
-                <div *ngIf="lastVerifyPayload" class="otp-debug" style="margin-top:8px; font-size:12px; color: #666;">
-                  <div><strong>Debug:</strong> verify-otp payload at {{ lastVerifyCallAt }}</div>
-                  <pre>{{ lastVerifyPayload | json }}</pre>
-                </div>
-                <div *ngIf="otpVerifiedFlag" class="otp-status">
+                <div *ngIf="showSignupOtpVerifiedToast" class="otp-status verified-toast">
                   <i class="fas fa-check-circle"></i>
-                  <span>Verified</span>
+                  <span>OTP Verified</span>
                 </div>
 
 
@@ -168,7 +172,7 @@
 
 
             <div class="input-group">
-              <label for="signup-email">Email:</label>
+              <label for="signup-email">Email (optional):</label>
               <div class="input-with-icon">
                 <i class="fas fa-envelope icon"></i>
                 <input type="email" id="signup-email" formControlName="email" placeholder="Email" aria-label="Email" />
@@ -176,13 +180,12 @@
               <div
                 *ngIf="signupControls['email'].invalid && (signupControls['email'].dirty || signupControls['email'].touched)"
                 class="validation-error">
-                <div *ngIf="signupControls['email'].errors?.['required']">Email is required.</div>
                 <div *ngIf="signupControls['email'].errors?.['email']">Invalid email.</div>
               </div>
             </div>
 
 
-            <div class="input-group">
+            <div class="input-group" [class.password-locked]="!otpVerifiedFlag">
               <label for="signup-password">Password:</label>
               <div class="input-with-icon password-input">
                 <i class="fas fa-lock icon"></i>
@@ -205,7 +208,7 @@
               </div>
             </div>
 
-            <div class="input-group">
+            <div class="input-group" [class.password-locked]="!otpVerifiedFlag">
               <label for="signup-confirm">Confirm Password:</label>
               <div class="input-with-icon password-input">
                 <i class="fas fa-lock icon"></i>
@@ -243,9 +246,9 @@
 
       <div *ngSwitchCase="'forgot'">
         <h2>Forgot Password</h2>
-        <p class="sub-text">Enter your WhatsApp number to receive an OTP.</p>
+        <p class="sub-text">Use OTP verification to reset your password.</p>
 
-        <form [formGroup]="forgotForm" (ngSubmit)="onForgotSubmit()">
+        <form [formGroup]="forgotForm" (ngSubmit)="onResetPassword()">
           <div class="input-group">
             <label for="forgot-mobile">Whatsapp No:</label>
             <div class="input-with-icon">
@@ -259,12 +262,109 @@
               <div *ngIf="forgotControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
               <div *ngIf="forgotControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
             </div>
+
+            <div *ngIf="forgotUserLookupError" class="validation-error">
+              {{ forgotUserLookupError || 'Check if this role/number exists.' }}
+            </div>
+
+            <div class="otp-cta">
+              <div class="get-otp-div">
+                <button type="button" class="otp-button" (click)="startForgotOtpFlow()"
+                  [disabled]="(forgotOtpRequested && !forgotOtpVerified) || isSendingOtp">
+                  <span *ngIf="!isSendingOtp">Get OTP</span>
+                  <mat-progress-spinner *ngIf="isSendingOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+                </button>
+                <small *ngIf="showForgotOtpSentMessage && forgotOtpRequested && !forgotOtpVerified && !forgotUserLookupError">OTP sent
+                  successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i></small>
+              </div>
+            </div>
+
+            <div class="mobile-extra" *ngIf="forgotOtpRequested && !forgotUserLookupError">
+              <div class="otp-panel">
+                <div class="otp-block">
+                  <input
+                    id="forgot-otp"
+                    type="tel"
+                    maxlength="6"
+                    [(ngModel)]="forgotOtpInput"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="XXXXXX"
+                    name="forgotOtp"
+                  />
+                </div>
+                <div *ngIf="forgotOtpError" class="validation-error" style="margin-top:6px">
+                  <!-- {{ forgotOtpError }} --><span> <small style="color: red;">Invalid OTP</small></span>
+                  <button *ngIf="showForgotResendOption" type="button" class="resend-link"
+                    (click)="resendForgotOtp()">
+                    Resend OTP
+                  </button>
+                </div>
+                <div class="otp-block">
+                  <button type="button" class="otp-verify-button" (click)="verifyForgotOtp()">
+                    <span *ngIf="!isVerifyingForgotOtp">Verify OTP</span>
+                    <mat-progress-spinner *ngIf="isVerifyingForgotOtp" diameter="18"
+                      mode="indeterminate"></mat-progress-spinner>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="showForgotOtpVerifiedToast" class="otp-status verified-toast">
+            <i class="fas fa-check-circle"></i>
+            <span>OTP Verified</span>
+          </div>
+          
+
+          <div class="input-group" [class.password-locked]="!forgotOtpVerified">
+            <label for="forgot-new-password">New Password:</label>
+            <div class="input-with-icon password-input">
+              <i class="fas fa-lock icon"></i>
+              <input [type]="showForgotPassword ? 'text' : 'password'" id="forgot-new-password"
+                formControlName="newPassword" placeholder="New Password" aria-label="New Password" />
+              <button type="button" class="toggle-password" (click)="toggleForgotPasswordVisibility('new')"
+                aria-label="Toggle new password visibility">
+                <i class="fas" [ngClass]="showForgotPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+              </button>
+            </div>
+            <div
+              *ngIf="forgotControls['newPassword'].invalid && (forgotControls['newPassword'].dirty || forgotControls['newPassword'].touched)"
+              class="validation-error">
+              <div *ngIf="forgotControls['newPassword'].errors?.['required']">Password is required.</div>
+              <div *ngIf="forgotControls['newPassword'].errors?.['minlength']">Password must be at least 6 characters.
+              </div>
+              <ng-container *ngIf="forgotPasswordErrorMessage as message">
+                {{ message }}
+              </ng-container>
+            </div>
+          </div>
+
+
+          <div class="input-group" [class.password-locked]="!forgotOtpVerified">
+            <label for="forgot-confirm-password">Confirm Password:</label>
+            <div class="input-with-icon password-input">
+              <i class="fas fa-lock icon"></i>
+              <input [type]="showForgotConfirmPassword ? 'text' : 'password'" id="forgot-confirm-password"
+                formControlName="confirmPassword" placeholder="Confirm Password" aria-label="Confirm Password" />
+              <button type="button" class="toggle-password"
+                (click)="toggleForgotPasswordVisibility('confirm')"
+                aria-label="Toggle confirm password visibility">
+                <i class="fas" [ngClass]="showForgotConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+              </button>
+            </div>
+            <div
+              *ngIf="forgotControls['confirmPassword'].invalid && (forgotControls['confirmPassword'].dirty || forgotControls['confirmPassword'].touched)"
+              class="validation-error">
+              <div *ngIf="forgotControls['confirmPassword'].errors?.['required']">Confirm password is required.</div>
+              <div *ngIf="forgotControls['confirmPassword'].errors?.['mismatch']">Passwords must match.</div>
+            </div>
           </div>
 
           <button mat-flat-button color="primary" type="submit" class="sign-in-button"
-            [disabled]="isSendingOtp || forgotForm.invalid">
-            <span *ngIf="!isSendingOtp">Send OTP</span>
-            <mat-progress-spinner *ngIf="isSendingOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+            [disabled]="isResettingPassword || !forgotOtpVerified || forgotForm.invalid">
+            <span *ngIf="!isResettingPassword">Reset Password</span>
+            <mat-progress-spinner *ngIf="isResettingPassword" diameter="18"
+              mode="indeterminate"></mat-progress-spinner>
           </button>
         </form>
 
@@ -275,7 +375,7 @@
           </p>
         </div>
       </div>
-      <div *ngSwitchCase="'otp'">
+      <!-- <div *ngSwitchCase="'otp'">
         <h2>Verify OTP</h2>
         <p class="sub-text">
           We sent an OTP {{ pendingMobile ? 'to ' + pendingMobile : 'to your number' }}.
@@ -314,7 +414,7 @@
             </a>
           </p>
         </div>
-      </div>
+      </div> -->
     </ng-container>
   </div>
 </div>

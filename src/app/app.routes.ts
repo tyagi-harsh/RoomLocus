@@ -7,6 +7,7 @@ import { PropertyDetails } from './components/property-details/property-details'
 import { LoginSignup } from './components/login-signup/login-signup';
 import { UserDashboard } from './components/user-dashboard/user-dashboard';
 import { OwnerDashboard } from './components/owner-dashboard/owner-dashboard';
+import { ownerGuard, userGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   // Add a default route (e.g., redirect to '/home' if the path is empty)
@@ -25,10 +26,10 @@ export const routes: Routes = [
   { path: 'login', component: LoginSignup },
 
   // User dashboard
-  { path: 'dashboard', component: UserDashboard },
+  { path: 'dashboard', component: UserDashboard, canActivate: [userGuard] },
 
   // Owner dashboard
-  { path: 'owner-dashboard', component: OwnerDashboard },
+  { path: 'owner-dashboard', component: OwnerDashboard, canActivate: [ownerGuard] },
 
   // Optional: A wildcard route for 404 pages
   // { path: '**', component: PageNotFoundComponent }

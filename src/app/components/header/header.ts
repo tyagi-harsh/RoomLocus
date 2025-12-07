@@ -15,13 +15,17 @@ import { Subject, filter, takeUntil } from 'rxjs';
 })
 export class Header implements OnInit, OnDestroy {
   dropdownOpen = false;
+  isAuthenticated = false;
+  userType: string | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+    this.syncAuthState();
     this.router.events.pipe(filter((event) => event instanceof NavigationEnd), takeUntil(this.destroy$)).subscribe(() => {
       this.closeDropdown();
+      this.syncAuthState();
     });
   }
 
@@ -40,5 +44,36 @@ export class Header implements OnInit, OnDestroy {
 
   closeDropdown(): void {
     this.dropdownOpen = false;
+  }
+
+  goToDashboard(): void {
+    if (!this.userType) {
+      return;
+    }
+    const target = this.userType === 'OWNER' ? '/owner-dashboard' : '/dashboard';
+    this.router.navigate([target]).catch((err) => console.warn('Navigation failed', err));
+  }
+
+  logout(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userType');
+    }
+    this.isAuthenticated = false;
+    this.userType = null;
+    this.router.navigate(['/login']).catch((err) => console.warn('Navigation failed', err));
+  }
+
+  private syncAuthState(): void {
+    if (typeof window === 'undefined') {
+      this.isAuthenticated = false;
+      this.userType = null;
+      return;
+    }
+    const token = localStorage.getItem('accessToken');
+    const storedRole = localStorage.getItem('userType');
+    this.isAuthenticated = Boolean(token && storedRole);
+    this.userType = storedRole || null;
   }
 }

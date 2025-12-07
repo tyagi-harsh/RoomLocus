@@ -89,6 +89,34 @@
   display: inline-flex;
 }
 
+.auth-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-btn,
+.logout-btn {
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0 18px;
+}
+
+.dashboard-btn {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.logout-btn {
+  background-color: #ffffff;
+  color: #027fa5;
+}
+
+.user-icon.active {
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
 .user-dropdown {
   position: absolute;
   top: calc(100% + 8px);

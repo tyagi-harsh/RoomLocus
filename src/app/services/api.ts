@@ -172,6 +172,17 @@ export class ApiService {
     );
   }
 
+  resetPassword(payload: { mobile: string; otp: string; newPassword: string; userType: string }): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/auth/reset-password`, payload).pipe(
+      map((resp) => resp),
+      catchError((error) => {
+        console.error('resetPassword API error:', error);
+        const message = (error && error.error && (error.error.message || error.error.error)) || error.message || 'Unknown error';
+        return of({ success: false, error: message });
+      })
+    );
+  }
+
   getCities(): Observable<City[]> {
     return of(citiesData).pipe(delay(500));
   }
