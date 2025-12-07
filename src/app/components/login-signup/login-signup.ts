@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+﻿import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -15,11 +15,22 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TokenDialogComponent } from './token-dialog.component';
 import { ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../services/api';
+import { encryptWithBackendRsa } from '../../utils/rsa-encryption';
+
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'otp';
 type ZoneType = 'owner' | 'agent' | 'user';
 type ZoneParam = 'OWNER' | 'AGENT' | 'END_USER';
+type TokenProof = {
+  subject?: string;
+  mobile?: string;
+  userType?: string;
+  roles?: string[];
+  issuedAt?: string;
+  expiration?: string;
+};
 
 export function passwordValidator(): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
@@ -55,12 +66,11 @@ export function passwordValidator(): ValidatorFn {
 @Component({
   selector: 'app-login-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule, MatDialogModule, TokenDialogComponent],
-  providers: [ApiService],
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule, MatDialogModule],
   templateUrl: './login-signup.html',
   styleUrls: ['./login-signup.css'],
 })
-export class LoginSignup implements OnInit {
+export class LoginSignup implements OnInit, OnDestroy {
   authView: AuthView = 'login';
 
   loginForm!: FormGroup;
@@ -78,6 +88,7 @@ export class LoginSignup implements OnInit {
   // Controls whether password inputs are enabled (false until OTP verified)
   allowPasswordEntry = false;
   zoneType: ZoneType = 'owner';
+  private destroy$ = new Subject<void>();
 
   // Loading / UX state flags
   isLoadingLogin = false;
@@ -89,6 +100,9 @@ export class LoginSignup implements OnInit {
   lastVerifyCallAt: string | null = null;
   // Inline OTP error for user-friendly feedback
   otpError: string | null = null;
+  lastLoginTokenInfo: TokenProof | null = null;
+  loginProofError: string | null = null;
+  isLoadingTokenProof = false;
 
   private readonly zoneLabels: Record<ZoneType, string> = {
     owner: 'Owner Zone',
@@ -118,8 +132,12 @@ export class LoginSignup implements OnInit {
   @Output() otpSent = new EventEmitter<{ mobile: string; context: 'signup' | 'forgot' }>();
   @Output() otpVerified = new EventEmitter<{ mobile?: string; context: 'signup' | 'forgot' }>();
 
-  constructor(private route: ActivatedRoute, private api: ApiService, private snackBar: MatSnackBar, private dialog: MatDialog) { }
-
+ constructor(
+    private route: ActivatedRoute,
+    private api: ApiService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {}
   ngOnInit(): void {
     this.loginForm = new FormGroup({
       whatsappNo: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
@@ -139,6 +157,9 @@ export class LoginSignup implements OnInit {
     });
 
     this.initializeZoneType();
+     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      this.initializeZoneType(params.get('userType'));
+    });
   }
 
   onSignIn(): void {
@@ -156,6 +177,7 @@ export class LoginSignup implements OnInit {
 
       // Encrypt login password with server public key then POST to login endpoint
       this.isLoadingLogin = true;
+      this.prepareLoginProofState();
       this.api.getPublicKey().subscribe(async (pubKey: string) => {
         if (!pubKey) {
           this.isLoadingLogin = false;
@@ -180,6 +202,7 @@ export class LoginSignup implements OnInit {
               } catch (e) {
                 console.warn('Failed to store tokens locally', e);
               }
+              this.fetchTokenProof(resp.accessToken);
               this.loginAttempt.emit({ whatsappNo: values.whatsappNo, password: values.password });
               // Show dialog with tokens
               try {
@@ -275,51 +298,9 @@ export class LoginSignup implements OnInit {
     }
   }
 
-  // Convert PEM public key (SPKI) to CryptoKey and encrypt plaintext using RSA-OAEP with SHA-256.
+  // Encrypts the plaintext password with RSA-OAEP parameters that mirror the backend (SHA-256 digest + MGF1 SHA-1).
   private async encryptWithPublicKeyPem(pem: string, plaintext: string): Promise<string> {
-    // Strip the header/footer and newlines, then base64 -> ArrayBuffer
-    const b64 = pem.replace(/-----BEGIN PUBLIC KEY-----/, '').replace(/-----END PUBLIC KEY-----/, '').replace(/\s+/g, '');
-    const binaryDer = this.base64ToArrayBuffer(b64);
-
-    // Import the public key as SPKI
-    const publicKey = await window.crypto.subtle.importKey(
-      'spki',
-      binaryDer,
-      {
-        name: 'RSA-OAEP',
-        hash: { name: 'SHA-256' },
-      },
-      false,
-      ['encrypt']
-    );
-
-    // Encode plaintext and encrypt
-    const encoder = new TextEncoder();
-    const data = encoder.encode(plaintext);
-    const encrypted = await window.crypto.subtle.encrypt({ name: 'RSA-OAEP' }, publicKey, data);
-
-    return this.arrayBufferToBase64(encrypted);
-  }
-
-  private base64ToArrayBuffer(base64: string): ArrayBuffer {
-    const binaryString = atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-  }
-
-  private arrayBufferToBase64(buffer: ArrayBuffer): string {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    const chunkSize = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      const chunk = bytes.subarray(i, i + chunkSize);
-      binary += String.fromCharCode.apply(null, Array.from(chunk) as any);
-    }
-    return btoa(binary);
+    return encryptWithBackendRsa(pem, plaintext);
   }
 
   startSignupOtpFlow(): void {
@@ -625,6 +606,41 @@ export class LoginSignup implements OnInit {
     this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
   }
 
+  private prepareLoginProofState(): void {
+    this.lastLoginTokenInfo = null;
+    this.loginProofError = null;
+    this.isLoadingTokenProof = false;
+  }
+
+  private fetchTokenProof(accessToken: string): void {
+    if (!accessToken) {
+      return;
+    }
+    this.isLoadingTokenProof = true;
+    this.loginProofError = null;
+    this.api.getTokenInfo(accessToken).subscribe((info: any | null) => {
+      this.isLoadingTokenProof = false;
+      if (info) {
+        this.lastLoginTokenInfo = {
+          subject: info.subject,
+          mobile: info.mobile,
+          userType: info.userType,
+          roles: info.roles,
+          issuedAt: info.issuedAt,
+          expiration: info.expiration,
+        };
+        return;
+      }
+      this.lastLoginTokenInfo = null;
+      this.loginProofError = 'Unable to confirm the login session from the server.';
+    }, (err) => {
+      this.isLoadingTokenProof = false;
+      this.lastLoginTokenInfo = null;
+      const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Failed to load login proof.';
+      this.loginProofError = errMsg;
+    });
+  }
+
   get loginControls() {
     return this.loginForm.controls;
   }
@@ -715,13 +731,17 @@ export class LoginSignup implements OnInit {
     return this.zoneClasses[this.zoneType];
   }
 
-  private initializeZoneType(): void {
-    const rawType = this.route.snapshot.queryParamMap.get('userType');
+   private initializeZoneType(queryParam?: string | null): void {
+    const rawType = queryParam ?? this.route.snapshot.queryParamMap.get('userType');
     const normalized = rawType ? rawType.toUpperCase() : undefined;
     if (normalized && Object.prototype.hasOwnProperty.call(this.zoneParamMap, normalized)) {
       this.zoneType = this.zoneParamMap[normalized as ZoneParam];
       return;
     }
     this.zoneType = 'owner';
+  }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

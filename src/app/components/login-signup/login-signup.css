@@ -394,6 +394,42 @@
   text-align: center;
 }
 
+.login-proof-panel {
+  margin-top: 25px;
+  text-align: left;
+  border: 1px dashed #17a2b8;
+  border-radius: 10px;
+  padding: 18px;
+  background: #f4fcfe;
+}
+
+.login-proof-card h3 {
+  margin-top: 0;
+  font-size: 1rem;
+  color: #0b6a7a;
+}
+
+.login-proof-card p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.login-proof-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0b6a7a;
+  font-size: 0.9rem;
+}
+
+.login-proof-error {
+  color: #b31238;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+
 @media (min-width: 960px) {
   .welcome-header {
     max-width: 560px; /* match login card max width on small screens */

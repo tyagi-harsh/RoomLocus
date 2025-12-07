@@ -86,7 +86,7 @@ export class PropertySearchService {
     }
 
     getTownSectors(cityName: string, type: string): Observable<string[]> {
-        const normalizedType = type ? type.replace(/\s+/g, '').toLowerCase() : '';
+        const normalizedType = this.normalizeTypeParam(type);
         let params = new HttpParams().set('city', cityName).set('page', '0').set('size', '1000');
         if (normalizedType) params = params.set('type', normalizedType);
 
@@ -132,7 +132,7 @@ export class PropertySearchService {
     }
 
     searchProperties(type: string, city: string, townSector: string, page = 0, size = 10): Observable<PropertySearchResponse> {
-        const normalizedType = type ? type.replace(/\s+/g, '').toLowerCase() : '';
+        const normalizedType = this.normalizeTypeParam(type);
         let params = new HttpParams()
             .set('type', normalizedType)
             .set('city', city)
@@ -170,8 +170,9 @@ export class PropertySearchService {
     }
 
         getPropertyDetails(type: string, id: number): Observable<any> {
-            const params = new HttpParams().set('type', type).set('id', id.toString());
-            const url = `${this.SEARCH_BASE}/details?${params.toString()}`;
+            const normalizedType = this.normalizeTypeParam(type);
+            const typeParam = normalizedType || type;
+            const params = new HttpParams().set('type', typeParam).set('id', id.toString());            const url = `${this.SEARCH_BASE}/details?${params.toString()}`;
 
             return this.http.get<ApiResponse<any>>(url).pipe(
                 map((response) => {
@@ -217,5 +218,12 @@ export class PropertySearchService {
             }
         }
         this.locationCache.set(key, { data, timestamp: Date.now() });
+    }
+    
+    private normalizeTypeParam(rawType?: string | null): string {
+        if (!rawType) {
+            return '';
+        }
+        return rawType.toString().trim().replace(/\s+/g, '').toLowerCase();
     }
 }

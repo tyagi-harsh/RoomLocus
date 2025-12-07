@@ -107,6 +107,23 @@ export class ApiService {
   }
 
   /**
+   * Retrieve token details to prove that a login attempt succeeded.
+   */
+  getTokenInfo(token: string): Observable<any | null> {
+    if (!token) {
+      return of(null);
+    }
+    const params = new HttpParams().set('token', token);
+    return this.http.get<any>(`${this.API_URL}/auth/token-info`, { params }).pipe(
+      map((resp) => resp),
+      catchError((error) => {
+        console.error('Token info API error:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
    * Request an OTP for the given mobile and userType. Purpose is 'S' (signup) or 'F' (forgot).
    */
   getOtp(payload: { mobile: string; userType: string; purpose: string }): Observable<any> {
