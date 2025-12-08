@@ -83,6 +83,7 @@ export class LoginSignup implements OnInit, OnDestroy {
   showForgotConfirmPassword = false;
   showSignupOtpSentMessage = false;
   showForgotOtpSentMessage = false;
+  forgotResetToken: string | null = null;
   otpCode = '';
   otpContext: 'signup' | 'forgot' = 'signup';
   pendingMobile?: string;
@@ -583,12 +584,14 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.isVerifyingForgotOtp = true;
     this.api.verifyOtp(payload).subscribe((resp: any) => {
       this.isVerifyingForgotOtp = false;
+      const respBody = resp && resp.body ? resp.body : resp;
       const verified = this.isOtpVerifiedResponse(resp);
       if (verified) {
         this.forgotOtpError = null;
         this.forgotOtpVerified = true;
         this.forgotOtpRequested = false;
         this.showForgotOtpSentMessage = false;
+        this.forgotResetToken = this.extractResetToken(respBody);
         this.enableForgotPasswordFields();
         this.lastVerifiedForgotOtp = otp;
         this.forgotOtpInput = '';
@@ -599,11 +602,11 @@ export class LoginSignup implements OnInit, OnDestroy {
         return;
       }
 
-      const respBody = resp && resp.body ? resp.body : resp;
       const errMsg = (respBody && (respBody.error || respBody.message)) || 'Invalid OTP';
       this.forgotOtpError = errMsg;
       this.showForgotOtpSentMessage = false;
       this.showForgotResendOption = true;
+      this.forgotResetToken = null;
       this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
     }, (err) => {
       this.isVerifyingForgotOtp = false;
@@ -611,6 +614,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.forgotOtpError = errMsg;
       this.showForgotOtpSentMessage = false;
       this.showForgotResendOption = true;
+      this.forgotResetToken = null;
       this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
     });
   }
@@ -648,6 +652,11 @@ export class LoginSignup implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.forgotResetToken) {
+      this.snackBar.open('Missing reset authorization token. Please verify the OTP again.', 'Close', { duration: 4000 });
+      return;
+    }
+
     const mobile = ((this.pendingMobile as string) || mobileControl.value || '').trim();
     if (!mobile) {
       this.snackBar.open('Mobile number missing. Please re-enter and request OTP again.', 'Close', { duration: 4000 });
@@ -680,7 +689,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         userType: userTypeMap[this.zoneType],
       };
 
-      this.api.resetPassword(payload).subscribe((resp: any) => {
+      this.api.resetPassword(payload, { authorizationToken: this.forgotResetToken || undefined }).subscribe((resp: any) => {
         this.isResettingPassword = false;
         if (resp && resp.success === false) {
           this.snackBar.open('Password reset failed: ' + (resp.error || 'Unknown error'), 'Close', { duration: 4000 });
@@ -1056,6 +1065,7 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.lastVerifiedForgotOtp = null;
     this.forgotUserLookupError = null;
     this.showForgotOtpSentMessage = false;
+    this.forgotResetToken = null;
     if (this.forgotOtpVerifiedTimer) {
       clearTimeout(this.forgotOtpVerifiedTimer);
       this.forgotOtpVerifiedTimer = null;
@@ -1091,6 +1101,25 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.showForgotResendOption = false;
     this.showForgotOtpVerifiedToast = false;
     this.showForgotOtpSentMessage = false;
+    this.forgotResetToken = null;
     this.disableForgotPasswordFields();
+  }
+
+  private extractResetToken(body: any): string | null {
+    if (!body) {
+      return null;
+    }
+    const candidates = [
+      body.resetToken,
+      body.token,
+      body?.data?.resetToken,
+      body?.data?.token,
+    ];
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim().length) {
+        return candidate.trim();
+      }
+    }
+    return null;
   }
 }

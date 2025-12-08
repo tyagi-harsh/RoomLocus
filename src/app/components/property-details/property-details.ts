@@ -300,7 +300,7 @@ export class PropertyDetails implements OnInit {
   }
 
   get primaryHeading(): string {
-    const propertyName = this.details.propertyName;
+    const propertyName = this.isHourlyRoomProperty ? this.details.propertyName : undefined;
     const location = this.details.address.location || this.details.address.area || this.details.location || '';
     const landmark = this.details.address.landmark || '';
     const locationParts = [location, landmark].filter((value) => !!value);

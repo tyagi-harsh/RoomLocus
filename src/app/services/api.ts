@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of, catchError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 
@@ -172,8 +172,16 @@ export class ApiService {
     );
   }
 
-  resetPassword(payload: { mobile: string; otp: string; newPassword: string; userType: string }): Observable<any> {
-    return this.http.post<any>(`${this.API_URL}/auth/reset-password`, payload).pipe(
+  resetPassword(
+    payload: { mobile: string; otp: string; newPassword: string; userType: string },
+    options?: { authorizationToken?: string }
+  ): Observable<any> {
+    const headers = options?.authorizationToken
+      ? new HttpHeaders({ Authorization: `Bearer ${options.authorizationToken}` })
+      : undefined;
+    const httpOptions = headers ? { headers } : {};
+
+    return this.http.post<any>(`${this.API_URL}/auth/reset-password`, payload, httpOptions).pipe(
       map((resp) => resp),
       catchError((error) => {
         console.error('resetPassword API error:', error);

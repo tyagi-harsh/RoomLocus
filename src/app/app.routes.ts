@@ -8,6 +8,8 @@ import { LoginSignup } from './components/login-signup/login-signup';
 import { UserDashboard } from './components/user-dashboard/user-dashboard';
 import { OwnerDashboard } from './components/owner-dashboard/owner-dashboard';
 import { ownerGuard, userGuard } from './guards/role.guard';
+import { OwnerPropertyDetailsForm } from './components/owner-property-details-form/owner-property-details-form';
+import { OwnerPropertyImageUpload } from './components/owner-property-image-upload/owner-property-image-upload';
 
 export const routes: Routes = [
   // Add a default route (e.g., redirect to '/home' if the path is empty)
@@ -30,6 +32,10 @@ export const routes: Routes = [
 
   // Owner dashboard
   { path: 'owner-dashboard', component: OwnerDashboard, canActivate: [ownerGuard] },
+
+  { path: 'owner/property', redirectTo: 'owner/property/details', pathMatch: 'full' },
+  { path: 'owner/property/details', component: OwnerPropertyDetailsForm },
+  { path: 'owner/property/images', component: OwnerPropertyImageUpload },
 
   // Optional: A wildcard route for 404 pages
   // { path: '**', component: PageNotFoundComponent }
