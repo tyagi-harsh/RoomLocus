@@ -14,9 +14,10 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TokenDialogComponent } from './token-dialog.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { Subject, takeUntil, filter, pairwise } from 'rxjs';
 import { ApiService } from '../../services/api';
+import { WishlistService } from '../../services/wishlist.service';
 import { encryptWithBackendRsa } from '../../utils/rsa-encryption';
 
 
@@ -148,6 +149,9 @@ export class LoginSignup implements OnInit, OnDestroy {
     password: string;
   }>();
   @Output() forgotPasswordRequest = new EventEmitter<{ mobile: string }>();
+
+  // URL to redirect to after successful login
+  private returnUrl: string | null = null;
   @Output() otpSent = new EventEmitter<{ mobile: string; context: 'signup' | 'forgot' }>();
   @Output() otpVerified = new EventEmitter<{ mobile?: string; context: 'signup' | 'forgot' }>();
 
@@ -156,7 +160,8 @@ export class LoginSignup implements OnInit, OnDestroy {
     private api: ApiService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private wishlistService: WishlistService
   ) {}
   ngOnInit(): void {
     this.loginForm = new FormGroup({
@@ -187,8 +192,21 @@ export class LoginSignup implements OnInit, OnDestroy {
       });
 
     this.initializeZoneType();
+    
+    // Try to get the previous URL from navigation state
+    const navigation = this.router.getCurrentNavigation();
+    const previousUrl = navigation?.extras?.state?.['previousUrl'];
+    if (previousUrl && previousUrl !== '/login') {
+      this.returnUrl = previousUrl;
+    }
+    
      this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       this.initializeZoneType(params.get('userType'));
+      // Capture return URL if provided (query param takes priority)
+      const returnUrlParam = params.get('returnUrl');
+      if (returnUrlParam) {
+        this.returnUrl = returnUrlParam;
+      }
     });
   }
 
@@ -230,6 +248,7 @@ export class LoginSignup implements OnInit, OnDestroy {
                 localStorage.setItem('accessToken', resp.accessToken);
                 if (resp.refreshToken) localStorage.setItem('refreshToken', resp.refreshToken);
                 localStorage.setItem('userType', userType);
+                localStorage.setItem('userMobile', values.whatsappNo);
               } catch (e) {
                 console.warn('Failed to store tokens locally', e);
               }
@@ -305,6 +324,7 @@ export class LoginSignup implements OnInit, OnDestroy {
               localStorage.setItem('accessToken', resp.accessToken);
               if (resp.refreshToken) localStorage.setItem('refreshToken', resp.refreshToken);
               localStorage.setItem('userType', payload.userType);
+              localStorage.setItem('userMobile', values.mobile);
             } catch (e) {
               console.warn('Failed to store tokens locally', e);
             }
@@ -336,8 +356,15 @@ export class LoginSignup implements OnInit, OnDestroy {
     if (!userType) {
       return;
     }
-    const route = userType === 'OWNER' ? '/owner-dashboard' : '/dashboard';
-    this.router.navigate([route]).catch((err) => console.warn('Navigation failed', err));
+    // Refresh wishlist for the current user
+    this.wishlistService.refreshForCurrentUser();
+    // If there's a returnUrl, navigate there instead of the default
+    if (this.returnUrl) {
+      this.router.navigateByUrl(this.returnUrl).catch((err) => console.warn('Navigation failed', err));
+      return;
+    }
+    // Default: go to home page if no previous page was captured
+    this.router.navigate(['/home']).catch((err) => console.warn('Navigation failed', err));
   }
 
   // Encrypts the plaintext password with RSA-OAEP parameters that mirror the backend (SHA-256 digest + MGF1 SHA-1).

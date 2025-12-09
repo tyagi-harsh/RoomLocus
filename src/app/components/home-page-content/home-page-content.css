@@ -315,6 +315,61 @@
   text-align: right;
 }
 
+@media (max-width: 420px) {
+  .search-form-card {
+    padding: 0.9rem;
+  }
+
+  .for-rent-button {
+    font-size: 0.8rem;
+    height: 32px;
+    width: 80px;
+    line-height: 30px;
+  }
+
+  ::ng-deep .mat-form-field-label {
+    font-size: 0.75rem !important;
+  }
+
+  ::ng-deep mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-text-field-wrapper{
+  height: 50px !important;
+}
+
+
+  .search-button {
+    font-size: 1rem;
+    height: 44px;
+  }
+
+  /* .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  } */
+
+  .near-me-button,
+  .add-rental-button {
+    /* width: 100%; */
+    font-size: 0.85rem !important;
+    height: 34px;
+  }
+
+  .tagline {
+    margin-top: 1rem;
+    margin-left: 0;
+    margin-right: 0;
+    text-align: center;
+  }
+
+  .tagline h3 {
+    font-size: 1.1rem;
+  }
+
+  .tagline p {
+    font-size: 0.95rem;
+  }
+}
+
 /* --- Spinner within mat-option --- */
 ::ng-deep .mat-option .mat-spinner {
   display: inline-block;

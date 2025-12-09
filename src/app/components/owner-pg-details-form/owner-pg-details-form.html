@@ -1,0 +1,252 @@
+<div class="form-container animate-fade-in">
+  <div class="header-section">
+    <h1 class="main-title">I'm listing my PG</h1>
+    <h2 class="sub-title">I'm Owner</h2>
+  </div>
+
+  <form [formGroup]="listingForm">
+    <div class="form-group">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Select City</mat-label>
+        <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
+        <mat-select formControlName="city" (openedChange)="onCityDropdownOpened($event)">
+          <ng-container *ngIf="cities$ | async as cities">
+            <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
+          </ng-container>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-group">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Town & Sector</mat-label>
+        <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
+        <mat-select formControlName="town" (openedChange)="onLocationDropdownOpened($event)">
+          <mat-option *ngIf="isLocationLoading$ | async" disabled>Loading locations...</mat-option>
+          <ng-container *ngIf="!(isLocationLoading$ | async)">
+            <ng-container *ngIf="locations$ | async as locations">
+              <mat-option *ngIf="listingForm.get('city')?.value && !locations?.length" disabled>No locations found for selected city</mat-option>
+              <mat-option *ngIf="!listingForm.get('city')?.value" disabled>Please select a city first</mat-option>
+              <mat-option *ngFor="let loc of locations" [value]="loc">{{ loc }}</mat-option>
+            </ng-container>
+          </ng-container>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+
+    <div class="form-row">
+      <label class="form-label">Location</label>
+      <input type="text" formControlName="location" placeholder="Enter location" class="form-control bg-light-blue">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Landmark</label>
+      <input type="text" formControlName="landmark" placeholder="Enter landmark" class="form-control bg-light-blue">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">PG Name</label>
+      <input type="text" formControlName="pgName" placeholder="Enter PG name" class="form-control">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">BHK</label>
+      <input type="number" formControlName="bhk" placeholder="Enter BHK" class="form-control" appNumericOnly>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">PG Type</label>
+      <select formControlName="pgType" class="form-control" title="Select PG Type">
+        <option value="Boys PG">Boys PG</option>
+        <option value="Girls PG">Girls PG</option>
+        <option value="Co-ed PG">Co-ed PG</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Total PG Rooms</label>
+      <input type="number" formControlName="totalPg" placeholder="Enter total PG rooms" class="form-control" appNumericOnly>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Total Beds</label>
+      <input type="number" formControlName="totalBeds" placeholder="Enter total beds" class="form-control" appNumericOnly>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Beds per Room</label>
+      <input type="number" formControlName="bedCount" placeholder="Enter beds per room" class="form-control" appNumericOnly>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Total Floors</label>
+      <input type="number" formControlName="totalFloors" placeholder="Enter total floors" class="form-control" appNumericOnly>
+    </div>
+
+
+    <div class="form-row">
+      <label class="form-label">Minimum Price</label>
+      <input type="number" formControlName="minPrice" placeholder="Enter minimum price" class="form-control bg-light-blue" appNumericOnly>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Maximum Price</label>
+      <input type="number" formControlName="maxPrice" placeholder="Enter maximum price" class="form-control bg-light-blue" appNumericOnly>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Security Deposit</label>
+      <input type="number" formControlName="security" placeholder="Enter security amount" class="form-control" appNumericOnly>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Maintenance</label>
+      <input type="number" formControlName="maintenance" placeholder="Enter maintenance amount" class="form-control" appNumericOnly>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Offer</label>
+      <input type="text" formControlName="offer" placeholder="Enter offer" class="form-control" >
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Notice Period</label>
+      <input type="text" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control">
+    </div>
+
+
+
+
+    <!-- <div class="form-row">
+      <label class="form-label">Notice Period</label>
+      <select formControlName="noticePeriod" class="form-control" title="Select Notice Period">
+        <option value="15 Days">15 Days</option>
+        <option value="1 Month">1 Month</option>
+        <option value="2 Months">2 Months</option>
+      </select>
+    </div> -->
+
+    <div class="form-row">
+      <label class="form-label">Time Restriction</label>
+      <select formControlName="timeRestrict" class="form-control" title="Select Time Restriction">
+        <option value="No Restriction">No Restriction</option>
+        <option value="10 PM">10 PM</option>
+        <option value="11 PM">11 PM</option>
+        <option value="Midnight">Midnight</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Care Taker</label>
+        <input type="text" formControlName="careTaker" placeholder="Enter care taker name" class="form-control">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Manager/Owner</label>
+      <input type="text" formControlName="manager" placeholder="Enter manager/owner name" class="form-control">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Contact Number</label>
+      <input type="number" formControlName="contact" placeholder="Enter contact number" class="form-control" appNumericOnly>
+    </div>
+
+    <div class="form-row align-start">
+      <label class="form-label pt-2">Full Address</label>
+      <textarea formControlName="address" placeholder="Enter full address" rows="4" class="form-control"></textarea>
+    </div>
+
+    <div class="radio-section">
+      <h3 class="section-title">Furnishing Type *</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" value="Fully furnished" formControlName="furnishing"><span>Fully furnished</span></label>
+        <label class="radio-item"><input type="radio" value="Semi furnished" formControlName="furnishing"><span>Semi furnished</span></label>
+        <label class="radio-item"><input type="radio" value="Unfurnished" formControlName="furnishing"><span>Unfurnished</span></label>
+      </div>
+    </div>
+
+    <div class="radio-section">
+      <h3 class="section-title">Accommodation Type</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" value="Sharing" formControlName="accommodation"><span>Sharing (2-3 per room)</span></label>
+        <label class="radio-item"><input type="radio" value="Triple Sharing" formControlName="accommodation"><span>Triple Sharing</span></label>
+        <label class="radio-item"><input type="radio" value="Double Sharing" formControlName="accommodation"><span>Double Sharing</span></label>
+        <label class="radio-item"><input type="radio" value="Single Room" formControlName="accommodation"><span>Single Room</span></label>
+      </div>
+    </div>
+
+    <div class="radio-section">
+      <h3 class="section-title">Food Available</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" value="Yes" formControlName="foodAvailable"><span>Yes (Included)</span></label>
+        <label class="radio-item"><input type="radio" value="Optional" formControlName="foodAvailable"><span>Optional (Extra charges)</span></label>
+        <label class="radio-item"><input type="radio" value="No" formControlName="foodAvailable"><span>No</span></label>
+      </div>
+    </div>
+
+    <div class="radio-section">
+      <h3 class="section-title">Water Supply</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" value="24 hr" formControlName="waterSupply"><span>24 hr</span></label>
+        <label class="radio-item"><input type="radio" value="12 hr" formControlName="waterSupply"><span>12 hr</span></label>
+        <label class="radio-item"><input type="radio" value="6 hr" formControlName="waterSupply"><span>6 hr</span></label>
+      </div>
+    </div>
+
+    <div class="radio-section">
+      <h3 class="section-title">Power Backup</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" value="Yes" formControlName="powerBackup"><span>Yes</span></label>
+        <label class="radio-item"><input type="radio" value="No" formControlName="powerBackup"><span>No</span></label>
+        <label class="radio-item"><input type="radio" value="Partial" formControlName="powerBackup"><span>Partial</span></label>
+      </div>
+    </div>
+
+     <div class="radio-section" formGroupName="parking">
+      <h3 class="section-title">Parking</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="checkbox" formControlName="car"><span>Car</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="bike"><span>Bike</span></label>
+      </div>
+    </div>
+
+     <div class="radio-section" formGroupName="preferTenant">
+      <h3 class="section-title">Prefer Tenant</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="checkbox" formControlName="family"><span>Family</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="bachelors"><span>Bachelors</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="girls"><span>Girls</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="boys"><span>Boys</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="professionals"><span>Professionals</span></label>
+      </div>
+    </div>
+
+   
+
+    <div class="radio-section" formGroupName="insideFacility">
+      <h3 class="section-title">PG Inside Facility</h3>
+      <div class="radio-group">
+        <label class="radio-item" *ngFor="let facility of insideFacilities">
+          <input type="checkbox" [formControlName]="facility.key">
+          <span>{{ facility.label }}</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="radio-section" formGroupName="outsideFacility">
+      <h3 class="section-title">PG Outside Facility</h3>
+      <div class="radio-group">
+        <label class="radio-item" *ngFor="let facility of outsideFacilities">
+          <input type="checkbox" [formControlName]="facility.key">
+          <span>{{ facility.label }}</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button type="button" (click)="onNext()" class="btn btn-next">Next</button>
+      <button type="button" (click)="onCancel()" class="btn btn-cancel">Cancel</button>
+    </div>
+  </form>
+</div>

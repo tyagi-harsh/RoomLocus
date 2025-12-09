@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import {
+  INSIDE_FACILITIES,
+  OUTSIDE_FACILITIES,
+  buildFacilityControls,
+} from '../constants/facility-options';
 
 @Injectable({ providedIn: 'root' })
 export class OwnerListingFormService {
@@ -11,9 +16,10 @@ export class OwnerListingFormService {
       town: ['Sector 1'],
       location: ['Delhi silampur'],
       landmark: ['Shadra delhi'],
+      luxury: [''],
       bedCount: [3],
       guests: [3],
-      floors: [5],
+      totalFloors: [5],
       minPrice: [5000],
       maxPrice: [6000],
       palaceName: [''],
@@ -27,6 +33,8 @@ export class OwnerListingFormService {
       food: ['Yes'],
       roomType1: ['Shared Room'],
       roomType2: ['AC'],
+      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES)),
+      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES)),
     });
   }
 }

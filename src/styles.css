@@ -10,3 +10,55 @@ body {
   margin: 0;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
+
+/* =====================================================
+   Global Material Form Field (outline select) styles
+   ===================================================== */
+
+/* Ensure outlined mat-form-field always renders properly */
+.mat-mdc-form-field.mat-form-field-appearance-outline {
+  display: block;
+  width: 100%;
+}
+
+.mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-text-field-wrapper {
+  min-height: 56px;
+  background-color: #fff;
+}
+
+.mat-mdc-form-field.mat-form-field-appearance-outline .mdc-notched-outline {
+  min-height: 56px;
+}
+
+/* Guarantee the outline borders are visible */
+.mat-mdc-form-field.mat-form-field-appearance-outline .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-form-field-appearance-outline .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: rgba(0, 0, 0, 0.38);
+}
+
+/* Focused state */
+.mat-mdc-form-field.mat-form-field-appearance-outline.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-form-field-appearance-outline.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-form-field-appearance-outline.mat-focused .mdc-notched-outline__trailing {
+  border-color: #1976d2;
+  border-width: 2px;
+}
+
+/* Prefix icon sizing */
+.mat-mdc-form-field .mat-mdc-form-field-icon-prefix img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  margin: 0 8px;
+}
+
+/* Full-width utility */
+.full-width {
+  width: 100%;
+}
+
+.form-row :first-child {
+  margin-top: 20px;
+
+}

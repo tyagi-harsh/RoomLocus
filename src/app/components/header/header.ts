@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { Subject, filter, takeUntil } from 'rxjs';
+import { WishlistService } from '../../services/wishlist.service';
 
 @Component({
   selector: 'app-header',
@@ -17,15 +18,21 @@ export class Header implements OnInit, OnDestroy {
   dropdownOpen = false;
   isAuthenticated = false;
   userType: string | null = null;
+  currentUrl: string = '/';
   private destroy$ = new Subject<void>();
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private wishlistService: WishlistService) {}
 
   ngOnInit(): void {
     this.syncAuthState();
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd), takeUntil(this.destroy$)).subscribe(() => {
+    this.currentUrl = this.router.url;
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd), takeUntil(this.destroy$)).subscribe((event) => {
       this.closeDropdown();
       this.syncAuthState();
+      // Track current URL for return after login
+      if (event instanceof NavigationEnd) {
+        this.currentUrl = event.urlAfterRedirects || event.url;
+      }
     });
   }
 
@@ -46,6 +53,14 @@ export class Header implements OnInit, OnDestroy {
     this.dropdownOpen = false;
   }
 
+  navigateToLogin(userType: string): void {
+    this.closeDropdown();
+    const returnUrl = this.currentUrl !== '/login' ? this.currentUrl : '/home';
+    this.router.navigate(['/login'], {
+      queryParams: { userType, returnUrl }
+    }).catch((err) => console.warn('Navigation failed', err));
+  }
+
   goToDashboard(): void {
     if (!this.userType) {
       return;
@@ -59,9 +74,11 @@ export class Header implements OnInit, OnDestroy {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userType');
+      localStorage.removeItem('userMobile');
     }
     this.isAuthenticated = false;
     this.userType = null;
+    this.wishlistService.refreshForCurrentUser();
     this.router.navigate(['/login']).catch((err) => console.warn('Navigation failed', err));
   }
 

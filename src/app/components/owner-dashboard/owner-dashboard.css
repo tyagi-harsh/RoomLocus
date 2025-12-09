@@ -1,7 +1,7 @@
 /* ================= CONTAINER ================= */
 .owner-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 1200px;
+  /* max-width: 1200px; */
   margin: 0 auto;
   background-color: #fff;
   min-height: 100vh;
@@ -100,7 +100,7 @@
   .card-grid { grid-template-columns: repeat(2, 1fr); }
   .owner-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 1200px;
+  max-width: 1800px;
   margin: 20px auto;
   background-color: #fff;
   min-height: 100vh;
@@ -210,4 +210,51 @@
   padding: 40px;
   text-align: center;
   color: #777;
+}
+
+.rental-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.btn-add-property {
+  background-color: #ff8c00;
+  border: none;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 32px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-add-property:hover {
+  background-color: #e07b00;
+}
+
+.add-property-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn-property-type {
+  border: 1px solid #ff8c00;
+  color: #ff8c00;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-property-type:hover {
+  background-color: #ff8c00;
+  color: #fff;
 }

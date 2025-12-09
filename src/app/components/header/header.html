@@ -8,16 +8,32 @@
   </a>
   <span class="spacer"></span>
   <ng-container *ngIf="isAuthenticated; else loggedOutMenu">
-    <div class="auth-actions">
-      <button mat-stroked-button class="dashboard-btn" type="button" (click)="goToDashboard()">
-        My Dashboard
-      </button>
-      <button mat-flat-button color="accent" class="logout-btn" type="button" (click)="logout()">
-        Logout
-      </button>
-      <button mat-icon-button class="user-icon active" type="button" aria-label="Logged in user">
+    <div
+      class="user-menu"
+      [class.open]="dropdownOpen"
+      (mouseenter)="openDropdown()"
+      (mouseleave)="closeDropdown()"
+    >
+      <button
+        mat-icon-button
+        class="user-icon active"
+        type="button"
+        aria-haspopup="true"
+        [attr.aria-expanded]="dropdownOpen"
+        (click)="toggleDropdown()"
+      >
         <img src="/assets/images/icons/user_active_final.png" alt="User" class="person-pic" />
       </button>
+      <div class="user-dropdown auth-dropdown" role="menu">
+        <a role="menuitem" (click)="goToDashboard(); closeDropdown()">
+          <i class="fas fa-gauge dropdown-icon" aria-hidden="true" title="Dashboard"></i>
+          <span>My Dashboard</span>
+        </a>
+        <a role="menuitem" (click)="logout(); closeDropdown()">
+          <i class="fas fa-sign-out-alt dropdown-icon" aria-hidden="true" title="Logout"></i>
+          <span>Logout</span>
+        </a>
+      </div>
     </div>
   </ng-container>
   <ng-template #loggedOutMenu>
@@ -38,15 +54,15 @@
         <img src="/assets/images/icons/user_icon_+.png" alt="User" class="person-pic" />
       </button>
       <div class="user-dropdown" role="menu">
-        <a role="menuitem" routerLink="/login" [queryParams]="{ userType: 'END_USER' }" (click)="closeDropdown()">
+        <a role="menuitem" (click)="navigateToLogin('END_USER')">
           <i class="fas fa-user dropdown-icon" aria-hidden="true" title="User"></i>
           <span>User Login</span>
         </a>
-        <a role="menuitem" routerLink="/login" [queryParams]="{ userType: 'AGENT' }" (click)="closeDropdown()">
+        <a role="menuitem" (click)="navigateToLogin('AGENT')">
           <i class="fas fa-user-tie dropdown-icon" aria-hidden="true" title="Agent"></i>
           <span>Agent Login</span>
         </a>
-        <a role="menuitem" routerLink="/login" [queryParams]="{ userType: 'OWNER' }" (click)="closeDropdown()">
+        <a role="menuitem" (click)="navigateToLogin('OWNER')">
           <i class="fas fa-house-user dropdown-icon" aria-hidden="true" title="Owner"></i>
           <span>Owner Login</span>
         </a>

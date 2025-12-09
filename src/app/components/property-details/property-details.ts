@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button'; // For the button
 import { PropertyDetails as PropertyDetailsInterface } from '../../interface/Property';
+import { PropertyCategory, WishlistItem } from '../../interface/user-dash';
 import { PropertySearchService } from '../../services/property-search.service';
+import { Subscription } from 'rxjs';
+import { WishlistService } from '../../services/wishlist.service';
 // import { Footer } from '../footer/footer';
 
 interface ApiPropertyDetailsResponse {
@@ -61,22 +64,20 @@ interface ApiPropertyDetailsResponse {
   roomOutside?: string[];
 }
 
-type PropertyCategory = 'flat' | 'pg' | 'hourlyroom' | 'room';
-
-
 @Component({
   selector: 'app-property-details',
   imports: [CommonModule, MatButtonModule],
   templateUrl: './property-details.html',
   styleUrl: './property-details.css',
 })
-export class PropertyDetails implements OnInit {
+export class PropertyDetails implements OnInit, OnDestroy {
   propertyId: string | null = null;
   liked = false;
   animateHeart = false;
   showLoved = false;
   propertyCategory: PropertyCategory = 'room';
   private requestedPropertyType = 'room';
+  canUseFavorites = false;
 
   // Mock data created from the images
   // In a real application, you would fetch this based on propertyId
@@ -160,11 +161,21 @@ export class PropertyDetails implements OnInit {
     guestCapacity: 4,
   };
 
-  constructor(private route: ActivatedRoute, private propertySearch: PropertySearchService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private propertySearch: PropertySearchService,
+    private readonly wishlistService: WishlistService
+  ) {}
   selectedImage: string = '';
+  private wishlistSubscription?: Subscription;
 
   ngOnInit(): void {
+    // Only allow non-OWNER users to use favorites
+    const userType = localStorage.getItem('userType');
+    this.canUseFavorites = userType === 'END_USER';
+
     this.selectedImage = this.details.gallery.length > 0 ? this.details.gallery[0] : '';
+    this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(() => this.syncLikedState());
 
     this.route.paramMap.subscribe((params) => {
       this.propertyId = params.get('id');
@@ -183,7 +194,7 @@ export class PropertyDetails implements OnInit {
         }
       }
 
-      this.restoreLikedState();
+      this.syncLikedState();
     });
   }
 
@@ -208,12 +219,6 @@ export class PropertyDetails implements OnInit {
     const newIndex =
       (this.currentIndex - 1 + this.details.gallery.length) % this.details.gallery.length;
     this.selectedImage = this.details.gallery[newIndex];
-  }
-
-  private restoreLikedState(): void {
-    const key = this.getStorageKey();
-    const saved = localStorage.getItem(key);
-    this.liked = saved === '1';
   }
 
   private applyApiResponse(data: ApiPropertyDetailsResponse): void {
@@ -437,12 +442,10 @@ export class PropertyDetails implements OnInit {
     return this.details.totalFloor;
   }
 
-
-  private getStorageKey(): string {
-    return `liked:${this.propertyId ?? 'unknown'}`;
+  ngOnDestroy(): void {
+    this.wishlistSubscription?.unsubscribe();
   }
 
-  
   private normalizeType(input?: string | null): PropertyCategory {
     if (!input) {
       return 'room';
@@ -461,16 +464,70 @@ export class PropertyDetails implements OnInit {
   }
 
   toggleFavorite(): void {
-    this.liked = !this.liked;
-    localStorage.setItem(this.getStorageKey(), this.liked ? '1' : '0');
-
-    // Trigger heart pop animation and loved popup when liking
-    if (this.liked) {
-      this.animateHeart = true;
-      this.showLoved = true;
-      setTimeout(() => (this.animateHeart = false), 600);
-      setTimeout(() => (this.showLoved = false), 1000);
+    if (!this.propertyId) {
+      return;
     }
+
+    // Owners are not allowed to manage wishlist
+    const userType = localStorage.getItem('userType');
+    if (userType === 'OWNER') {
+      return;
+    }
+
+    if (this.wishlistService.has(this.propertyId)) {
+      this.wishlistService.remove(this.propertyId);
+      this.liked = false;
+      return;
+    }
+
+    const wishlistItem = this.buildWishlistItem();
+    if (!wishlistItem) {
+      return;
+    }
+
+    this.wishlistService.add(wishlistItem);
+    this.liked = true;
+    this.triggerLikeAnimation();
+  }
+
+  private triggerLikeAnimation(): void {
+    this.animateHeart = true;
+    this.showLoved = true;
+    setTimeout(() => (this.animateHeart = false), 600);
+    setTimeout(() => (this.showLoved = false), 1000);
+  }
+
+  private syncLikedState(): void {
+    if (!this.propertyId) {
+      this.liked = false;
+      return;
+    }
+    this.liked = this.wishlistService.has(this.propertyId);
+  }
+
+  private buildWishlistItem(): WishlistItem | undefined {
+    if (!this.propertyId) {
+      return undefined;
+    }
+
+    const location = this.details.address.location || this.details.address.area || this.details.location || '';
+    const city = this.details.address.area || this.details.address.location || this.details.location || '';
+    const imageUrl = this.selectedImage || this.details.gallery[0] || 'assets/images/logo.png';
+    const formatter = new Intl.NumberFormat('en-IN');
+    const priceMin = this.details.priceMin ?? 0;
+    const priceMax = this.details.priceMax ?? 0;
+    const price = `₹${formatter.format(priceMin)} - ₹${formatter.format(priceMax)}`;
+
+    return {
+      id: this.propertyId,
+      imageUrl,
+      location,
+      city,
+      hotelName: this.details.propertyName || this.primaryHeading,
+      type: this.typeDisplayName,
+      price,
+      propertyCategory: this.propertyCategory,
+    };
   }
 
   // --- NEW SHARE FUNCTION ---

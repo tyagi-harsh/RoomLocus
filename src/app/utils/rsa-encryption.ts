@@ -32,3 +32,4 @@ function normalizePem(pem: string): string {
   const cleaned = trimmed.replace(/\s+/g, '');
   return `-----BEGIN PUBLIC KEY-----\n${cleaned}\n-----END PUBLIC KEY-----`;
 }
+

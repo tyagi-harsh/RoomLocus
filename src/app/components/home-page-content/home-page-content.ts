@@ -201,6 +201,25 @@ export class HomePageContent implements OnInit, OnDestroy {
     }
   }
 
+  onAddRentalClick(): void {
+    // Check if user is already logged in as owner
+    const token = localStorage.getItem('accessToken');
+    const userType = localStorage.getItem('userType');
+    
+    if (token && userType === 'OWNER') {
+      // Already logged in as owner, go directly to owner dashboard with rentals tab
+      this.router.navigate(['/owner-dashboard'], { queryParams: { tab: 'rentals' } }).catch((err) => console.warn('Navigation failed', err));
+    } else {
+      // Not logged in or not an owner, redirect to owner login with returnUrl to rentals section
+      this.router.navigate(['/login'], {
+        queryParams: {
+          userType: 'OWNER',
+          returnUrl: '/owner-dashboard?tab=rentals'
+        }
+      }).catch((err) => console.warn('Navigation failed', err));
+    }
+  }
+
   private setupLocationControlState(): void {
     const cityControl = this.searchForm.get('city');
     const locationControl = this.searchForm.get('location');

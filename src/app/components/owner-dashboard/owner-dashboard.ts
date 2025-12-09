@@ -1,19 +1,31 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Lead } from '../../interface/owner-dash';
 
 
 
 @Component({
   selector: 'app-owner-dashboard',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './owner-dashboard.html',
   styleUrl: './owner-dashboard.css',
 })
-export class OwnerDashboard {
+export class OwnerDashboard implements OnInit {
 
   activeTab: string = 'used-lead'; // Default active tab based on image
   leadCount: number = 24;
+
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    // Check for tab query parameter to set active tab
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.activeTab = params['tab'];
+      }
+    });
+  }
 
   // Mock Data for Used Leads
   leads: Lead[] = [

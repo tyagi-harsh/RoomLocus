@@ -8,8 +8,11 @@ import { LoginSignup } from './components/login-signup/login-signup';
 import { UserDashboard } from './components/user-dashboard/user-dashboard';
 import { OwnerDashboard } from './components/owner-dashboard/owner-dashboard';
 import { ownerGuard, userGuard } from './guards/role.guard';
-import { OwnerPropertyDetailsForm } from './components/owner-property-details-form/owner-property-details-form';
+import { OwnerHourlyRoomDetailsForm } from './components/owner-hourly-room-details-form/owner-hourly-room-details-form';
 import { OwnerPropertyImageUpload } from './components/owner-property-image-upload/owner-property-image-upload';
+import { OwnerFlatDetailsForm } from './components/owner-flat-details-form/owner-flat-details-form';
+import { OwnerPgDetailsForm } from './components/owner-pg-details-form/owner-pg-details-form';
+import { OwnerRoomDetailsForm } from './components/owner-room-details-form/owner-room-details-form';
 
 export const routes: Routes = [
   // Add a default route (e.g., redirect to '/home' if the path is empty)
@@ -33,9 +36,25 @@ export const routes: Routes = [
   // Owner dashboard
   { path: 'owner-dashboard', component: OwnerDashboard, canActivate: [ownerGuard] },
 
-  { path: 'owner/property', redirectTo: 'owner/property/details', pathMatch: 'full' },
-  { path: 'owner/property/details', component: OwnerPropertyDetailsForm },
-  { path: 'owner/property/images', component: OwnerPropertyImageUpload },
+  // Hourly Room property routes
+  { path: 'owner/hourly-room', redirectTo: 'owner/hourly-room/details', pathMatch: 'full' },
+  { path: 'owner/hourly-room/details', component: OwnerHourlyRoomDetailsForm },
+  { path: 'owner/hourly-room/images', component: OwnerPropertyImageUpload },
+
+  // Flat property routes
+  { path: 'owner/flat', redirectTo: 'owner/flat/details', pathMatch: 'full' },
+  { path: 'owner/flat/details', component: OwnerFlatDetailsForm },
+  { path: 'owner/flat/images', component: OwnerPropertyImageUpload },
+
+  // PG property routes
+  { path: 'owner/pg', redirectTo: 'owner/pg/details', pathMatch: 'full' },
+  { path: 'owner/pg/details', component: OwnerPgDetailsForm },
+  { path: 'owner/pg/images', component: OwnerPropertyImageUpload },
+
+  // Room property routes
+  { path: 'owner/room', redirectTo: 'owner/room/details', pathMatch: 'full' },
+  { path: 'owner/room/details', component: OwnerRoomDetailsForm },
+  { path: 'owner/room/images', component: OwnerPropertyImageUpload },
 
   // Optional: A wildcard route for 404 pages
   // { path: '**', component: PageNotFoundComponent }
