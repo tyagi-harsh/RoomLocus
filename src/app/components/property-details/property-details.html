@@ -13,7 +13,7 @@
 
         <div class="top-right-buttons">
           <button
-            *ngIf="canUseFavorites"
+            *ngIf="favoriteButtonVisible"
             class="fav-btn"
             [class.liked]="liked"
             [class.popping]="animateHeart"

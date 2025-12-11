@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button'; // For the button
 import { PropertyDetails as PropertyDetailsInterface } from '../../interface/Property';
 import { PropertyCategory, WishlistItem } from '../../interface/user-dash';
@@ -78,6 +78,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
   propertyCategory: PropertyCategory = 'room';
   private requestedPropertyType = 'room';
   canUseFavorites = false;
+  favoriteButtonVisible = false;
 
   // Mock data created from the images
   // In a real application, you would fetch this based on propertyId
@@ -164,18 +165,20 @@ export class PropertyDetails implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private propertySearch: PropertySearchService,
-    private readonly wishlistService: WishlistService
+    private readonly wishlistService: WishlistService,
+    private readonly router: Router
   ) {}
   selectedImage: string = '';
   private wishlistSubscription?: Subscription;
 
   ngOnInit(): void {
-    // Only allow non-OWNER users to use favorites
-    const userType = localStorage.getItem('userType');
-    this.canUseFavorites = userType === 'END_USER';
-
     this.selectedImage = this.details.gallery.length > 0 ? this.details.gallery[0] : '';
-    this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(() => this.syncLikedState());
+    this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(() => {
+      this.syncLikedState();
+      this.refreshFavoriteFlags();
+    });
+
+    this.refreshFavoriteFlags();
 
     this.route.paramMap.subscribe((params) => {
       this.propertyId = params.get('id');
@@ -468,9 +471,11 @@ export class PropertyDetails implements OnInit, OnDestroy {
       return;
     }
 
-    // Owners are not allowed to manage wishlist
+    const hasAccessToken = Boolean(localStorage.getItem('accessToken'));
     const userType = localStorage.getItem('userType');
-    if (userType === 'OWNER') {
+
+    if (!hasAccessToken || userType !== 'END_USER') {
+      this.redirectToLogin();
       return;
     }
 
@@ -490,6 +495,15 @@ export class PropertyDetails implements OnInit, OnDestroy {
     this.triggerLikeAnimation();
   }
 
+  redirectToLogin(): void {
+    const returnUrl = this.router.url !== '/login' ? this.router.url : '/home';
+    this.router
+      .navigate(['/login'], {
+        queryParams: { returnUrl, userType: 'END_USER' },
+      })
+      .catch((error) => console.warn('Redirect to login failed', error));
+  }
+
   private triggerLikeAnimation(): void {
     this.animateHeart = true;
     this.showLoved = true;
@@ -503,6 +517,12 @@ export class PropertyDetails implements OnInit, OnDestroy {
       return;
     }
     this.liked = this.wishlistService.has(this.propertyId);
+  }
+
+  private refreshFavoriteFlags(): void {
+    const userType = localStorage.getItem('userType');
+    this.favoriteButtonVisible = userType !== 'OWNER';
+    this.canUseFavorites = userType === 'END_USER';
   }
 
   private buildWishlistItem(): WishlistItem | undefined {

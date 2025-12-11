@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { PropertySearchService } from '../../services/property-search.service';
-import { Observable, of, BehaviorSubject, Subject } from 'rxjs';
+import { Observable, of, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { City } from '../../interface/City';
-import { take, takeUntil } from 'rxjs/operators';
+import { take, takeUntil, map } from 'rxjs/operators';
 import {
   INSIDE_FACILITIES,
   OUTSIDE_FACILITIES,
@@ -24,18 +24,28 @@ import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
     CommonModule, 
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatSelectModule,
     MatInputModule,
     MatIconModule,
+    MatAutocompleteModule,
     NumericOnlyDirective
   ],
   templateUrl: './owner-pg-details-form.html',
   styleUrl: './owner-pg-details-form.css',
 })
 export class OwnerPgDetailsForm implements OnInit, OnDestroy {
-  cities$: Observable<City[]> = of([]);
+  private readonly citiesSubject = new BehaviorSubject<City[]>([]);
+  cities$ = this.citiesSubject.asObservable();
+  private readonly cityFilterSubject = new BehaviorSubject<string>('');
+  filteredCities$ = combineLatest([this.cities$, this.cityFilterSubject.asObservable()]).pipe(
+    map(([cities, filter]) => this.filterCities(cities, filter))
+  );
+
   private locationsSubject = new BehaviorSubject<string[]>([]);
   locations$ = this.locationsSubject.asObservable();
+  private readonly townFilterSubject = new BehaviorSubject<string>('');
+  filteredLocations$ = combineLatest([this.locations$, this.townFilterSubject.asObservable()]).pipe(
+    map(([locations, filter]) => this.filterLocations(locations, filter))
+  );
   private locationLoadingSubject = new BehaviorSubject<boolean>(false);
   isLocationLoading$ = this.locationLoadingSubject.asObservable();
   private citiesLoaded = false;
@@ -109,6 +119,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       .subscribe(() => {
         this.listingForm.get('town')?.reset();
         this.locationsSubject.next([]);
+        this.townFilterSubject.next('');
       });
   }
 
@@ -118,7 +129,12 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
   }
 
   private loadCities(forceRefresh = false): void {
-    this.cities$ = this.propertySearchService.getCities(forceRefresh);
+    this.propertySearchService
+      .getCities(forceRefresh)
+      .pipe(take(1))
+      .subscribe((cities) => {
+        this.citiesSubject.next(cities);
+      });
   }
 
   onCityDropdownOpened(isOpen: boolean): void {
@@ -132,9 +148,9 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
   }
 
   onCityChange(): void {
-    const city = this.listingForm.get('city')?.value;
-    if (city) {
-      this.loadLocations(city);
+    const cityId = this.listingForm.get('city')?.value;
+    if (this.isKnownCity(cityId)) {
+      this.loadLocations(cityId);
     }
   }
 
@@ -142,10 +158,25 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     if (!isOpen) {
       return;
     }
-    const city = this.listingForm.get('city')?.value;
-    if (city) {
-      this.loadLocations(city);
+    const cityId = this.listingForm.get('city')?.value;
+    if (this.isKnownCity(cityId)) {
+      this.loadLocations(cityId);
     }
+  }
+
+  onCitySelected(event: MatAutocompleteSelectedEvent): void {
+    const cityId = event.option?.value;
+    if (cityId) {
+      this.loadLocations(cityId);
+    }
+  }
+
+  onCityFilter(value: string): void {
+    this.cityFilterSubject.next(value || '');
+  }
+
+  onTownFilter(value: string): void {
+    this.townFilterSubject.next(value || '');
   }
 
   private loadLocations(city: string) {
@@ -158,6 +189,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       .subscribe({
         next: (locations) => {
           this.locationsSubject.next(locations);
+          this.townFilterSubject.next('');
           this.locationLoadingSubject.next(false);
         },
         error: (err) => {
@@ -174,5 +206,36 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
 
   onCancel(): void {
     this.router.navigate(['/owner-dashboard']).catch((err) => console.error('Navigation failed', err));
+  }
+
+  private filterCities(cities: City[], query: string): City[] {
+    if (!query) {
+      return cities;
+    }
+    const lower = query.toLowerCase();
+    return cities.filter((city) => city.name.toLowerCase().includes(lower));
+  }
+
+  private filterLocations(locations: string[], query: string): string[] {
+    if (!query) {
+      return locations;
+    }
+    const lower = query.toLowerCase();
+    return locations.filter((loc) => loc.toLowerCase().includes(lower));
+  }
+
+  displayCityName(cityId: string | null): string {
+    if (!cityId) {
+      return '';
+    }
+    const city = this.citiesSubject.getValue().find((item) => item.id === cityId);
+    return city?.name ?? cityId;
+  }
+
+  private isKnownCity(cityId: string | null): boolean {
+    if (!cityId) {
+      return false;
+    }
+    return this.citiesSubject.getValue().some((item) => item.id === cityId);
   }
 }

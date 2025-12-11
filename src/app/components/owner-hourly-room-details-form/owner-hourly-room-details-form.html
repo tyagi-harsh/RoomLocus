@@ -9,11 +9,21 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
-        <mat-select formControlName="city" (openedChange)="onCityDropdownOpened($event)">
-          <ng-container *ngIf="cities$ | async as cities">
-            <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
-          </ng-container>
-        </mat-select>
+        <input
+          matInput
+          type="text"
+          formControlName="city"
+          autocomplete="off"
+          (input)="onCityFilter($any($event.target).value)"
+          (focus)="onCityDropdownOpened(true); cityTrigger.openPanel()"
+          [matAutocomplete]="cityAuto"
+          #cityTrigger="matAutocompleteTrigger"
+        />
+        <mat-autocomplete #cityAuto="matAutocomplete" [displayWith]="displayCityName" (optionSelected)="onCitySelected($event)">
+          <mat-option *ngFor="let city of filteredCities$ | async" [value]="city.id">
+            {{ city.name }}
+          </mat-option>
+        </mat-autocomplete>
       </mat-form-field>
     </div>
 
@@ -21,16 +31,33 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
-        <mat-select formControlName="town" (openedChange)="onLocationDropdownOpened($event)">
-          <mat-option *ngIf="isLocationLoading$ | async" disabled>Loading locations...</mat-option>
+        <input
+          matInput
+          type="text"
+          formControlName="town"
+          autocomplete="off"
+          (input)="onTownFilter($any($event.target).value)"
+          (focus)="onLocationDropdownOpened(true); townTrigger.openPanel()"
+          [matAutocomplete]="townAuto"
+          [disabled]="!listingForm.get('city')?.value"
+          #townTrigger="matAutocompleteTrigger"
+        />
+        <mat-autocomplete #townAuto="matAutocomplete">
+          <mat-option *ngIf="isLocationLoading$ | async" disabled>
+            Loading locations...
+          </mat-option>
           <ng-container *ngIf="!(isLocationLoading$ | async)">
-            <ng-container *ngIf="locations$ | async as locations">
-              <mat-option *ngIf="listingForm.get('city')?.value && !locations?.length" disabled>No locations found for selected city</mat-option>
-              <mat-option *ngIf="!listingForm.get('city')?.value" disabled>Please select a city first</mat-option>
-              <mat-option *ngFor="let loc of locations" [value]="loc">{{ loc }}</mat-option>
-            </ng-container>
+            <mat-option *ngIf="!(filteredLocations$ | async)?.length" disabled>
+              <ng-container *ngIf="listingForm.get('city')?.value; else selectCity">
+                No locations found for selected city
+              </ng-container>
+              <ng-template #selectCity>Please select a city first</ng-template>
+            </mat-option>
+            <mat-option *ngFor="let loc of filteredLocations$ | async" [value]="loc">
+              {{ loc }}
+            </mat-option>
           </ng-container>
-        </mat-select>
+        </mat-autocomplete>
       </mat-form-field>
     </div>
 

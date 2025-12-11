@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router, UrlTree } from '@angular/router';
+import { CanActivateFn, Router, UrlTree, RouterStateSnapshot } from '@angular/router';
 
-function ensureRole(expectedRole: string): boolean | UrlTree {
+function ensureRole(expectedRole: string, state: RouterStateSnapshot): boolean | UrlTree {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('accessToken');
     const storedRole = localStorage.getItem('userType');
@@ -12,10 +12,13 @@ function ensureRole(expectedRole: string): boolean | UrlTree {
 
   const router = inject(Router);
   return router.createUrlTree(['/login'], {
-    queryParams: { redirect: expectedRole === 'OWNER' ? 'owner-dashboard' : 'dashboard' },
+    queryParams: {
+      redirect: expectedRole === 'OWNER' ? 'owner-dashboard' : 'dashboard',
+      returnUrl: state.url !== '/login' ? state.url : undefined,
+    },
   });
 }
 
-export const userGuard: CanActivateFn = () => ensureRole('END_USER');
+export const userGuard: CanActivateFn = (_route, state) => ensureRole('END_USER', state);
 
-export const ownerGuard: CanActivateFn = () => ensureRole('OWNER');
+export const ownerGuard: CanActivateFn = (_route, state) => ensureRole('OWNER', state);

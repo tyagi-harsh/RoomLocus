@@ -55,41 +55,70 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
-        <mat-select formControlName="city" yPosition="below" (openedChange)="onCityDropdownOpened($event)">
-          <ng-container *ngIf="cities$ | async as cities; else spinnerTemplate">
-            <mat-option *ngFor="let city of cities" [value]="city.id">
-              {{ city.name }}
-            </mat-option>
-          </ng-container>
-        </mat-select>
+        <input
+          matInput
+          formControlName="city"
+          (focus)="onCityInputFocus(); cityTrigger.openPanel()"
+          (input)="onCityFilter($event.target.value)"
+          [matAutocomplete]="cityAutocomplete"
+          #cityTrigger="matAutocompleteTrigger"
+          matAutocompleteTrigger
+        />
+        <mat-autocomplete
+          #cityAutocomplete="matAutocomplete"
+          (optionSelected)="onCitySelected($event)"
+          [displayWith]="displayCityName"
+          autoActiveFirstOption
+        >
+          <mat-option *ngIf="(filteredCities$ | async)?.length === 0" disabled>
+            No cities match your search
+          </mat-option>
+          <mat-option *ngFor="let city of filteredCities$ | async" [value]="city.id">
+            {{ city.name }}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="searchForm.get('city')?.touched && searchForm.get('city')?.hasError('required')">
+          Please select a city
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Village & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Village and Sector"
           class="village-search-icon" />
-        <mat-select formControlName="location" (openedChange)="onLocationDropdownOpened($event)">
-          <mat-option *ngIf="isLocationLoading$ | async" disabled>
-            Loading locations...
-          </mat-option>
-
-          <ng-container *ngIf="!(isLocationLoading$ | async)">
-            <ng-container *ngIf="locations$ | async as locations">
-              <mat-option *ngIf="searchForm.get('city')?.value && !searchForm.get('lookingFor')?.value" disabled>
-                Select a property type to load locations
-              </mat-option>
-              <mat-option *ngIf="locations.length === 0 && searchForm.get('city')?.value" disabled>
-                No locations found for selected city
-              </mat-option>
-              <mat-option *ngIf="locations.length === 0 && !searchForm.get('city')?.value" disabled>
-                Please select a city first
-              </mat-option>
-              <mat-option *ngFor="let loc of locations" [value]="loc">
-                {{ loc }}
-              </mat-option>
-            </ng-container>
+        <input
+          matInput
+          formControlName="location"
+          [matAutocomplete]="locationAutocomplete"
+          (focus)="onLocationDropdownOpened(true); locationTrigger.openPanel()"
+          (input)="onLocationFilter($event.target.value)"
+          #locationTrigger="matAutocompleteTrigger"
+          matAutocompleteTrigger
+        />
+        <mat-autocomplete #locationAutocomplete="matAutocomplete" autoActiveFirstOption>
+          <ng-container *ngIf="isLocationLoading$ | async; else locationLoaded">
+            <mat-option disabled>
+              Loading locations...
+            </mat-option>
           </ng-container>
-        </mat-select>
+          <ng-template #locationLoaded>
+            <ng-container *ngIf="searchForm.get('city')?.value && searchForm.get('lookingFor')?.value; else selectCityType">
+              <ng-container *ngIf="filteredLocations$ | async as locations">
+                <mat-option *ngIf="locations.length === 0" disabled>
+                  No locations found for selected city
+                </mat-option>
+                <mat-option *ngFor="let loc of locations" [value]="loc">
+                  {{ loc }}
+                </mat-option>
+              </ng-container>
+            </ng-container>
+          </ng-template>
+          <ng-template #selectCityType>
+            <mat-option disabled>
+              Please select city & property type first
+            </mat-option>
+          </ng-template>
+        </mat-autocomplete>
         <mat-error *ngIf="
             searchForm.get('location')?.touched && searchForm.get('location')?.hasError('required')
           ">
