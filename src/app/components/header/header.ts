@@ -79,10 +79,7 @@ export class Header implements OnInit, OnDestroy {
     this.isAuthenticated = false;
     this.userType = null;
     this.wishlistService.refreshForCurrentUser();
-    const returnUrl = this.currentUrl && this.currentUrl !== '/login' ? this.currentUrl : '/home';
-    this.router
-      .navigate(['/login'], { queryParams: { returnUrl } })
-      .catch((err) => console.warn('Navigation failed', err));
+    this.router.navigate(['/login']).catch((err) => console.warn('Navigation failed', err));
   }
 
   private syncAuthState(): void {

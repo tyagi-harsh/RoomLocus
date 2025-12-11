@@ -9,9 +9,11 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
-        <mat-select formControlName="city" (openedChange)="onCityDropdownOpened($event)">
+        <mat-select formControlName="city" yPosition="below" (openedChange)="onCityDropdownOpened($event)">
           <ng-container *ngIf="cities$ | async as cities">
-            <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
+            <mat-option *ngFor="let city of cities" [value]="city.id">
+              {{ city.name }}
+            </mat-option>
           </ng-container>
         </mat-select>
       </mat-form-field>
@@ -22,12 +24,20 @@
         <mat-label>Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
         <mat-select formControlName="town" (openedChange)="onLocationDropdownOpened($event)">
-          <mat-option *ngIf="isLocationLoading$ | async" disabled>Loading locations...</mat-option>
+          <mat-option *ngIf="isLocationLoading$ | async" disabled>
+            Loading locations...
+          </mat-option>
           <ng-container *ngIf="!(isLocationLoading$ | async)">
             <ng-container *ngIf="locations$ | async as locations">
-              <mat-option *ngIf="listingForm.get('city')?.value && !locations?.length" disabled>No locations found for selected city</mat-option>
-              <mat-option *ngIf="!listingForm.get('city')?.value" disabled>Please select a city first</mat-option>
-              <mat-option *ngFor="let loc of locations" [value]="loc">{{ loc }}</mat-option>
+               <mat-option *ngIf="locations.length === 0 && listingForm.get('city')?.value" disabled>
+                No locations found for selected city
+              </mat-option>
+              <mat-option *ngIf="!listingForm.get('city')?.value" disabled>
+                Please select a city first
+              </mat-option>
+              <mat-option *ngFor="let loc of locations" [value]="loc">
+                {{ loc }}
+              </mat-option>
             </ng-container>
           </ng-container>
         </mat-select>
@@ -45,36 +55,31 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Luxury</label>
-      <input type="text" formControlName="luxury" class="form-control bg-light-blue">
-    </div>
-
-    <div class="form-row">
       <label class="form-label">Bedcount</label>
-      <input type="number" formControlName="bedCount" class="form-control" appNumericOnly>
+      <input type="number" formControlName="bedCount" class="form-control">
     </div>
 
     <div class="form-row">
       <label class="form-label">No of Guest Allowed</label>
-      <input type="number" formControlName="guests" class="form-control" appNumericOnly>
+      <input type="number" formControlName="guests" class="form-control">
     </div>
 
     <div class="form-row">
-      <label class="form-label">Total Floors</label>
+      <label class="form-label">Total Floor</label>
       <div class="input-with-artifact">
-        <input type="number" formControlName="totalFloors" class="form-control border-thick" appNumericOnly>
+        <input type="number" formControlName="floors" class="form-control border-thick">
         <div class="blue-arrow-artifact"></div>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label">Minimum Price</label>
-      <input type="number" formControlName="minPrice" class="form-control bg-light-blue" appNumericOnly>
+      <input type="number" formControlName="minPrice" class="form-control bg-light-blue">
     </div>
 
     <div class="form-row">
       <label class="form-label">Maximum Price</label>
-      <input type="number" formControlName="maxPrice" class="form-control bg-light-blue" appNumericOnly>
+      <input type="number" formControlName="maxPrice" class="form-control bg-light-blue">
     </div>
 
     <div class="form-row">
@@ -84,7 +89,7 @@
 
     <div class="form-row">
       <label class="form-label">Total Room</label>
-      <input type="number" formControlName="totalRoom" placeholder="Enter total room count" class="form-control" appNumericOnly>
+      <input type="text" formControlName="totalRoom" placeholder="Enter total room" class="form-control">
     </div>
 
     <div class="form-row">
@@ -94,7 +99,7 @@
 
     <div class="form-row">
       <label class="form-label">Contact Number</label>
-      <input type="number" formControlName="contact" placeholder="Enter contact number" class="form-control" appNumericOnly>
+      <input type="text" formControlName="contact" placeholder="Enter contact number" class="form-control">
     </div>
 
     <div class="form-row align-start">
@@ -145,7 +150,7 @@
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">AC Type</h3>
+      <h3 class="section-title">Room Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="AC" formControlName="roomType2"><span>AC</span></label>
         <label class="radio-item"><input type="radio" value="Non AC" formControlName="roomType2"><span>Non AC</span></label>
@@ -171,23 +176,26 @@
       </div>
     </div>
 
-    <div class="radio-section" formGroupName="insideFacility">
+    <div class="radio-section">
       <h3 class="section-title">Room Inside Facility</h3>
       <div class="radio-group">
-        <label class="radio-item" *ngFor="let facility of insideFacilities">
-          <input type="checkbox" [formControlName]="facility.key">
-          <span>{{ facility.label }}</span>
-        </label>
+        <label class="radio-item"><input type="checkbox"><span>Fan</span></label>
+        <label class="radio-item"><input type="checkbox"><span>TV</span></label>
+        <label class="radio-item"><input type="checkbox"><span>AC</span></label>
+        <label class="radio-item"><input type="checkbox"><span>Table</span></label>
+        <label class="radio-item"><input type="checkbox"><span>Chair</span></label>
+        <label class="radio-item"><input type="checkbox"><span>Clipboard</span></label>
       </div>
     </div>
 
-    <div class="radio-section" formGroupName="outsideFacility">
+    <div class="radio-section">
       <h3 class="section-title">Room Outside Facility</h3>
       <div class="radio-group">
-        <label class="radio-item" *ngFor="let facility of outsideFacilities">
-          <input type="checkbox" [formControlName]="facility.key">
-          <span>{{ facility.label }}</span>
-        </label>
+        <label class="radio-item"><input type="checkbox"><span>Gym</span></label>
+        <label class="radio-item"><input type="checkbox"><span>School</span></label>
+        <label class="radio-item"><input type="checkbox"><span>Park</span></label>
+        <label class="radio-item"><input type="checkbox"><span>Lift</span></label>
+        <label class="radio-item"><input type="checkbox"><span>Near Metro Station</span></label>
       </div>
     </div>
 

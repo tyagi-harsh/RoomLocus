@@ -2,15 +2,15 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Observable, BehaviorSubject, of, combineLatest, Subject } from 'rxjs';
-import { startWith, catchError, tap, distinctUntilChanged, takeUntil, take, map } from 'rxjs/operators';
+import { startWith, catchError, tap, distinctUntilChanged, takeUntil, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 import { CarouselModule } from 'ngx-owl-carousel-o';
 import { City } from '../../interface/City';
@@ -30,7 +30,6 @@ import { PropertySearchService } from '../../services/property-search.service';
     MatIconModule,
     MatCardModule,
     MatProgressSpinnerModule,
-    MatAutocompleteModule,
     CarouselModule,
   ],
   templateUrl: './home-page-content.html',
@@ -38,19 +37,10 @@ import { PropertySearchService } from '../../services/property-search.service';
 })
 export class HomePageContent implements OnInit, OnDestroy {
   searchForm!: FormGroup;
-  private readonly citiesSubject = new BehaviorSubject<City[]>([]);
-  cities$ = this.citiesSubject.asObservable();
-  private readonly cityFilterSubject = new BehaviorSubject<string>('');
-  filteredCities$ = combineLatest([this.cities$, this.cityFilterSubject.asObservable()]).pipe(
-    map(([cities, filter]) => this.filterCities(cities, filter))
-  );
+  cities$: Observable<City[]> = of([]);
   lookingForOptions$!: Observable<string[]>;
   private locationsSubject = new BehaviorSubject<string[]>([]);
   locations$ = this.locationsSubject.asObservable();
-  private readonly locationFilterSubject = new BehaviorSubject<string>('');
-  filteredLocations$ = combineLatest([this.locations$, this.locationFilterSubject.asObservable()]).pipe(
-    map(([locations, filter]) => this.filterLocations(locations, filter))
-  );
   private locationLoadingSubject = new BehaviorSubject<boolean>(false);
   isLocationLoading$ = this.locationLoadingSubject.asObservable();
   private citiesLoaded = false;
@@ -115,11 +105,13 @@ export class HomePageContent implements OnInit, OnDestroy {
       locationControl.reset();
       locationControl.disable();
     }
-    this.locationFilterSubject.next('');
     this.locationLoadingSubject.next(false);
   }
 
-  onCityInputFocus(): void {
+  onCityDropdownOpened(isOpen: boolean): void {
+    if (!isOpen) {
+      return;
+    }
     if (!this.citiesLoaded) {
       this.loadCities();
       this.citiesLoaded = true;
@@ -131,32 +123,30 @@ export class HomePageContent implements OnInit, OnDestroy {
       return;
     }
 
-    const cityId = this.searchForm.get('city')?.value;
+    const city = this.searchForm.get('city')?.value;
     const type = this.searchForm.get('lookingFor')?.value;
 
-    if (!this.isKnownCity(cityId) || !type) {
+    if (!city || !type) {
       console.warn('Select both city and property type before choosing a location');
       this.locationsSubject.next([]);
       return;
     }
 
-    this.loadLocations(cityId);
-  }
-
-  onCityFilter(value: string): void {
-    this.cityFilterSubject.next(value || '');
-  }
-
-  onLocationFilter(value: string): void {
-    this.locationFilterSubject.next(value || '');
-  }
-
-  onCitySelected(event: MatAutocompleteSelectedEvent): void {
-    const cityId = event.option?.value;
-    if (cityId) {
-      this.loadLocations(cityId);
-      this.cityFilterSubject.next('');
-    }
+    this.locationLoadingSubject.next(true);
+    this.propertySearchService
+      .getTownSectors(city, type)
+      .pipe(take(1))
+      .subscribe({
+        next: (locations) => {
+          this.locationsSubject.next(locations);
+          this.locationLoadingSubject.next(false);
+        },
+        error: (err) => {
+          console.error('Failed to load town/sector data:', err);
+          this.locationLoadingSubject.next(false);
+          this.locationsSubject.next([]);
+        },
+      });
   }
 
   private initializeForm(): void {
@@ -182,16 +172,7 @@ export class HomePageContent implements OnInit, OnDestroy {
   }
 
   private loadCities(forceRefresh = false): void {
-    this.propertySearchService
-      .getCities(forceRefresh)
-      .pipe(take(1))
-      .subscribe({
-        next: (cities) => this.citiesSubject.next(cities),
-        error: (err) => {
-          console.error('Failed to load cities:', err);
-          this.citiesSubject.next([]);
-        },
-      });
+    this.cities$ = this.propertySearchService.getCities(forceRefresh);
   }
 
   onSearch(): void {
@@ -248,75 +229,19 @@ export class HomePageContent implements OnInit, OnDestroy {
       locationControl.disable();
 
       combineLatest([
-
-  private loadLocations(cityId: string): void {
-    const type = this.searchForm.get('lookingFor')?.value;
-    if (!type) {
-      return;
-    }
-
-    this.locationLoadingSubject.next(true);
-    this.propertySearchService
-      .getTownSectors(cityId, type)
-      .pipe(take(1))
-      .subscribe({
-        next: (locations) => {
-          this.locationsSubject.next(locations);
-          this.locationFilterSubject.next('');
-          this.locationLoadingSubject.next(false);
-        },
-        error: (err) => {
-          console.error('Failed to load town/sector data:', err);
-          this.locationLoadingSubject.next(false);
-          this.locationsSubject.next([]);
-        },
-      });
-  }
-
-  private filterCities(cities: City[], query: string): City[] {
-    if (!query) {
-      return cities;
-    }
-    const normalized = query.toLowerCase();
-    return cities.filter((city) => city.name.toLowerCase().includes(normalized));
-  }
-
-  private filterLocations(locations: string[], query: string): string[] {
-    if (!query) {
-      return locations;
-    }
-    const normalized = query.toLowerCase();
-    return locations.filter((location) => location.toLowerCase().includes(normalized));
-  }
-
-  displayCityName(cityId: string | null): string {
-    if (!cityId) {
-      return '';
-    }
-    const city = this.citiesSubject.getValue().find((item) => item.id === cityId);
-    return city?.name ?? cityId;
-  }
-
-  private isKnownCity(cityId: string | null): boolean {
-    if (!cityId) {
-      return false;
-    }
-    return this.citiesSubject.getValue().some((item) => item.id === cityId);
-  }
         cityControl.valueChanges.pipe(startWith(cityControl.value), distinctUntilChanged()),
         lookingForControl.valueChanges.pipe(startWith(lookingForControl.value), distinctUntilChanged()),
       ]).pipe(
         tap(([cityId, type]) => {
           locationControl.reset();
-          this.locationsSubject.next([]);
-          this.locationFilterSubject.next('');
 
-          const hasCityAndType = this.isKnownCity(cityId) && !!type;
+          const hasCityAndType = !!cityId && !!type;
           if (hasCityAndType) {
             locationControl.enable();
           } else {
             locationControl.disable();
             this.locationLoadingSubject.next(false);
+            this.locationsSubject.next([]);
           }
         }),
         takeUntil(this.destroy$)

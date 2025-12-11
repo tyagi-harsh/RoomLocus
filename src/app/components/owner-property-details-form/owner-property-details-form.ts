@@ -11,14 +11,9 @@ import { PropertySearchService } from '../../services/property-search.service';
 import { Observable, of, BehaviorSubject, Subject } from 'rxjs';
 import { City } from '../../interface/City';
 import { take, takeUntil } from 'rxjs/operators';
-import {
-  INSIDE_FACILITIES,
-  OUTSIDE_FACILITIES,
-} from '../../constants/facility-options';
-import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
 
 @Component({
-  selector: 'app-owner-hourly-room-details-form',
+  selector: 'app-owner-property-details-form',
   standalone: true,
   imports: [
     CommonModule, 
@@ -26,13 +21,12 @@ import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
-    MatIconModule,
-    NumericOnlyDirective
+    MatIconModule
   ],
-  templateUrl: './owner-hourly-room-details-form.html',
-  styleUrl: './owner-hourly-room-details-form.css',
+  templateUrl: './owner-property-details-form.html',
+  styleUrl: './owner-property-details-form.css',
 })
-export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
+export class OwnerPropertyDetailsForm implements OnInit, OnDestroy {
   cities$: Observable<City[]> = of([]);
   private locationsSubject = new BehaviorSubject<string[]>([]);
   locations$ = this.locationsSubject.asObservable();
@@ -44,9 +38,6 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
   get listingForm() {
     return this.listingFormService.form;
   }
-
-  readonly insideFacilities = INSIDE_FACILITIES;
-  readonly outsideFacilities = OUTSIDE_FACILITIES;
 
   constructor(
     private readonly listingFormService: OwnerListingFormService,
@@ -100,13 +91,6 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     }
   }
 
-  onCityChange(): void {
-    const city = this.listingForm.get('city')?.value;
-    if (city) {
-      this.loadLocations(city);
-    }
-  }
-
   private loadLocations(city: string) {
     const type = 'Hourly Room'; 
     
@@ -128,6 +112,6 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
   }
 
   onNext(): void {
-    this.router.navigate(['/owner/hourly-room/images']).catch((err) => console.error('Navigation failed', err));
+    this.router.navigate(['/owner/property/images']).catch((err) => console.error('Navigation failed', err));
   }
 }
