@@ -68,25 +68,6 @@
           </p>
         </div>
 
-        <div class="login-proof-panel" *ngIf="isLoadingTokenProof || lastLoginTokenInfo || loginProofError">
-          <div *ngIf="isLoadingTokenProof" class="login-proof-loading">
-            <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
-            <span>Confirming session with server…</span>
-          </div>
-
-          <div *ngIf="!isLoadingTokenProof && lastLoginTokenInfo" class="login-proof-card">
-            <h3>Logged In Proof</h3>
-            <p><strong>Mobile:</strong> {{ lastLoginTokenInfo.mobile || '—' }}</p>
-            <p><strong>User Type:</strong> {{ lastLoginTokenInfo.userType || '—' }}</p>
-            <p><strong>Roles:</strong> {{ lastLoginTokenInfo.roles?.join(', ') || '—' }}</p>
-            <p><strong>Issued:</strong> {{ lastLoginTokenInfo.issuedAt || '—' }}</p>
-            <p><strong>Expires:</strong> {{ lastLoginTokenInfo.expiration || '—' }}</p>
-          </div>
-
-          <div *ngIf="!isLoadingTokenProof && loginProofError && !lastLoginTokenInfo" class="login-proof-error">
-            {{ loginProofError }}
-          </div>
-        </div>
       </div>
 
       <div *ngSwitchCase="'signup'">
@@ -127,7 +108,7 @@
                   <div class="get-otp-div">
                     <button type="button" class="otp-button" (click)="startSignupOtpFlow()"
                       [disabled]="(otpRequested && !otpVerifiedFlag) || isSendingOtp">
-                      <span *ngIf="!isSendingOtp">Get OTP</span>
+                      <span *ngIf="!isSendingOtp">Send OTP</span>
                       <mat-progress-spinner *ngIf="isSendingOtp" diameter="18"
                         mode="indeterminate"></mat-progress-spinner>
                     </button>
@@ -271,7 +252,7 @@
               <div class="get-otp-div">
                 <button type="button" class="otp-button" (click)="startForgotOtpFlow()"
                   [disabled]="(forgotOtpRequested && !forgotOtpVerified) || isSendingOtp">
-                  <span *ngIf="!isSendingOtp">Get OTP</span>
+                  <span *ngIf="!isSendingOtp">Send OTP</span>
                   <mat-progress-spinner *ngIf="isSendingOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
                 </button>
                 <small *ngIf="showForgotOtpSentMessage && forgotOtpRequested && !forgotOtpVerified && !forgotUserLookupError">OTP sent

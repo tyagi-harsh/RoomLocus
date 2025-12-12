@@ -3,7 +3,7 @@
   width: 100%;
   max-width: 720px;
   margin: 20px auto;
-  padding: 2rem 2.5rem;
+  padding: 2rem 2rem;
   background: linear-gradient(135deg, #f8fbff 0%, #f8fbff 100%);
   /* background: whitesmoke; */
   border: 1px solid #e5e7eb;
@@ -169,6 +169,7 @@
   font-size: 1rem;
   margin-bottom: 0.9rem;
   font-weight: 400;
+  margin-top: 5px;
 }
 
 .radio-group {
@@ -229,10 +230,16 @@
   background-color: #007ba7;
 }
 
-.btn-next:hover {
+.btn-next[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-next:active,
+.btn-next.clicked {
   background-color: #007ea8;
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(0, 123, 167, 0.25);
+  transform: scale(1.03);
 }
 
 .btn-cancel {
@@ -361,5 +368,38 @@
   margin-bottom: -1.25em;
 }
 
+.cancel-toast {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background-color: #fff4e5;
+  border: 1px solid #f1c27d;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.95rem;
+  color: #853a0d;
+}
 
+.toast-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.toast-btn {
+  border: none;
+  background-color: #853a0d;
+  color: #fff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.toast-btn.ghost {
+  background-color: transparent;
+  color: #853a0d;
+  border: 1px solid #853a0d;
+}
 

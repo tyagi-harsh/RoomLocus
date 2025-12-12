@@ -14,25 +14,17 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TokenDialogComponent } from './token-dialog.component';
-import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
-import { Subject, takeUntil, filter, pairwise } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil, filter } from 'rxjs';
 import { ApiService } from '../../services/api';
 import { WishlistService } from '../../services/wishlist.service';
 import { encryptWithBackendRsa } from '../../utils/rsa-encryption';
+import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
 
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'otp';
 type ZoneType = 'owner' | 'agent' | 'user';
 type ZoneParam = 'OWNER' | 'AGENT' | 'END_USER';
-type TokenProof = {
-  subject?: string;
-  mobile?: string;
-  userType?: string;
-  roles?: string[];
-  issuedAt?: string;
-  expiration?: string;
-};
-
 export function passwordValidator(): ValidatorFn {
   return (control: AbstractControl): { [key: string]: any } | null => {
     const value = control.value;
@@ -74,9 +66,9 @@ export function passwordValidator(): ValidatorFn {
 export class LoginSignup implements OnInit, OnDestroy {
   authView: AuthView = 'login';
 
-  loginForm!: FormGroup;
-  signupForm!: FormGroup;
-  forgotForm!: FormGroup;
+  loginForm: FormGroup = this.buildLoginForm();
+  signupForm: FormGroup = this.buildSignupForm();
+  forgotForm: FormGroup = this.buildForgotForm();
   showPassword = false;
   showSignupPassword = false;
   showSignupConfirmPassword = false;
@@ -120,9 +112,6 @@ export class LoginSignup implements OnInit, OnDestroy {
   // Inline OTP error for user-friendly feedback
   otpError: string | null = null;
   forgotOtpError: string | null = null;
-  lastLoginTokenInfo: TokenProof | null = null;
-  loginProofError: string | null = null;
-  isLoadingTokenProof = false;
 
   private readonly zoneLabels: Record<ZoneType, string> = {
     owner: 'Owner Zone',
@@ -164,25 +153,6 @@ export class LoginSignup implements OnInit, OnDestroy {
     private wishlistService: WishlistService
   ) {}
   ngOnInit(): void {
-    this.loginForm = new FormGroup({
-      whatsappNo: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
-      password: new FormControl('', [Validators.required, Validators.minLength(6)]),
-    });
-
-    this.signupForm = new FormGroup({
-      name: new FormControl('', [Validators.required]),
-      email: new FormControl('', [Validators.email]),
-      mobile: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
-      password: new FormControl('', [Validators.required, Validators.minLength(6), passwordValidator()]),
-      confirmPassword: new FormControl('', [Validators.required]),
-    });
-
-    this.forgotForm = new FormGroup({
-      mobile: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
-      newPassword: new FormControl({ value: '', disabled: true }, [Validators.required, Validators.minLength(6), passwordValidator()]),
-      confirmPassword: new FormControl({ value: '', disabled: true }, [Validators.required]),
-    });
-
     this.forgotForm
       .get('mobile')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -192,21 +162,49 @@ export class LoginSignup implements OnInit, OnDestroy {
       });
 
     this.initializeZoneType();
-    
-    // Try to get the previous URL from navigation state
+
     const navigation = this.router.getCurrentNavigation();
     const previousUrl = navigation?.extras?.state?.['previousUrl'];
     if (previousUrl && previousUrl !== '/login') {
       this.returnUrl = previousUrl;
     }
-    
-     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       this.initializeZoneType(params.get('userType'));
-      // Capture return URL if provided (query param takes priority)
       const returnUrlParam = params.get('returnUrl');
       if (returnUrlParam) {
         this.returnUrl = returnUrlParam;
+      } else if (!this.returnUrl) {
+        const storedReturnUrl = this.readStoredReturnUrl();
+        if (storedReturnUrl) {
+          this.returnUrl = storedReturnUrl;
+        }
       }
+    });
+  }
+
+  private buildLoginForm(): FormGroup {
+    return new FormGroup({
+      whatsappNo: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
+      password: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    });
+  }
+
+  private buildSignupForm(): FormGroup {
+    return new FormGroup({
+      name: new FormControl('', [Validators.required]),
+      email: new FormControl('', [Validators.email]),
+      mobile: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
+      password: new FormControl('', [Validators.required, Validators.minLength(6), passwordValidator()]),
+      confirmPassword: new FormControl('', [Validators.required]),
+    });
+  }
+
+  private buildForgotForm(): FormGroup {
+    return new FormGroup({
+      mobile: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
+      newPassword: new FormControl({ value: '', disabled: true }, [Validators.required, Validators.minLength(6), passwordValidator()]),
+      confirmPassword: new FormControl({ value: '', disabled: true }, [Validators.required]),
     });
   }
 
@@ -225,7 +223,6 @@ export class LoginSignup implements OnInit, OnDestroy {
 
       // Encrypt login password with server public key then POST to login endpoint
       this.isLoadingLogin = true;
-      this.prepareLoginProofState();
       this.api.getPublicKey().subscribe(async (pubKey: string) => {
         if (!pubKey) {
           this.isLoadingLogin = false;
@@ -252,12 +249,11 @@ export class LoginSignup implements OnInit, OnDestroy {
               } catch (e) {
                 console.warn('Failed to store tokens locally', e);
               }
-              this.fetchTokenProof(resp.accessToken);
               this.loginAttempt.emit({ whatsappNo: values.whatsappNo, password: values.password });
               this.navigateToRole(userType);
               // Show dialog with tokens
               try {
-                this.dialog.open(TokenDialogComponent, { data: { title: 'Login successful', accessToken: resp.accessToken, refreshToken: resp.refreshToken } });
+                this.dialog.open(TokenDialogComponent, { data: { title: 'Login successful', message: 'You are now logged in.' } });
               } catch (e) {
                 // Fallback to snackbar if dialog fails
                 this.snackBar.open('Login successful', 'Close', { duration: 2500 });
@@ -356,15 +352,61 @@ export class LoginSignup implements OnInit, OnDestroy {
     if (!userType) {
       return;
     }
-    // Refresh wishlist for the current user
     this.wishlistService.refreshForCurrentUser();
-    // If there's a returnUrl, navigate there instead of the default
-    if (this.returnUrl) {
-      this.router.navigateByUrl(this.returnUrl).catch((err) => console.warn('Navigation failed', err));
+    const resolvedReturnUrl = this.resolveReturnUrl();
+    this.clearStoredReturnUrl();
+    if (resolvedReturnUrl) {
+      this.router.navigateByUrl(resolvedReturnUrl).catch((err) => console.warn('Navigation failed', err));
       return;
     }
-    // Default: go to home page if no previous page was captured
     this.router.navigate(['/home']).catch((err) => console.warn('Navigation failed', err));
+  }
+
+  private resolveReturnUrl(): string | null {
+    const manualCandidate = this.normalizeReturnUrl(this.returnUrl);
+    if (manualCandidate) {
+      return manualCandidate;
+    }
+    return this.normalizeReturnUrl(this.readStoredReturnUrl());
+  }
+
+  private normalizeReturnUrl(url: string | null | undefined): string | null {
+    if (!url) {
+      return null;
+    }
+    const trimmed = url.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const basePath = trimmed.split('?')[0];
+    if (basePath === '/login') {
+      return null;
+    }
+    return trimmed;
+  }
+
+  private readStoredReturnUrl(): string | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    try {
+      const stored = sessionStorage.getItem(PRE_LOGIN_URL_KEY);
+      return stored || null;
+    } catch (err) {
+      console.warn('Unable to read stored return URL', err);
+      return null;
+    }
+  }
+
+  private clearStoredReturnUrl(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      sessionStorage.removeItem(PRE_LOGIN_URL_KEY);
+    } catch (err) {
+      console.warn('Unable to clear stored return URL', err);
+    }
   }
 
   // Encrypts the plaintext password with RSA-OAEP parameters that mirror the backend (SHA-256 digest + MGF1 SHA-1).
@@ -857,41 +899,6 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.resetForgotOtpUiFlags();
     this.signupForm.get('password')?.enable({ emitEvent: false });
     this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
-  }
-
-  private prepareLoginProofState(): void {
-    this.lastLoginTokenInfo = null;
-    this.loginProofError = null;
-    this.isLoadingTokenProof = false;
-  }
-
-  private fetchTokenProof(accessToken: string): void {
-    if (!accessToken) {
-      return;
-    }
-    this.isLoadingTokenProof = true;
-    this.loginProofError = null;
-    this.api.getTokenInfo(accessToken).subscribe((info: any | null) => {
-      this.isLoadingTokenProof = false;
-      if (info) {
-        this.lastLoginTokenInfo = {
-          subject: info.subject,
-          mobile: info.mobile,
-          userType: info.userType,
-          roles: info.roles,
-          issuedAt: info.issuedAt,
-          expiration: info.expiration,
-        };
-        return;
-      }
-      this.lastLoginTokenInfo = null;
-      this.loginProofError = 'Unable to confirm the login session from the server.';
-    }, (err) => {
-      this.isLoadingTokenProof = false;
-      this.lastLoginTokenInfo = null;
-      const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Failed to load login proof.';
-      this.loginProofError = errMsg;
-    });
   }
 
   get loginControls() {

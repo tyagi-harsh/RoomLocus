@@ -1,7 +1,7 @@
 <div class="form-container animate-fade-in">
   <div class="header-section">
     <h1 class="main-title">I'm listing my Flat</h1>
-    <h2 class="sub-title">I'm Owner</h2>
+    <a href="#"><h2 class="sub-title" >Show listing Sample</h2></a>
   </div>
 
   <form [formGroup]="listingForm">
@@ -9,11 +9,24 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
-        <mat-select formControlName="city" (openedChange)="onCityDropdownOpened($event)">
-          <ng-container *ngIf="cities$ | async as cities">
-            <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
-          </ng-container>
-        </mat-select>
+        <input
+          matInput
+          [matAutocomplete]="cityAuto"
+          placeholder="Type to search cities"
+          formControlName="cityControl"
+          #cityAutoTrigger="matAutocompleteTrigger"
+          (focus)="cityAutoTrigger.openPanel()"
+        />
+        <mat-autocomplete
+          #cityAuto="matAutocomplete"
+          [displayWith]="displayCityName"
+          (optionSelected)="onCitySelected($event.option.value)"
+        >
+          <mat-option *ngFor="let city of filteredCities$ | async" [value]="city">
+            {{ city.name }}
+          </mat-option>
+          <mat-option *ngIf="(filteredCities$ | async)?.length === 0" disabled>No cities found</mat-option>
+        </mat-autocomplete>
       </mat-form-field>
     </div>
 
@@ -21,22 +34,33 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
-        <mat-select formControlName="town" (openedChange)="onLocationDropdownOpened($event)">
+        <input
+          matInput
+          [matAutocomplete]="townAuto"
+          placeholder="Type to search town/sector"
+          formControlName="townControl"
+          #townAutoTrigger="matAutocompleteTrigger"
+          (focus)="townAutoTrigger.openPanel()"
+          [disabled]="!listingForm.get('city')?.value"
+        />
+        <mat-autocomplete #townAuto="matAutocomplete" (optionSelected)="onTownSelected($event.option.value)">
           <mat-option *ngIf="isLocationLoading$ | async" disabled>Loading locations...</mat-option>
-          <ng-container *ngIf="!(isLocationLoading$ | async)">
-            <ng-container *ngIf="locations$ | async as locations">
-              <mat-option *ngIf="listingForm.get('city')?.value && !locations?.length" disabled>No locations found for selected city</mat-option>
-              <mat-option *ngIf="!listingForm.get('city')?.value" disabled>Please select a city first</mat-option>
-              <mat-option *ngFor="let loc of locations" [value]="loc">{{ loc }}</mat-option>
-            </ng-container>
-          </ng-container>
-        </mat-select>
+          <mat-option *ngFor="let loc of filteredLocations$ | async" [value]="loc">
+            {{ loc }}
+          </mat-option>
+          <mat-option
+            *ngIf="!(locations$ | async)?.length && listingForm.get('city')?.value && !(isLocationLoading$ | async)"
+            disabled
+          >
+            No locations found
+          </mat-option>
+        </mat-autocomplete>
       </mat-form-field>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Location</label>
-      <input type="text" formControlName="location" placeholder="Enter location" class="form-control bg-light-blue">
+      <label class="form-label">Area/Colony</label>
+      <input type="text" formControlName="location" placeholder="Enter area/colony" class="form-control bg-light-blue">
     </div>
 
     <div class="form-row">
@@ -45,9 +69,15 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">BHK</label>
-      <input type="number" formControlName="bhk" placeholder="Enter BHK" class="form-control" appNumericOnly>
+      <label class="form-label">Minimum Price per Month</label>
+      <input type="number" formControlName="minPrice" placeholder="Enter min price per month" class="form-control bg-light-blue" appNumericOnly>
     </div>
+
+    <div class="form-row">
+      <label class="form-label">Maximum Price per Month</label>
+      <input type="number" formControlName="maxPrice" placeholder="Enter max price per month" class="form-control bg-light-blue" appNumericOnly>
+    </div>
+    
 
     <!-- <div class="form-row">
       <label class="form-label">BHK Type</label>
@@ -62,26 +92,6 @@
     </div> -->
 
     <div class="form-row">
-      <label class="form-label">Total Flat</label>
-      <input type="number" formControlName="totalFlat" placeholder="Enter total flats" class="form-control" appNumericOnly>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Total Floors</label>
-      <input type="number" formControlName="totalFloors" placeholder="Enter total floors" class="form-control" appNumericOnly>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Minimum Price</label>
-      <input type="number" formControlName="minPrice" placeholder="Enter minimum price" class="form-control bg-light-blue" appNumericOnly>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Maximum Price</label>
-      <input type="number" formControlName="maxPrice" placeholder="Enter maximum price" class="form-control bg-light-blue" appNumericOnly>
-    </div>
-
-    <div class="form-row">
       <label class="form-label">Security Deposit</label>
       <input type="number" formControlName="security" placeholder="Enter security amount" class="form-control" appNumericOnly>
     </div>
@@ -92,44 +102,116 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Offer</label>
-      <input type="text" formControlName="offer" placeholder="Enter offer" class="form-control">
+      <label class="form-label">Total Floors</label>
+      <input type="number" formControlName="totalFloors" placeholder="Enter total floors" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Caretaker</label>
-      <input type="text" formControlName="caretaker" placeholder="Enter caretaker" class="form-control">
+      <label class="form-label">Total Flat</label>
+      <input type="number" formControlName="totalFlat" placeholder="Enter total flats" class="form-control" appNumericOnly>
+    </div>
+
+     <div class="form-row">
+      <label class="form-label">Water Supply in Hours</label>
+      <input type="number" formControlName="waterSupply" placeholder="Enter water supply in hours" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Pet Allowed</label>
-      <input type="text" formControlName="petAllowed" placeholder="Enter pet allowed" class="form-control">
+      <label class="form-label">Power Backup in hours </label>
+      <input type="number" formControlName="powerBackup" placeholder="Enter power backup in hours" class="form-control" appNumericOnly>
     </div>
 
-    <div class="form-row">
+     <div class="form-row">
       <label class="form-label">Notice Period</label>
-      <input type="text" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control">
+      <input type="number" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control" appNumericOnly>
     </div>
 
-    <!-- <div class="form-row">
-      <label class="form-label">Notice Period</label>
-      <select formControlName="noticePeriod" class="form-control" title="Select Notice Period">
-        <option value="15 Days">15 Days</option>
-        <option value="1 Month">1 Month</option>
-        <option value="2 Months">2 Months</option>
-        <option value="3 Months">3 Months</option>
-      </select>
-    </div> -->
+
+    <div class="form-row">
+      <label class="form-label">Offer if any</label>
+      <input type="text" formControlName="offer" placeholder="Enter offer if any" class="form-control">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Whatsapp No</label>
+      <input type="number" formControlName="whatsappNo" placeholder="Enter whatsapp number" class="form-control" appNumericOnly>
+    </div>
+    <div class="mobile-extra">
+      <div class="otp-cta">
+        <div class="get-otp-div">
+          <button
+            type="button"
+            class="otp-button"
+            (click)="startContactOtpFlow()"
+            [disabled]="(contactOtpRequested && !contactOtpVerified) || isSendingContactOtp || !isContactNumberValid"
+          >
+            <span *ngIf="!isSendingContactOtp">Send OTP</span>
+            <mat-progress-spinner *ngIf="isSendingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+          </button>
+          <small
+            *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
+            style="display:block;margin-top:4px"
+          >
+            OTP sent successfully to registered mobile number <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
+          </small>
+        </div>
+      </div>
+      <div *ngIf="contactOtpRequested" class="otp-panel">
+        <div class="otp-block">
+          <input
+            id="contact-otp"
+            type="tel"
+            maxlength="6"
+            [(ngModel)]="contactOtpInput"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="XXXXXX"
+            name="contactOtp"
+            class="form-control otp-input"
+          />
+        </div>
+        <div *ngIf="contactOtpError" class="validation-error" style="margin-top:6px">
+          <span><small style="color: red;">{{ contactOtpError }}</small></span>
+          <button
+            *ngIf="showContactResendOption"
+            type="button"
+            class="resend-link"
+            (click)="resendContactOtp()"
+          >
+            Resend OTP
+          </button>
+        </div>
+        <div class="otp-block">
+          <button type="button" class="otp-verify-button" (click)="verifyContactOtp()">
+            <span *ngIf="!isVerifyingContactOtp">Verify OTP</span>
+            <mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+          </button>
+        </div>
+      </div>
+      <div *ngIf="showContactOtpVerifiedToast" class="otp-status verified-toast">
+        <i class="fas fa-check-circle"></i>
+        <span>Mobile verified successfully</span>
+      </div>
+    </div>
+  
+ <div class="form-row">
+      <label class="form-label">Contact Name</label>
+      <input type="text" formControlName="contact" placeholder="Enter contact name" class="form-control">
+    </div>
+
+  
+    <div class="form-row">
+      <label class="form-label">BHK</label>
+      <input type="text" formControlName="bhk" placeholder="Select BHK" class="form-control bg-light-blue">
+    </div>
+
+    
 
     <div class="form-row">
       <label class="form-label">Manager/Owner</label>
       <input type="text" formControlName="manager" placeholder="Enter manager/owner name" class="form-control">
     </div>
 
-    <div class="form-row">
-      <label class="form-label">Contact Number</label>
-      <input type="number" formControlName="contact" placeholder="Enter contact number" class="form-control" appNumericOnly>
-    </div>
+   
 
     <div class="form-row align-start">
       <label class="form-label pt-2">Full Address</label>
@@ -155,6 +237,14 @@
     </div>
 
     <div class="radio-section">
+      <h3 class="section-title">Pets Allowed</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" value="Yes" formControlName="petAllowed"><span>Yes</span></label>
+        <label class="radio-item"><input type="radio" value="No" formControlName="petAllowed"><span>No</span></label>
+      </div>
+    </div>
+
+    <div class="radio-section">
       <h3 class="section-title">Gender Preferences</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Male" formControlName="gender"><span>Male</span></label>
@@ -164,23 +254,7 @@
       </div>
     </div>
 
-    <div class="radio-section">
-      <h3 class="section-title">Water Supply</h3>
-      <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="24 hr" formControlName="waterSupply"><span>24 hr</span></label>
-        <label class="radio-item"><input type="radio" value="12 hr" formControlName="waterSupply"><span>12 hr</span></label>
-        <label class="radio-item"><input type="radio" value="6 hr" formControlName="waterSupply"><span>6 hr</span></label>
-      </div>
-    </div>
-
-    <div class="radio-section">
-      <h3 class="section-title">Power Backup</h3>
-      <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Yes" formControlName="powerBackup"><span>Yes</span></label>
-        <label class="radio-item"><input type="radio" value="No" formControlName="powerBackup"><span>No</span></label>
-        <label class="radio-item"><input type="radio" value="Partial" formControlName="powerBackup"><span>Partial</span></label>
-      </div>
-    </div>
+    
 
     <div class="radio-section">
       <h3 class="section-title">Flat Type</h3>
@@ -230,8 +304,15 @@
     </div>
 
     <div class="button-group">
-      <button type="button" (click)="onNext()" class="btn btn-next">Next</button>
+      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid">Next</button>
       <button type="button" (click)="onCancel()" class="btn btn-cancel">Cancel</button>
+    </div>
+    <div *ngIf="showCancelConfirmation" class="cancel-toast">
+      <span>Do you Really want to cancel submission of this form?</span>
+      <div class="toast-actions">
+        <button type="button" class="toast-btn" (click)="confirmCancel()">Yes</button>
+        <button type="button" class="toast-btn ghost" (click)="dismissCancelConfirmation()">No</button>
+      </div>
     </div>
   </form>
 </div>

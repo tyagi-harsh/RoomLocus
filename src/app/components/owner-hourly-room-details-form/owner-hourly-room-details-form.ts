@@ -4,13 +4,14 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OwnerListingFormService } from '../../services/owner-listing-form.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatOptionModule } from '@angular/material/core';
 import { PropertySearchService } from '../../services/property-search.service';
-import { Observable, of, BehaviorSubject, Subject } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { City } from '../../interface/City';
-import { take, takeUntil } from 'rxjs/operators';
+import { map, take, takeUntil } from 'rxjs/operators';
 import {
   INSIDE_FACILITIES,
   OUTSIDE_FACILITIES,
@@ -21,24 +22,30 @@ import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
   selector: 'app-owner-hourly-room-details-form',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatSelectModule,
     MatInputModule,
     MatIconModule,
-    NumericOnlyDirective
+    MatAutocompleteModule,
+    MatOptionModule,
+    NumericOnlyDirective,
   ],
   templateUrl: './owner-hourly-room-details-form.html',
   styleUrl: './owner-hourly-room-details-form.css',
 })
 export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
-  cities$: Observable<City[]> = of([]);
+  private citiesSubject = new BehaviorSubject<City[]>([]);
+  filteredCities$: Observable<City[]>;
+  private cityFilterSubject = new BehaviorSubject<string>('');
+
   private locationsSubject = new BehaviorSubject<string[]>([]);
   locations$ = this.locationsSubject.asObservable();
+  private locationFilterSubject = new BehaviorSubject<string>('');
+  filteredLocations$: Observable<string[]>;
+
   private locationLoadingSubject = new BehaviorSubject<boolean>(false);
   isLocationLoading$ = this.locationLoadingSubject.asObservable();
-  private citiesLoaded = false;
   private destroy$ = new Subject<void>();
 
   get listingForm() {
@@ -48,26 +55,68 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
   readonly insideFacilities = INSIDE_FACILITIES;
   readonly outsideFacilities = OUTSIDE_FACILITIES;
 
+  showCancelConfirmation = false;
+
   constructor(
     private readonly listingFormService: OwnerListingFormService,
     private readonly router: Router,
     private propertySearchService: PropertySearchService
-  ) {}
+  ) {
+    this.filteredCities$ = combineLatest([
+      this.citiesSubject.asObservable(),
+      this.cityFilterSubject.asObservable(),
+    ]).pipe(map(([cities, filter]) => this.filterCities(cities, filter)));
+
+    this.filteredLocations$ = combineLatest([
+      this.locationsSubject.asObservable(),
+      this.locationFilterSubject.asObservable(),
+    ]).pipe(map(([locations, filter]) => this.filterLocations(locations, filter)));
+  }
 
   ngOnInit(): void {
     this.loadCities();
-    this.citiesLoaded = true;
-    
+
     const currentCity = this.listingForm.get('city')?.value;
     if (currentCity) {
-        this.loadLocations(currentCity);
+      this.loadLocations(currentCity);
     }
-    
-    this.listingForm.get('city')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
+
+    this.listingForm
+      .get('city')!
+      .valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-         this.listingForm.get('town')?.reset();
-         this.locationsSubject.next([]);
+        this.listingForm.patchValue(
+          { town: '', townControl: '' },
+          { emitEvent: false }
+        );
+        this.locationsSubject.next([]);
+        this.locationFilterSubject.next('');
+      });
+
+    this.listingForm
+      .get('cityControl')!
+      .valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        const filterValue = typeof value === 'string' ? value : value?.name ?? '';
+        this.cityFilterSubject.next(filterValue);
+        if (typeof value === 'string') {
+          this.listingForm.patchValue(
+            { city: '' },
+            { emitEvent: false }
+          );
+          if (!filterValue.trim()) {
+            this.locationsSubject.next([]);
+            this.locationFilterSubject.next('');
+          }
+        }
+      });
+
+    this.listingForm
+      .get('townControl')!
+      .valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        const filterValue = (value ?? '').toString();
+        this.locationFilterSubject.next(filterValue);
       });
   }
 
@@ -77,39 +126,55 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
   }
 
   private loadCities(forceRefresh = false): void {
-    this.cities$ = this.propertySearchService.getCities(forceRefresh);
+    this.propertySearchService
+      .getCities(forceRefresh)
+      .pipe(take(1))
+      .subscribe({
+        next: (cities) => this.citiesSubject.next(cities),
+        error: (err) => {
+          console.error('Failed to load cities:', err);
+          this.citiesSubject.next([]);
+        },
+      });
   }
 
-  onCityDropdownOpened(isOpen: boolean): void {
-    if (!isOpen) {
+  onCitySelected(city: City): void {
+    if (!city) {
       return;
     }
-    if (!this.citiesLoaded) {
-      this.loadCities();
-      this.citiesLoaded = true;
-    }
+    this.listingForm.patchValue(
+      {
+        city: city.id,
+        cityControl: city,
+        town: '',
+        townControl: '',
+      },
+      { emitEvent: true }
+    );
+    this.locationFilterSubject.next('');
+    this.loadLocations(city.id);
   }
 
-  onLocationDropdownOpened(isOpen: boolean): void {
-    if (!isOpen) {
+  onTownSelected(town: string): void {
+    if (!town) {
       return;
     }
-    const city = this.listingForm.get('city')?.value;
-    if (city) {
-        this.loadLocations(city);
-    }
-  }
-
-  onCityChange(): void {
-    const city = this.listingForm.get('city')?.value;
-    if (city) {
-      this.loadLocations(city);
-    }
+    this.listingForm.patchValue(
+      {
+        town,
+        townControl: town,
+      },
+      { emitEvent: false }
+    );
   }
 
   private loadLocations(city: string) {
-    const type = 'Hourly Room'; 
-    
+    if (!city) {
+      this.locationsSubject.next([]);
+      return;
+    }
+
+    const type = 'Hourly Room';
     this.locationLoadingSubject.next(true);
     this.propertySearchService
       .getTownSectors(city, type)
@@ -127,7 +192,53 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       });
   }
 
+  displayCityName(city: City | string | null): string {
+    if (!city) {
+      return '';
+    }
+    return typeof city === 'string' ? city : city.name;
+  }
+
+  private filterCities(cities: City[], filter: string): City[] {
+    const normalized = filter?.trim().toLowerCase() ?? '';
+    if (!normalized) {
+      return cities;
+    }
+    return cities.filter((city) =>
+      city.name?.toLowerCase().includes(normalized)
+    );
+  }
+
+  private filterLocations(locations: string[], filter: string): string[] {
+    const normalized = filter?.trim().toLowerCase() ?? '';
+    if (!normalized) {
+      return locations;
+    }
+    return locations.filter((location) =>
+      location?.toLowerCase().includes(normalized)
+    );
+  }
+
   onNext(): void {
-    this.router.navigate(['/owner/hourly-room/images']).catch((err) => console.error('Navigation failed', err));
+    if (this.listingForm.invalid) {
+      this.listingForm.markAllAsTouched();
+      return;
+    }
+    this.router
+      .navigate(['/owner/hourly-room/images'], { queryParams: { propertyType: 'hourly-room' } })
+      .catch((err) => console.error('Navigation failed', err));
+  }
+
+  onCancel(): void {
+    this.showCancelConfirmation = true;
+  }
+
+  confirmCancel(): void {
+    this.showCancelConfirmation = false;
+    window.location.reload();
+  }
+
+  dismissCancelConfirmation(): void {
+    this.showCancelConfirmation = false;
   }
 }

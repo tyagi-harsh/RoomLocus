@@ -1,12 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button'; // For the button
 import { PropertyDetails as PropertyDetailsInterface } from '../../interface/Property';
 import { PropertyCategory, WishlistItem } from '../../interface/user-dash';
 import { PropertySearchService } from '../../services/property-search.service';
 import { Subscription } from 'rxjs';
 import { WishlistService } from '../../services/wishlist.service';
+import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
 // import { Footer } from '../footer/footer';
 
 interface ApiPropertyDetailsResponse {
@@ -78,6 +79,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
   propertyCategory: PropertyCategory = 'room';
   private requestedPropertyType = 'room';
   canUseFavorites = false;
+  showFavoriteButton = true;
 
   // Mock data created from the images
   // In a real application, you would fetch this based on propertyId
@@ -163,6 +165,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
+    private readonly router: Router,
     private propertySearch: PropertySearchService,
     private readonly wishlistService: WishlistService
   ) {}
@@ -173,6 +176,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
     // Only allow non-OWNER users to use favorites
     const userType = localStorage.getItem('userType');
     this.canUseFavorites = userType === 'END_USER';
+    this.showFavoriteButton = userType !== 'OWNER';
 
     this.selectedImage = this.details.gallery.length > 0 ? this.details.gallery[0] : '';
     this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(() => this.syncLikedState());
@@ -474,6 +478,11 @@ export class PropertyDetails implements OnInit, OnDestroy {
       return;
     }
 
+    if (!userType) {
+      this.redirectToLogin();
+      return;
+    }
+
     if (this.wishlistService.has(this.propertyId)) {
       this.wishlistService.remove(this.propertyId);
       this.liked = false;
@@ -498,7 +507,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
   }
 
   private syncLikedState(): void {
-    if (!this.propertyId) {
+    if (!this.propertyId || !this.canUseFavorites) {
       this.liked = false;
       return;
     }
@@ -528,6 +537,22 @@ export class PropertyDetails implements OnInit, OnDestroy {
       price,
       propertyCategory: this.propertyCategory,
     };
+  }
+
+  private redirectToLogin(): void {
+    const currentUrl = window.location.pathname + window.location.search;
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(PRE_LOGIN_URL_KEY, currentUrl || '/home');
+      } catch (err) {
+        console.warn('Unable to persist pre-login URL', err);
+      }
+    }
+    this.router
+      .navigate(['/login'], { queryParams: { returnUrl: currentUrl, userType: 'END_USER' } })
+      .catch((err) => {
+      console.error('Navigation to login failed', err);
+    });
   }
 
   // --- NEW SHARE FUNCTION ---

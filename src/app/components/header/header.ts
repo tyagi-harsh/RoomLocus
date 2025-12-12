@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { Subject, filter, takeUntil } from 'rxjs';
 import { WishlistService } from '../../services/wishlist.service';
+import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
 
 @Component({
   selector: 'app-header',
@@ -26,12 +27,14 @@ export class Header implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.syncAuthState();
     this.currentUrl = this.router.url;
+    this.storePreviousUrl(this.currentUrl);
     this.router.events.pipe(filter((event) => event instanceof NavigationEnd), takeUntil(this.destroy$)).subscribe((event) => {
       this.closeDropdown();
       this.syncAuthState();
-      // Track current URL for return after login
       if (event instanceof NavigationEnd) {
-        this.currentUrl = event.urlAfterRedirects || event.url;
+        const nextUrl = event.urlAfterRedirects || event.url || '/home';
+        this.currentUrl = nextUrl;
+        this.storePreviousUrl(nextUrl);
       }
     });
   }
@@ -55,7 +58,8 @@ export class Header implements OnInit, OnDestroy {
 
   navigateToLogin(userType: string): void {
     this.closeDropdown();
-    const returnUrl = this.currentUrl !== '/login' ? this.currentUrl : '/home';
+    const returnUrl = this.currentUrl && this.currentUrl !== '/login' ? this.currentUrl : '/home';
+    this.storePreviousUrl(returnUrl);
     this.router.navigate(['/login'], {
       queryParams: { userType, returnUrl }
     }).catch((err) => console.warn('Navigation failed', err));
@@ -92,5 +96,19 @@ export class Header implements OnInit, OnDestroy {
     const storedRole = localStorage.getItem('userType');
     this.isAuthenticated = Boolean(token && storedRole);
     this.userType = storedRole || null;
+  }
+
+  private storePreviousUrl(url: string): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    if (!url || url === '/login') {
+      return;
+    }
+    try {
+      sessionStorage.setItem(PRE_LOGIN_URL_KEY, url);
+    } catch (err) {
+      console.warn('Unable to store pre-login URL', err);
+    }
   }
 }

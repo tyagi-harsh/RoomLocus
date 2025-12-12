@@ -13,7 +13,9 @@ export class OwnerListingFormService {
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       city: ['Delhi'],
+      cityControl: ['Delhi'],
       town: ['Sector 1'],
+      townControl: ['Sector 1'],
       location: ['Delhi silampur'],
       landmark: ['Shadra delhi'],
       luxury: [''],

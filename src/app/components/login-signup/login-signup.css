@@ -305,7 +305,7 @@
 .otp-verify-button {
   width: 100%;
   border: none;
-  background-color: #17a2b8;
+  background-color: #08af58;
   color: #fff;
   padding: 8px;
   font-weight: 500;
@@ -333,6 +333,7 @@
   border-radius: 999px;
   padding: 8px 18px;
   animation: verifiedPop 0.35s ease-out;
+  margin-bottom: 10px;
 }
 
 @keyframes verifiedPop {

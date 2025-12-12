@@ -9,11 +9,24 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
-        <mat-select formControlName="city" (openedChange)="onCityDropdownOpened($event)">
-          <ng-container *ngIf="cities$ | async as cities">
-            <mat-option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</mat-option>
-          </ng-container>
-        </mat-select>
+        <input
+          matInput
+          [matAutocomplete]="cityAuto"
+          placeholder="Type to search cities"
+          formControlName="cityControl"
+          #cityAutoTrigger="matAutocompleteTrigger"
+          (focus)="cityAutoTrigger.openPanel()"
+        />
+        <mat-autocomplete
+          #cityAuto="matAutocomplete"
+          [displayWith]="displayCityName"
+          (optionSelected)="onCitySelected($event.option.value)"
+        >
+          <mat-option *ngFor="let city of filteredCities$ | async" [value]="city">
+            {{ city.name }}
+          </mat-option>
+          <mat-option *ngIf="(filteredCities$ | async)?.length === 0" disabled>No cities found</mat-option>
+        </mat-autocomplete>
       </mat-form-field>
     </div>
 
@@ -21,16 +34,27 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
-        <mat-select formControlName="town" (openedChange)="onLocationDropdownOpened($event)">
+        <input
+          matInput
+          [matAutocomplete]="townAuto"
+          placeholder="Type to search town/sector"
+          formControlName="townControl"
+          #townAutoTrigger="matAutocompleteTrigger"
+          (focus)="townAutoTrigger.openPanel()"
+          [disabled]="!listingForm.get('city')?.value"
+        />
+        <mat-autocomplete #townAuto="matAutocomplete" (optionSelected)="onTownSelected($event.option.value)">
           <mat-option *ngIf="isLocationLoading$ | async" disabled>Loading locations...</mat-option>
-          <ng-container *ngIf="!(isLocationLoading$ | async)">
-            <ng-container *ngIf="locations$ | async as locations">
-              <mat-option *ngIf="listingForm.get('city')?.value && !locations?.length" disabled>No locations found for selected city</mat-option>
-              <mat-option *ngIf="!listingForm.get('city')?.value" disabled>Please select a city first</mat-option>
-              <mat-option *ngFor="let loc of locations" [value]="loc">{{ loc }}</mat-option>
-            </ng-container>
-          </ng-container>
-        </mat-select>
+          <mat-option *ngFor="let loc of filteredLocations$ | async" [value]="loc">
+            {{ loc }}
+          </mat-option>
+          <mat-option
+            *ngIf="!(locations$ | async)?.length && listingForm.get('city')?.value && !(isLocationLoading$ | async)"
+            disabled
+          >
+            No locations found
+          </mat-option>
+        </mat-autocomplete>
       </mat-form-field>
     </div>
 
@@ -192,8 +216,15 @@
     </div>
 
     <div class="button-group">
-      <button type="button" (click)="onNext()" class="btn btn-next">Next</button>
-      <button type="button" class="btn btn-cancel">Cancel</button>
+      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid">Next</button>
+      <button type="button" (click)="onCancel()" class="btn btn-cancel">Cancel</button>
+    </div>
+    <div *ngIf="showCancelConfirmation" class="cancel-toast">
+      <span>Do you Really want to cancel submission of this form?</span>
+      <div class="toast-actions">
+        <button type="button" class="toast-btn" (click)="confirmCancel()">Yes</button>
+        <button type="button" class="toast-btn ghost" (click)="dismissCancelConfirmation()">No</button>
+      </div>
     </div>
   </form>
 </div>
