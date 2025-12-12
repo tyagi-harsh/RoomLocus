@@ -8,6 +8,9 @@ interface ImageUpload {
   fileName: string;
 }
 
+const DEFAULT_IMAGE_SRC = 'assets/images/icons/image.png';
+const DEFAULT_FILE_NAME = 'image.png';
+
 @Component({
   selector: 'app-owner-property-image-upload',
   standalone: true,
@@ -21,43 +24,43 @@ export class OwnerPropertyImageUpload implements OnInit {
   images: { [key: string]: ImageUpload } = {
     front: {
       file: null,
-      previewUrl: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fileName: 'No file chosen'
+      previewUrl: DEFAULT_IMAGE_SRC,
+      fileName: DEFAULT_FILE_NAME
     },
     inside: {
       file: null,
-      previewUrl: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fileName: 'No file chosen'
+      previewUrl: DEFAULT_IMAGE_SRC,
+      fileName: DEFAULT_FILE_NAME
     },
     anotherInside: {
       file: null,
-      previewUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fileName: 'No file chosen'
+      previewUrl: DEFAULT_IMAGE_SRC,
+      fileName: DEFAULT_FILE_NAME
     },
     lobby: {
       file: null,
-      previewUrl: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fileName: 'No file chosen'
+      previewUrl: DEFAULT_IMAGE_SRC,
+      fileName: DEFAULT_FILE_NAME
     },
     kitchen: {
       file: null,
-      previewUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fileName: 'No file chosen'
+      previewUrl: DEFAULT_IMAGE_SRC,
+      fileName: DEFAULT_FILE_NAME
     },
     toilet: {
       file: null,
-      previewUrl: 'https://images.unsplash.com/photo-1493666438817-866a91353ca9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fileName: 'No file chosen'
+      previewUrl: DEFAULT_IMAGE_SRC,
+      fileName: DEFAULT_FILE_NAME
     },
     other: {
       file: null,
-      previewUrl: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fileName: 'No file chosen'
+      previewUrl: DEFAULT_IMAGE_SRC,
+      fileName: DEFAULT_FILE_NAME
     },
     washroom: {
       file: null,
-      previewUrl: 'https://images.unsplash.com/photo-1584622050111-993a426fbf0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      fileName: 'No file chosen'
+      previewUrl: DEFAULT_IMAGE_SRC,
+      fileName: DEFAULT_FILE_NAME
     }
   };
   readonly imageSections = [
