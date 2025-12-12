@@ -8,7 +8,7 @@ interface ImageUpload {
   fileName: string;
 }
 
-const DEFAULT_IMAGE_SRC = 'assets/images/icons/image.png';
+const DEFAULT_IMAGE_SRC = 'assets/images/icons/image_add_photo2.jpg';
 const DEFAULT_FILE_NAME = 'image.png';
 
 @Component({
