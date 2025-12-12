@@ -1,7 +1,8 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router, UrlTree } from '@angular/router';
+import { CanActivateFn, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { PRE_LOGIN_URL_KEY } from '../constants/navigation-keys';
 
-function ensureRole(expectedRole: string): boolean | UrlTree {
+function ensureRole(expectedRole: string, state: RouterStateSnapshot): boolean | UrlTree {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('accessToken');
     const storedRole = localStorage.getItem('userType');
@@ -11,11 +12,21 @@ function ensureRole(expectedRole: string): boolean | UrlTree {
   }
 
   const router = inject(Router);
+  if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+    try {
+      sessionStorage.setItem(PRE_LOGIN_URL_KEY, state.url);
+    } catch (err) {
+      console.error('Unable to store pre-login URL', err);
+    }
+  }
   return router.createUrlTree(['/login'], {
-    queryParams: { redirect: expectedRole === 'OWNER' ? 'owner-dashboard' : 'dashboard' },
+    queryParams: {
+      userType: expectedRole,
+      returnUrl: state.url,
+    },
   });
 }
 
-export const userGuard: CanActivateFn = () => ensureRole('END_USER');
+export const userGuard: CanActivateFn = (_route, state) => ensureRole('END_USER', state);
 
-export const ownerGuard: CanActivateFn = () => ensureRole('OWNER');
+export const ownerGuard: CanActivateFn = (_route, state) => ensureRole('OWNER', state);

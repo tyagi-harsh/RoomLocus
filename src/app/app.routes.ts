@@ -38,23 +38,23 @@ export const routes: Routes = [
 
   // Hourly Room property routes
   { path: 'owner/hourly-room', redirectTo: 'owner/hourly-room/details', pathMatch: 'full' },
-  { path: 'owner/hourly-room/details', component: OwnerHourlyRoomDetailsForm },
-  { path: 'owner/hourly-room/images', component: OwnerPropertyImageUpload },
+  { path: 'owner/hourly-room/details', component: OwnerHourlyRoomDetailsForm, canActivate: [ownerGuard] },
+  { path: 'owner/hourly-room/images', component: OwnerPropertyImageUpload, canActivate: [ownerGuard] },
 
   // Flat property routes
   { path: 'owner/flat', redirectTo: 'owner/flat/details', pathMatch: 'full' },
-  { path: 'owner/flat/details', component: OwnerFlatDetailsForm },
-  { path: 'owner/flat/images', component: OwnerPropertyImageUpload },
+  { path: 'owner/flat/details', component: OwnerFlatDetailsForm, canActivate: [ownerGuard] },
+  { path: 'owner/flat/images', component: OwnerPropertyImageUpload, canActivate: [ownerGuard] },
 
   // PG property routes
   { path: 'owner/pg', redirectTo: 'owner/pg/details', pathMatch: 'full' },
-  { path: 'owner/pg/details', component: OwnerPgDetailsForm },
-  { path: 'owner/pg/images', component: OwnerPropertyImageUpload },
+  { path: 'owner/pg/details', component: OwnerPgDetailsForm, canActivate: [ownerGuard] },
+  { path: 'owner/pg/images', component: OwnerPropertyImageUpload, canActivate: [ownerGuard] },
 
   // Room property routes
   { path: 'owner/room', redirectTo: 'owner/room/details', pathMatch: 'full' },
-  { path: 'owner/room/details', component: OwnerRoomDetailsForm },
-  { path: 'owner/room/images', component: OwnerPropertyImageUpload },
+  { path: 'owner/room/details', component: OwnerRoomDetailsForm, canActivate: [ownerGuard] },
+  { path: 'owner/room/images', component: OwnerPropertyImageUpload, canActivate: [ownerGuard] },
 
   // Optional: A wildcard route for 404 pages
   // { path: '**', component: PageNotFoundComponent }
