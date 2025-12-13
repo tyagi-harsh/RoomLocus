@@ -359,7 +359,9 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.router.navigateByUrl(resolvedReturnUrl).catch((err) => console.warn('Navigation failed', err));
       return;
     }
-    this.router.navigate(['/home']).catch((err) => console.warn('Navigation failed', err));
+    // Redirect to appropriate dashboard based on user type instead of home
+    const defaultRoute = userType === 'OWNER' ? '/owner-dashboard' : '/dashboard';
+    this.router.navigate([defaultRoute]).catch((err) => console.warn('Navigation failed', err));
   }
 
   private resolveReturnUrl(): string | null {
@@ -379,7 +381,8 @@ export class LoginSignup implements OnInit, OnDestroy {
       return null;
     }
     const basePath = trimmed.split('?')[0];
-    if (basePath === '/login') {
+    // Filter out login page and dashboard routes (user should land on dashboard after login if they came from login page)
+    if (basePath === '/login' || basePath === '/dashboard' || basePath === '/owner-dashboard') {
       return null;
     }
     return trimmed;

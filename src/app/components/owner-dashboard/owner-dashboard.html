@@ -77,13 +77,7 @@
     <!-- Placeholders for other tabs -->
     <div *ngIf="activeTab === 'rentals'" class="placeholder-tab">
       <div class="rental-actions">
-        <button type="button" class="btn-add-property">Add New Property</button>
-        <div class="add-property-types">
-          <a class="btn-property-type" routerLink="/owner/flat/details">Flat +</a>
-          <a class="btn-property-type" routerLink="/owner/pg/details">PG +</a>
-          <a class="btn-property-type" routerLink="/owner/room/details">Room +</a>
-          <a class="btn-property-type" routerLink="/owner/hourly-room/details">Hourly Room +</a>
-        </div>
+        <button type="button" class="btn-add-property" (click)="openAddRentalDialog()">Add New Property</button>
       </div>
       <h3>My Rentals</h3>
       <p>List of your properties will appear here.</p>

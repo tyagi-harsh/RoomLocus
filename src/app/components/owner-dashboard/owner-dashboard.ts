@@ -1,13 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Lead } from '../../interface/owner-dash';
+import { AddRentalDialogComponent } from './add-rental-dialog.component';
 
 
 
 @Component({
   selector: 'app-owner-dashboard',
-  imports: [CommonModule, RouterModule],
+  standalone: true,
+  imports: [CommonModule, RouterModule, MatDialogModule],
   templateUrl: './owner-dashboard.html',
   styleUrl: './owner-dashboard.css',
 })
@@ -16,7 +19,10 @@ export class OwnerDashboard implements OnInit {
   activeTab: string = 'used-lead'; // Default active tab based on image
   leadCount: number = 24;
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     // Check for tab query parameter to set active tab
@@ -75,4 +81,9 @@ export class OwnerDashboard implements OnInit {
     // Add navigation to payment gateway or buy lead page here
   }
 
+  openAddRentalDialog(): void {
+    this.dialog.open(AddRentalDialogComponent, {
+      panelClass: 'rounded-dialog'
+    });
+  }
 }

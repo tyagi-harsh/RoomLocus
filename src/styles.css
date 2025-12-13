@@ -60,5 +60,29 @@ body {
 
 .form-row :first-child {
   margin-top: 20px;
-
 }
+
+/* Rounded dialog panels */
+.rounded-dialog .mdc-dialog__surface {
+  border-radius: 10px !important;
+}
+
+/* Blur background when dialog is open */
+.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Responsive dialog for mobile screens */
+/* @media (max-width: 480px) {
+  .rounded-dialog .mdc-dialog__surface {
+    max-width: 90vw !important;
+    min-width: unset !important;
+    margin: 16px;
+    
+  }
+  .rounded-dialog .mdc-dialog__container {
+    max-width: 100%;
+     margin: auto;
+  }
+} */

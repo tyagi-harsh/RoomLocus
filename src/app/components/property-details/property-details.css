@@ -84,7 +84,7 @@
 .fav-btn.liked {
   color: #fa1b1b; /* brighter red */
   background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 0 0 2px rgba(255, 23, 68, 0.15), 0 6px 14px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.15), 0 6px 14px rgba(255, 0, 0, 0.148);
 }
 
 /* Heart pop animation on like */
@@ -111,13 +111,15 @@
 
 /* Loved popup chip */
 .loved-pop {
+  content: "";
   position: absolute;
   right: 12px;
   top: 58px; /* just below fav button */
-  background: #ff1717e9;
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 16px;
+  background: #ffffff;
+  color: #eb0f0f;
+  width: 80px;
+  padding: 4px 8px;
+  border-radius: 10px;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.3px;
