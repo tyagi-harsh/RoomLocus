@@ -19,7 +19,7 @@ import {
   INSIDE_FACILITIES,
   OUTSIDE_FACILITIES,
   buildFacilityControls,
-}  from '../../constants/facility-options';
+} from '../../constants/facility-options';
 import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
 
 @Component({
@@ -387,7 +387,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     console.log('onNext called - Flat form');
     console.log('Form valid:', this.listingForm.valid);
     console.log('Form errors:', this.listingForm.errors);
-    
+
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
       // Log which controls are invalid
@@ -419,9 +419,10 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
         if (result.success) {
           this.toastService.success('Flat listing created successfully!');
           const flatId = result.data?.id;
-          this.router
-            .navigate(['/owner/flat/images'], { queryParams: { propertyType: 'flat', flatId } })
-            .catch((err) => console.error('Navigation failed', err));
+          console.log('Created flatId:', flatId);
+          // Stay on the same page for now; skip image upload navigation per request.
+          // Optionally, we can reset the form or show the created ID.
+          // this.listingForm.reset();
         } else {
           this.toastService.error(result.error || 'Failed to create flat listing');
         }
@@ -476,8 +477,8 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       if (match) waterSupply = parseInt(match[0], 10);
     }
 
-    // Map powerBackup string to number (Yes=1, No=0)
-    const powerBackup = v.powerBackup?.toLowerCase() === 'yes' ? 1 : 0;
+    // Map powerBackup mixed-type value to number (truthy -> 1, else 0)
+    const powerBackup = ['yes', 'true', '1', 'y'].includes(String(v.powerBackup).toLowerCase()) ? 1 : 0;
 
     // Get city name from cityControl (could be City object or string)
     const cityName = typeof v.cityControl === 'object' ? v.cityControl?.name : v.cityControl;
@@ -504,7 +505,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       accomoType: v.accommodation || '',
       parking,
       preferTenants,
-      petsAllowed: v.petAllowed?.toLowerCase() === 'yes',
+      petsAllowed: ['yes', 'true', '1', 'y'].includes(String(v.petAllowed).toLowerCase()),
       genderPrefer: v.gender || '',
       flatType: v.flatType || '',
       careTaker: v.caretaker || '',
