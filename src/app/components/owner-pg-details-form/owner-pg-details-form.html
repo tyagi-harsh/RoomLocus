@@ -1,4 +1,10 @@
 <div class="form-container animate-fade-in">
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isSaving">
+    <mat-spinner diameter="50"></mat-spinner>
+    <span class="loading-text">Saving PG details...</span>
+  </div>
+
   <div class="header-section">
     <h1 class="main-title">I'm listing my PG</h1>
     <a href="#"><h2 class="sub-title">Show listing Sample</h2></a>

@@ -124,16 +124,29 @@ export class ApiService {
   }
 
   /**
-   * Request an OTP for the given mobile and userType. Purpose is 'S' (signup) or 'F' (forgot).
+   * Request an OTP for the given mobile and userType. Purpose is 'S' (signup), 'F' (forgot), or 'R' (rental).
+   * For purpose 'R', accessToken is required and userType should be omitted.
    */
-  getOtp(payload: { mobile: string; userType: string; purpose: string }): Observable<any> {
+  getOtp(payload: { mobile: string; userType?: string | null; purpose: string; accessToken?: string }): Observable<any> {
+    // Build request body, omitting userType if null/empty (for purpose R)
+    const requestBody: Record<string, unknown> = {
+      mobile: payload.mobile,
+      purpose: payload.purpose,
+    };
+    if (payload.userType) {
+      requestBody['userType'] = payload.userType;
+    }
+    if (payload.accessToken) {
+      requestBody['accessToken'] = payload.accessToken;
+    }
+
     // Debug: log endpoint and payload to help trace calls from the UI
     try {
-      console.debug('ApiService.getOtp -> POST', `${this.API_URL}/auth/get-otp`, payload);
+      console.debug('ApiService.getOtp -> POST', `${this.API_URL}/auth/get-otp`, requestBody);
     } catch (e) {
       /* ignore when server-side or non-browser env */
     }
-    return this.http.post<any>(`${this.API_URL}/auth/get-otp`, payload).pipe(
+    return this.http.post<any>(`${this.API_URL}/auth/get-otp`, requestBody).pipe(
       map((resp) => {
         // Backend wraps result in ApiResponse.success -> { success: true, data: {...} }
         if (resp && resp.success && resp.data) return resp.data;
@@ -150,15 +163,26 @@ export class ApiService {
 
   /**
    * Verify OTP for the given mobile and userType and purpose.
+   * For purpose 'R', userType should be null/omitted.
    */
-  verifyOtp(payload: { mobile: string; userType: string; otp: string; purpose: string }): Observable<any> {
+  verifyOtp(payload: { mobile: string; userType?: string | null; otp: string; purpose: string }): Observable<any> {
+    // Build request body, omitting userType if null/empty (for purpose R)
+    const requestBody: Record<string, unknown> = {
+      mobile: payload.mobile,
+      otp: payload.otp,
+      purpose: payload.purpose,
+    };
+    if (payload.userType) {
+      requestBody['userType'] = payload.userType;
+    }
+
     try {
-      console.debug('ApiService.verifyOtp -> POST', `${this.API_URL}/auth/verify-otp`, payload);
+      console.debug('ApiService.verifyOtp -> POST', `${this.API_URL}/auth/verify-otp`, requestBody);
     } catch (e) {
       /* ignore */
     }
     // Observe full response so caller can act on HTTP status (200 = verified, 400 = invalid/expired)
-    return this.http.post<any>(`${this.API_URL}/auth/verify-otp`, payload, { observe: 'response' as const }).pipe(
+    return this.http.post<any>(`${this.API_URL}/auth/verify-otp`, requestBody, { observe: 'response' as const }).pipe(
       map((resp) => {
         return { status: resp.status, body: resp.body };
       }),

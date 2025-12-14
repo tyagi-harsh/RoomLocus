@@ -85,6 +85,38 @@ export class PropertySearchService {
         );
     }
 
+    /**
+     * Get rental sectors by city from the rental-sectors API.
+     * POST /api/v1/internal/rental-sectors/by-city
+     */
+    getRentalSectorsByCity(cityName: string): Observable<string[]> {
+        if (!cityName) {
+            return of([]);
+        }
+
+        const cacheKey = `rental-sectors|${cityName}`;
+        const cached = this.getFromCache(cacheKey);
+        if (cached) {
+            return of(cached);
+        }
+
+        const url = `${this.API_URL}/api/v1/internal/rental-sectors/by-city`;
+        return this.http.post<ApiResponse<string[]>>(url, { city: cityName }).pipe(
+            map((response) => {
+                if (!response || !response.success) {
+                    throw new Error(response?.message || 'Failed to load rental sectors');
+                }
+                const sectors = response.data || [];
+                this.writeToCache(cacheKey, sectors);
+                return sectors;
+            }),
+            catchError((error) => {
+                console.error('[PropertySearchService] getRentalSectorsByCity error', error);
+                return of([]);
+            })
+        );
+    }
+
     getTownSectors(cityName: string, type: string): Observable<string[]> {
         const normalizedType = this.normalizeTypeParam(type);
         let params = new HttpParams().set('city', cityName).set('page', '0').set('size', '1000');

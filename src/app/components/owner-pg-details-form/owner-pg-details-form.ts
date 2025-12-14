@@ -9,6 +9,9 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PropertySearchService } from '../../services/property-search.service';
+import { PropertyCreationService, PGPayload } from '../../services/property-creation.service';
+import { ToastService } from '../../services/toast.service';
+import { ApiService } from '../../services/api';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { City } from '../../interface/City';
 import { map, take, takeUntil } from 'rxjs/operators';
@@ -67,11 +70,15 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
   private contactOtpToastTimer: ReturnType<typeof setTimeout> | null = null;
   showCancelConfirmation = false;
+  isSaving = false;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
-    private propertySearchService: PropertySearchService
+    private propertySearchService: PropertySearchService,
+    private propertyCreationService: PropertyCreationService,
+    private toastService: ToastService,
+    private apiService: ApiService
   ) {
     this.listingForm = this.fb.group({
       city: [''],
@@ -228,10 +235,9 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       return;
     }
 
-    const type = 'PG';
     this.locationLoadingSubject.next(true);
     this.propertySearchService
-      .getTownSectors(city, type)
+      .getRentalSectorsByCity(city)
       .pipe(take(1))
       .subscribe({
         next: (locations) => {
@@ -250,24 +256,36 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     this.resetContactOtpUiFlags();
     this.isSendingContactOtp = true;
     this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isSendingContactOtp = false;
-      this.contactOtpRequested = true;
-      this.showContactOtpSentMessage = true;
-      this.showContactResendOption = true;
-    }, 600);
+
+    const mobile = this.listingForm.get('whatsappNo')?.value?.toString() || '';
+    const accessToken = localStorage.getItem('accessToken') || '';
+    const payload = { mobile, userType: 'OWNER', purpose: 'R', accessToken };
+
+    this.apiService.getOtp(payload).pipe(take(1)).subscribe({
+      next: (resp) => {
+        this.isSendingContactOtp = false;
+        if (resp && resp.success === false) {
+          this.contactOtpError = resp.error || 'Failed to send OTP';
+          this.toastService.error(this.contactOtpError || 'Failed to send OTP');
+          return;
+        }
+        this.contactOtpRequested = true;
+        this.showContactOtpSentMessage = true;
+        this.showContactResendOption = true;
+        this.toastService.success('OTP sent successfully!');
+      },
+      error: (err) => {
+        this.isSendingContactOtp = false;
+        console.error('getOtp error:', err);
+        this.contactOtpError = 'Failed to send OTP. Please try again.';
+        this.toastService.error(this.contactOtpError);
+      },
+    });
   }
 
   resendContactOtp(): void {
     this.resetContactOtpUiFlags();
-    this.isSendingContactOtp = true;
-    this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isSendingContactOtp = false;
-      this.contactOtpRequested = true;
-      this.showContactOtpSentMessage = true;
-      this.showContactResendOption = true;
-    }, 600);
+    this.startContactOtpFlow();
   }
 
   verifyContactOtp(): void {
@@ -278,13 +296,33 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     this.contactOtpError = null;
     this.isVerifyingContactOtp = true;
     this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isVerifyingContactOtp = false;
-      this.contactOtpVerified = true;
-      this.showContactOtpVerifiedToast = true;
-      this.contactOtpRequested = false;
-      this.scheduleContactOtpToastHide();
-    }, 600);
+
+    const mobile = this.listingForm.get('whatsappNo')?.value?.toString() || '';
+    const payload = { mobile, userType: 'OWNER', otp: this.contactOtpInput.trim(), purpose: 'R' };
+
+    this.apiService.verifyOtp(payload).pipe(take(1)).subscribe({
+      next: (resp) => {
+        this.isVerifyingContactOtp = false;
+        if (resp.status === 200) {
+          this.contactOtpVerified = true;
+          this.showContactOtpVerifiedToast = true;
+          this.contactOtpRequested = false;
+          this.scheduleContactOtpToastHide();
+          this.toastService.success('Mobile verified successfully!');
+        } else {
+          this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
+          this.showContactResendOption = true;
+          this.toastService.error(this.contactOtpError || 'Invalid or expired OTP');
+        }
+      },
+      error: (err) => {
+        this.isVerifyingContactOtp = false;
+        console.error('verifyOtp error:', err);
+        this.contactOtpError = 'Verification failed. Please try again.';
+        this.showContactResendOption = true;
+        this.toastService.error(this.contactOtpError || 'Verification failed');
+      },
+    });
   }
 
   private resetContactOtpUiFlags(): void {
@@ -347,13 +385,140 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
   }
 
   onNext(): void {
+    console.log('onNext called - PG form');
+    console.log('Form valid:', this.listingForm.valid);
+    console.log('Form errors:', this.listingForm.errors);
+    
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
+      // Log which controls are invalid
+      Object.keys(this.listingForm.controls).forEach(key => {
+        const control = this.listingForm.get(key);
+        if (control?.invalid) {
+          console.log(`Invalid field: ${key}`, control.errors);
+        }
+      });
+      this.toastService.error('Please fill all required fields');
       return;
     }
-    this.router
-      .navigate(['/owner/pg/images'], { queryParams: { propertyType: 'pg' } })
-      .catch((err) => console.error('Navigation failed', err));
+
+    this.isSaving = true;
+    const ownerId = this.propertyCreationService.getOwnerId();
+    console.log('Owner ID:', ownerId);
+    if (!ownerId) {
+      this.isSaving = false;
+      this.toastService.error('Owner ID not found. Please login again.');
+      return;
+    }
+
+    const payload = this.mapFormToPayload();
+    console.log('Payload:', payload);
+    console.log('Calling createPG API...');
+    this.propertyCreationService.createPG(ownerId, payload).pipe(take(1)).subscribe({
+      next: (result) => {
+        this.isSaving = false;
+        if (result.success) {
+          this.toastService.success('PG details saved successfully!');
+          this.router
+            .navigate(['/owner/pg/images'], { queryParams: { propertyType: 'pg' } })
+            .catch((err) => console.error('Navigation failed', err));
+        } else {
+          this.toastService.error(result.error || 'Failed to save PG details');
+        }
+      },
+      error: (err) => {
+        this.isSaving = false;
+        console.error('Error creating PG:', err);
+        this.toastService.error('Failed to save PG details. Please try again.');
+      },
+    });
+  }
+
+  mapFormToPayload(): PGPayload {
+    const f = this.listingForm.value;
+
+    // Convert parking checkbox group to string array
+    const parkingArr: string[] = [];
+    if (f.parking?.car) parkingArr.push('Car');
+    if (f.parking?.bike) parkingArr.push('Bike');
+
+    // Convert preferTenant checkbox group to string array
+    const tenantArr: string[] = [];
+    if (f.preferTenant?.family) tenantArr.push('Family');
+    if (f.preferTenant?.bachelors) tenantArr.push('Bachelors');
+    if (f.preferTenant?.girls) tenantArr.push('Girls');
+    if (f.preferTenant?.boys) tenantArr.push('Boys');
+    if (f.preferTenant?.professionals) tenantArr.push('Professionals');
+
+    // Convert insideFacility checkbox group to string array
+    const insideArr: string[] = [];
+    if (f.insideFacility) {
+      Object.keys(f.insideFacility).forEach((key) => {
+        if (f.insideFacility[key]) insideArr.push(key);
+      });
+    }
+
+    // Convert outsideFacility checkbox group to string array
+    const outsideArr: string[] = [];
+    if (f.outsideFacility) {
+      Object.keys(f.outsideFacility).forEach((key) => {
+        if (f.outsideFacility[key]) outsideArr.push(key);
+      });
+    }
+
+    // Convert waterSupply string to number (e.g., "24 hr" -> 24)
+    let waterSupplyNum = 0;
+    if (f.waterSupply) {
+      const match = f.waterSupply.match(/\d+/);
+      if (match) waterSupplyNum = parseInt(match[0], 10);
+    }
+
+    // Convert powerBackup string to number (Yes -> 1, No -> 0)
+    const powerBackupNum = f.powerBackup === 'Yes' ? 1 : 0;
+
+    // Convert foodAvailable and timeRestrict to boolean
+    const foodAvailBool = f.foodAvailable === 'Yes' || f.foodAvailable === true;
+    const timeRestrictBool = f.timeRestrict === 'Yes' || f.timeRestrict === true;
+
+    // Convert petsAllowed to boolean
+    const petsAllowedBool = f.petAllowed === 'Yes' || f.petAllowed === true;
+
+    return {
+      type: 'PG',
+      city: typeof f.city === 'object' ? f.city?.city : (f.city || ''),
+      townSector: typeof f.town === 'object' ? f.town?.town : (f.town || ''),
+      location: f.location || '',
+      landmark: f.landmark || '',
+      bhk: f.bhk || '',
+      minPrice: parseFloat(f.minPrice) || 0,
+      maxPrice: parseFloat(f.maxPrice) || 0,
+      address: f.address || '',
+      offer: f.offer || '',
+      security: parseFloat(f.security) || 0,
+      maintenance: parseFloat(f.maintenance) || 0,
+      totalPg: parseInt(f.totalFlat, 10) || 0,
+      totalFloor: parseInt(f.totalFloors, 10) || 0,
+      waterSupply: waterSupplyNum,
+      powerBackup: powerBackupNum,
+      noticePeriod: f.noticePeriod || '',
+      furnishingType: f.furnishing || '',
+      accomoType: f.accommodation || '',
+      pgType: f.flatType || '',
+      bedCount: parseInt(f.bedCount, 10) || 0,
+      foodAvailable: foodAvailBool,
+      timeRestrict: timeRestrictBool,
+      genderPrefer: f.gender || '',
+      careTaker: f.caretaker || '',
+      mobile: f.whatsappNo?.toString() || '',
+      contactName: f.contact || '',
+      petsAllowed: petsAllowedBool,
+      parking: parkingArr,
+      preferTenants: tenantArr,
+      pgInside: insideArr,
+      pgOutside: outsideArr,
+      isDraft: false,
+      verificationPending: true,
+    };
   }
 
   onCancel(): void {

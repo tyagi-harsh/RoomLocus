@@ -1,4 +1,10 @@
 <div class="form-container animate-fade-in">
+  <!-- Loading Overlay -->
+  <div *ngIf="isSaving" class="loading-overlay">
+    <mat-progress-spinner diameter="48" mode="indeterminate"></mat-progress-spinner>
+    <span class="loading-text">Creating listing...</span>
+  </div>
+
   <div class="header-section">
     <h1 class="main-title">I'm listing my Flat</h1>
     <a href="#"><h2 class="sub-title" >Show listing Sample</h2></a>

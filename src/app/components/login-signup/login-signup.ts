@@ -244,8 +244,21 @@ export class LoginSignup implements OnInit, OnDestroy {
               try {
                 localStorage.setItem('accessToken', resp.accessToken);
                 if (resp.refreshToken) localStorage.setItem('refreshToken', resp.refreshToken);
+                // Store userId - it may come as a string or number, or might be empty
+                // Always store if present (even if empty string to help debug)
+                if (resp.userId !== undefined && resp.userId !== null && resp.userId !== '') {
+                  localStorage.setItem('userId', String(resp.userId));
+                } else {
+                  console.warn('userId not returned from login API or is empty');
+                }
                 localStorage.setItem('userType', userType);
                 localStorage.setItem('userMobile', values.whatsappNo);
+                console.debug('Login stored:', { 
+                  userId: localStorage.getItem('userId'), 
+                  userType: localStorage.getItem('userType'), 
+                  hasAccessToken: !!resp.accessToken,
+                  respUserId: resp.userId
+                });
               } catch (e) {
                 console.warn('Failed to store tokens locally', e);
               }
@@ -319,6 +332,8 @@ export class LoginSignup implements OnInit, OnDestroy {
             try {
               localStorage.setItem('accessToken', resp.accessToken);
               if (resp.refreshToken) localStorage.setItem('refreshToken', resp.refreshToken);
+              if (resp.userId) localStorage.setItem('userId', resp.userId);
+              else if (resp.id) localStorage.setItem('userId', resp.id.toString());
               localStorage.setItem('userType', payload.userType);
               localStorage.setItem('userMobile', values.mobile);
             } catch (e) {

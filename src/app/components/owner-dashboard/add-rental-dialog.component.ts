@@ -51,7 +51,7 @@ export type RentalType = 'flat' | 'room' | 'pg' | 'hourly-room';
       font-size: 1rem;
       font-weight: 500;
       border: none;
-    //   border: 2px solid #0ea5e9;
+      /* border: 2px solid #0ea5e9; */
       background: #fff;
       color: #00b1b1;
       border-radius: 8px;

@@ -9,6 +9,9 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PropertySearchService } from '../../services/property-search.service';
+import { PropertyCreationService, RoomPayload } from '../../services/property-creation.service';
+import { ToastService } from '../../services/toast.service';
+import { ApiService } from '../../services/api';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { map, take, takeUntil } from 'rxjs/operators';
 import { City } from '../../interface/City';
@@ -67,11 +70,15 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
   private contactOtpToastTimer: ReturnType<typeof setTimeout> | null = null;
   showCancelConfirmation = false;
+  isSaving = false;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
-    private propertySearchService: PropertySearchService
+    private propertySearchService: PropertySearchService,
+    private propertyCreationService: PropertyCreationService,
+    private toastService: ToastService,
+    private apiService: ApiService
   ) {
     this.listingForm = this.fb.group({
       city: [''],
@@ -225,10 +232,9 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       return;
     }
 
-    const type = 'Room';
     this.locationLoadingSubject.next(true);
     this.propertySearchService
-      .getTownSectors(cityId, type)
+      .getRentalSectorsByCity(cityId)
       .pipe(take(1))
       .subscribe({
         next: (locations) => {
@@ -247,24 +253,36 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     this.resetContactOtpUiFlags();
     this.isSendingContactOtp = true;
     this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isSendingContactOtp = false;
-      this.contactOtpRequested = true;
-      this.showContactOtpSentMessage = true;
-      this.showContactResendOption = true;
-    }, 600);
+
+    const mobile = this.listingForm.get('contact')?.value?.toString() || '';
+    const accessToken = localStorage.getItem('accessToken') || '';
+    const payload = { mobile, userType: 'OWNER', purpose: 'R', accessToken };
+
+    this.apiService.getOtp(payload).pipe(take(1)).subscribe({
+      next: (resp) => {
+        this.isSendingContactOtp = false;
+        if (resp && resp.success === false) {
+          this.contactOtpError = resp.error || 'Failed to send OTP';
+          this.toastService.error(this.contactOtpError || 'Failed to send OTP');
+          return;
+        }
+        this.contactOtpRequested = true;
+        this.showContactOtpSentMessage = true;
+        this.showContactResendOption = true;
+        this.toastService.success('OTP sent successfully!');
+      },
+      error: (err) => {
+        this.isSendingContactOtp = false;
+        console.error('getOtp error:', err);
+        this.contactOtpError = 'Failed to send OTP. Please try again.';
+        this.toastService.error(this.contactOtpError);
+      },
+    });
   }
 
   resendContactOtp(): void {
     this.resetContactOtpUiFlags();
-    this.isSendingContactOtp = true;
-    this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isSendingContactOtp = false;
-      this.contactOtpRequested = true;
-      this.showContactOtpSentMessage = true;
-      this.showContactResendOption = true;
-    }, 600);
+    this.startContactOtpFlow();
   }
 
   verifyContactOtp(): void {
@@ -275,13 +293,33 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     this.contactOtpError = null;
     this.isVerifyingContactOtp = true;
     this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isVerifyingContactOtp = false;
-      this.contactOtpVerified = true;
-      this.showContactOtpVerifiedToast = true;
-      this.contactOtpRequested = false;
-      this.scheduleContactOtpToastHide();
-    }, 600);
+
+    const mobile = this.listingForm.get('contact')?.value?.toString() || '';
+    const payload = { mobile, userType: 'OWNER', otp: this.contactOtpInput.trim(), purpose: 'R' };
+
+    this.apiService.verifyOtp(payload).pipe(take(1)).subscribe({
+      next: (resp) => {
+        this.isVerifyingContactOtp = false;
+        if (resp.status === 200) {
+          this.contactOtpVerified = true;
+          this.showContactOtpVerifiedToast = true;
+          this.contactOtpRequested = false;
+          this.scheduleContactOtpToastHide();
+          this.toastService.success('Mobile verified successfully!');
+        } else {
+          this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
+          this.showContactResendOption = true;
+          this.toastService.error(this.contactOtpError || 'Invalid or expired OTP');
+        }
+      },
+      error: (err) => {
+        this.isVerifyingContactOtp = false;
+        console.error('verifyOtp error:', err);
+        this.contactOtpError = 'Verification failed. Please try again.';
+        this.showContactResendOption = true;
+        this.toastService.error(this.contactOtpError || 'Verification failed');
+      },
+    });
   }
 
   private resetContactOtpUiFlags(): void {
@@ -315,13 +353,135 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
   }
 
   onNext(): void {
+    console.log('onNext called - Room form');
+    console.log('Form valid:', this.listingForm.valid);
+    console.log('Form errors:', this.listingForm.errors);
+    
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
+      // Log which controls are invalid
+      Object.keys(this.listingForm.controls).forEach(key => {
+        const control = this.listingForm.get(key);
+        if (control?.invalid) {
+          console.log(`Invalid field: ${key}`, control.errors);
+        }
+      });
+      this.toastService.warning('Please fill all required fields');
       return;
     }
-    this.router
-      .navigate(['/owner/room/images'], { queryParams: { propertyType: 'room' } })
-      .catch((err) => console.error('Navigation failed', err));
+
+    const ownerId = this.propertyCreationService.getOwnerId();
+    console.log('Owner ID:', ownerId);
+    if (!ownerId) {
+      this.toastService.error('You must be logged in as an owner to create a listing');
+      return;
+    }
+
+    const payload = this.mapFormToPayload();
+    console.log('Payload:', payload);
+    this.isSaving = true;
+
+    console.log('Calling createRoom API...');
+    this.propertyCreationService.createRoom(ownerId, payload).pipe(take(1)).subscribe({
+      next: (result) => {
+        this.isSaving = false;
+        if (result.success) {
+          this.toastService.success('Room listing created successfully!');
+          const roomId = result.data?.id;
+          this.router
+            .navigate(['/owner/room/images'], { queryParams: { propertyType: 'room', roomId } })
+            .catch((err) => console.error('Navigation failed', err));
+        } else {
+          this.toastService.error(result.error || 'Failed to create room listing');
+        }
+      },
+      error: (err) => {
+        this.isSaving = false;
+        console.error('createRoom error:', err);
+        this.toastService.error('An unexpected error occurred');
+      },
+    });
+  }
+
+  /**
+   * Maps form values to the RoomPayload expected by the backend.
+   */
+  private mapFormToPayload(): RoomPayload {
+    const v = this.listingForm.value;
+
+    // Build parking array from checkboxes
+    const parking: string[] = [];
+    if (v.parking?.car) parking.push('FourWheeler');
+    if (v.parking?.bike) parking.push('TwoWheeler');
+
+    // Build preferTenants array from checkboxes
+    const preferTenants: string[] = [];
+    if (v.preferTenant?.family) preferTenants.push('Family');
+    if (v.preferTenant?.bachelors) preferTenants.push('Bachelors');
+    if (v.preferTenant?.girls) preferTenants.push('Girls');
+    if (v.preferTenant?.boys) preferTenants.push('Boys');
+    if (v.preferTenant?.professionals) preferTenants.push('Professionals');
+
+    // Build insideFacilities array from facility checkboxes
+    const insideFacilities: string[] = [];
+    if (v.insideFacility) {
+      for (const [key, checked] of Object.entries(v.insideFacility)) {
+        if (checked) insideFacilities.push(key);
+      }
+    }
+
+    // Build outsideFacilities array from facility checkboxes
+    const outsideFacilities: string[] = [];
+    if (v.outsideFacility) {
+      for (const [key, checked] of Object.entries(v.outsideFacility)) {
+        if (checked) outsideFacilities.push(key);
+      }
+    }
+
+    // Map waterSupply string to number
+    let waterSupply = 0;
+    if (v.waterSupply) {
+      const match = v.waterSupply.toString().match(/\\d+/);
+      if (match) waterSupply = parseInt(match[0], 10);
+    }
+
+    // Map powerBackup string to number
+    const powerBackup = v.powerBackup?.toLowerCase() === 'yes' ? 1 : 0;
+
+    // Get city name from cityControl
+    const cityName = typeof v.cityControl === 'object' ? v.cityControl?.name : v.cityControl;
+
+    return {
+      city: cityName || '',
+      townSector: v.townControl || v.town || '',
+      location: v.location || '',
+      landmark: v.landmark || '',
+      minprice: parseFloat(v.minPrice) || 0,
+      maxprice: parseFloat(v.maxPrice) || 0,
+      security: parseFloat(v.security) || 0,
+      maintenance: parseFloat(v.maintenance) || 0,
+      totalFloor: parseInt(v.totalFloors, 10) || 0,
+      totalRoom: parseInt(v.totalRoom, 10) || 0,
+      waterSupply,
+      powerBackup,
+      noticePeriod: v.noticePeriod || '',
+      offer: v.offer || '',
+      careTaker: v.manager || '',
+      mobile: v.contact || '',
+      contactName: v.contactName || '',
+      bhk: v.bhk || '',
+      address: v.address || '',
+      roomAvailable: v.availableFor || '',
+      furnishingType: v.furnishing || '',
+      accomoType: v.accommodation || '',
+      petsAllowed: v.petAllowed || '',
+      genderPrefer: v.gender || '',
+      roomType: v.roomType || '',
+      parking,
+      preferTenants,
+      insideFacilities,
+      outsideFacilities,
+    };
   }
 
   onCancel(): void {

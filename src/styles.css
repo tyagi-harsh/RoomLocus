@@ -86,3 +86,36 @@ body {
      margin: auto;
   }
 } */
+
+/* =====================================================
+   Toast / Snackbar Styles
+   ===================================================== */
+.toast-success .mdc-snackbar__surface {
+  background-color: #4caf50 !important;
+}
+
+.toast-error .mdc-snackbar__surface {
+  background-color: #f44336 !important;
+}
+
+.toast-warning .mdc-snackbar__surface {
+  background-color: #ff9800 !important;
+}
+
+.toast-info .mdc-snackbar__surface {
+  background-color: #2196f3 !important;
+}
+
+.toast-success .mdc-snackbar__label,
+.toast-error .mdc-snackbar__label,
+.toast-warning .mdc-snackbar__label,
+.toast-info .mdc-snackbar__label {
+  color: #fff !important;
+}
+
+.toast-success .mat-mdc-button,
+.toast-error .mat-mdc-button,
+.toast-warning .mat-mdc-button,
+.toast-info .mat-mdc-button {
+  color: #fff !important;
+}

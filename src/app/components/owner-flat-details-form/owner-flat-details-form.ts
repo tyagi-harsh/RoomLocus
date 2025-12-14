@@ -9,6 +9,9 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PropertySearchService } from '../../services/property-search.service';
+import { PropertyCreationService, FlatPayload } from '../../services/property-creation.service';
+import { ToastService } from '../../services/toast.service';
+import { ApiService } from '../../services/api';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { City } from '../../interface/City';
 import { map, take, takeUntil } from 'rxjs/operators';
@@ -68,11 +71,15 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
   private contactOtpToastTimer: ReturnType<typeof setTimeout> | null = null;
   showCancelConfirmation = false;
+  isSaving = false;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
-    private propertySearchService: PropertySearchService
+    private propertySearchService: PropertySearchService,
+    private propertyCreationService: PropertyCreationService,
+    private toastService: ToastService,
+    private apiService: ApiService
   ) {
     this.listingForm = this.fb.group({
       city: [''],
@@ -226,10 +233,9 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       return;
     }
 
-    const type = 'Flat';
     this.locationLoadingSubject.next(true);
     this.propertySearchService
-      .getTownSectors(city, type)
+      .getRentalSectorsByCity(city)
       .pipe(take(1))
       .subscribe({
         next: (locations) => {
@@ -275,24 +281,36 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     this.resetContactOtpUiFlags();
     this.isSendingContactOtp = true;
     this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isSendingContactOtp = false;
-      this.contactOtpRequested = true;
-      this.showContactOtpSentMessage = true;
-      this.showContactResendOption = true;
-    }, 600);
+
+    const mobile = this.listingForm.get('whatsappNo')?.value?.toString() || '';
+    const accessToken = localStorage.getItem('accessToken') || '';
+    const payload = { mobile, userType: 'OWNER', purpose: 'R', accessToken };
+
+    this.apiService.getOtp(payload).pipe(take(1)).subscribe({
+      next: (resp) => {
+        this.isSendingContactOtp = false;
+        if (resp && resp.success === false) {
+          this.contactOtpError = resp.error || 'Failed to send OTP';
+          this.toastService.error(this.contactOtpError || 'Failed to send OTP');
+          return;
+        }
+        this.contactOtpRequested = true;
+        this.showContactOtpSentMessage = true;
+        this.showContactResendOption = true;
+        this.toastService.success('OTP sent successfully!');
+      },
+      error: (err) => {
+        this.isSendingContactOtp = false;
+        console.error('getOtp error:', err);
+        this.contactOtpError = 'Failed to send OTP. Please try again.';
+        this.toastService.error(this.contactOtpError);
+      },
+    });
   }
 
   resendContactOtp(): void {
     this.resetContactOtpUiFlags();
-    this.isSendingContactOtp = true;
-    this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isSendingContactOtp = false;
-      this.contactOtpRequested = true;
-      this.showContactOtpSentMessage = true;
-      this.showContactResendOption = true;
-    }, 600);
+    this.startContactOtpFlow();
   }
 
   verifyContactOtp(): void {
@@ -303,13 +321,33 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     this.contactOtpError = null;
     this.isVerifyingContactOtp = true;
     this.clearContactOtpTimer();
-    this.contactOtpTimer = setTimeout(() => {
-      this.isVerifyingContactOtp = false;
-      this.contactOtpVerified = true;
-      this.showContactOtpVerifiedToast = true;
-      this.contactOtpRequested = false;
-      this.scheduleContactOtpToastHide();
-    }, 600);
+
+    const mobile = this.listingForm.get('whatsappNo')?.value?.toString() || '';
+    const payload = { mobile, userType: 'OWNER', otp: this.contactOtpInput.trim(), purpose: 'R' };
+
+    this.apiService.verifyOtp(payload).pipe(take(1)).subscribe({
+      next: (resp) => {
+        this.isVerifyingContactOtp = false;
+        if (resp.status === 200) {
+          this.contactOtpVerified = true;
+          this.showContactOtpVerifiedToast = true;
+          this.contactOtpRequested = false;
+          this.scheduleContactOtpToastHide();
+          this.toastService.success('Mobile verified successfully!');
+        } else {
+          this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
+          this.showContactResendOption = true;
+          this.toastService.error(this.contactOtpError || 'Invalid or expired OTP');
+        }
+      },
+      error: (err) => {
+        this.isVerifyingContactOtp = false;
+        console.error('verifyOtp error:', err);
+        this.contactOtpError = 'Verification failed. Please try again.';
+        this.showContactResendOption = true;
+        this.toastService.error(this.contactOtpError || 'Verification failed');
+      },
+    });
   }
 
   private resetContactOtpUiFlags(): void {
@@ -346,13 +384,139 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
   }
 
   onNext(): void {
+    console.log('onNext called - Flat form');
+    console.log('Form valid:', this.listingForm.valid);
+    console.log('Form errors:', this.listingForm.errors);
+    
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
+      // Log which controls are invalid
+      Object.keys(this.listingForm.controls).forEach(key => {
+        const control = this.listingForm.get(key);
+        if (control?.invalid) {
+          console.log(`Invalid field: ${key}`, control.errors);
+        }
+      });
+      this.toastService.warning('Please fill all required fields');
       return;
     }
-    this.router
-      .navigate(['/owner/flat/images'], { queryParams: { propertyType: 'flat' } })
-      .catch((err) => console.error('Navigation failed', err));
+
+    const ownerId = this.propertyCreationService.getOwnerId();
+    console.log('Owner ID:', ownerId);
+    if (!ownerId) {
+      this.toastService.error('You must be logged in as an owner to create a listing');
+      return;
+    }
+
+    const payload = this.mapFormToPayload();
+    console.log('Payload:', payload);
+    this.isSaving = true;
+
+    console.log('Calling createFlat API...');
+    this.propertyCreationService.createFlat(ownerId, payload).pipe(take(1)).subscribe({
+      next: (result) => {
+        this.isSaving = false;
+        if (result.success) {
+          this.toastService.success('Flat listing created successfully!');
+          const flatId = result.data?.id;
+          this.router
+            .navigate(['/owner/flat/images'], { queryParams: { propertyType: 'flat', flatId } })
+            .catch((err) => console.error('Navigation failed', err));
+        } else {
+          this.toastService.error(result.error || 'Failed to create flat listing');
+        }
+      },
+      error: (err) => {
+        this.isSaving = false;
+        console.error('createFlat error:', err);
+        this.toastService.error('An unexpected error occurred');
+      },
+    });
+  }
+
+  /**
+   * Maps form values to the FlatPayload expected by the backend.
+   */
+  private mapFormToPayload(): FlatPayload {
+    const v = this.listingForm.value;
+
+    // Build parking array from checkboxes
+    const parking: string[] = [];
+    if (v.parking?.car) parking.push('FourWheeler');
+    if (v.parking?.bike) parking.push('TwoWheeler');
+
+    // Build preferTenants array from checkboxes
+    const preferTenants: string[] = [];
+    if (v.preferTenant?.family) preferTenants.push('Family');
+    if (v.preferTenant?.bachelors) preferTenants.push('Bachelors');
+    if (v.preferTenant?.girls) preferTenants.push('Girls');
+    if (v.preferTenant?.boys) preferTenants.push('Boys');
+    if (v.preferTenant?.professionals) preferTenants.push('Professionals');
+
+    // Build flatInside array from facility checkboxes
+    const flatInside: string[] = [];
+    if (v.insideFacility) {
+      for (const [key, checked] of Object.entries(v.insideFacility)) {
+        if (checked) flatInside.push(key);
+      }
+    }
+
+    // Build flatOutside array from facility checkboxes
+    const flatOutside: string[] = [];
+    if (v.outsideFacility) {
+      for (const [key, checked] of Object.entries(v.outsideFacility)) {
+        if (checked) flatOutside.push(key);
+      }
+    }
+
+    // Map waterSupply string to number (e.g., '24 hr' -> 24)
+    let waterSupply = 0;
+    if (v.waterSupply) {
+      const match = v.waterSupply.toString().match(/\d+/);
+      if (match) waterSupply = parseInt(match[0], 10);
+    }
+
+    // Map powerBackup string to number (Yes=1, No=0)
+    const powerBackup = v.powerBackup?.toLowerCase() === 'yes' ? 1 : 0;
+
+    // Get city name from cityControl (could be City object or string)
+    const cityName = typeof v.cityControl === 'object' ? v.cityControl?.name : v.cityControl;
+
+    return {
+      type: 'Flat',
+      city: cityName || '',
+      townSector: v.townControl || v.town || '',
+      location: v.location || '',
+      landmark: v.landmark || '',
+      BHK: v.bhk || '',
+      maxPrice: parseInt(v.maxPrice, 10) || 0,
+      minPrice: parseInt(v.minPrice, 10) || 0,
+      offer: v.offer || '',
+      security: parseInt(v.security, 10) || 0,
+      maintenance: parseInt(v.maintenance, 10) || 0,
+      totalFlat: parseInt(v.totalFlat, 10) || 0,
+      address: v.address || '',
+      totalFloor: parseInt(v.totalFloors, 10) || 0,
+      waterSupply,
+      powerBackup,
+      noticePeriod: v.noticePeriod || '',
+      furnishingType: v.furnishing || '',
+      accomoType: v.accommodation || '',
+      parking,
+      preferTenants,
+      petsAllowed: v.petAllowed?.toLowerCase() === 'yes',
+      genderPrefer: v.gender || '',
+      flatType: v.flatType || '',
+      careTaker: v.caretaker || '',
+      mobile: v.whatsappNo || v.contact || '',
+      contactName: v.manager || '',
+      state: 'N/A', // State is not collected in this form; backend may handle defaults
+      flatInside,
+      flatOutside,
+      isVisible: true,
+      isDraft: false,
+      verificationPending: true,
+    };
   }
 
   onCancel(): void {
