@@ -87,6 +87,7 @@
 .user-menu {
   position: relative;
   display: inline-flex;
+  
 }
 
 .auth-actions {
@@ -131,7 +132,7 @@
   visibility: hidden;
   transform: translateY(-5px);
   transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 20;
+  z-index: 1002;
 }
 
 .user-menu:hover .user-dropdown,

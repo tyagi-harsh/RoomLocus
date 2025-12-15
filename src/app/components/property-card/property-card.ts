@@ -16,6 +16,7 @@ export class PropertyCard {
   // This 'property' will be passed in from the parent component
   @Input() property!: Property;
 
+
   constructor(private propertySearchService: PropertySearchService) {}
 
   onCardClick(): void {

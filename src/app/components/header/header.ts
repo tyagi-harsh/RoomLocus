@@ -60,9 +60,13 @@ export class Header implements OnInit, OnDestroy {
     this.closeDropdown();
     const returnUrl = this.currentUrl && this.currentUrl !== '/login' ? this.currentUrl : '/home';
     this.storePreviousUrl(returnUrl);
-    this.router.navigate(['/login'], {
-      queryParams: { userType, returnUrl }
-    }).catch((err) => console.warn('Navigation failed', err));
+    const urlTree = this.router.createUrlTree(['/login'], { queryParams: { userType, returnUrl } });
+    try {
+      window.location.assign(urlTree.toString());
+    } catch (err) {
+      console.warn('Full page navigation failed, falling back to router', err);
+      this.router.navigate(['/login'], { queryParams: { userType, returnUrl } }).catch((navErr) => console.warn('Navigation failed', navErr));
+    }
   }
 
   goToDashboard(): void {

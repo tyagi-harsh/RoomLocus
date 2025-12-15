@@ -12,6 +12,7 @@ import { PropertySearchService } from '../../services/property-search.service';
 import { PropertyCreationService, FlatPayload } from '../../services/property-creation.service';
 import { ToastService } from '../../services/toast.service';
 import { ApiService } from '../../services/api';
+import { OwnerPropertyStoreService } from '../../services/owner-property-store.service';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { City } from '../../interface/City';
 import { map, take, takeUntil } from 'rxjs/operators';
@@ -67,9 +68,11 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
   isVerifyingContactOtp = false;
   showContactOtpSentMessage = false;
   showContactResendOption = false;
-  showContactOtpVerifiedToast = false;
+  showOtpDialog = false;
+  otpDialogMessage = '';
+  private readonly formStorageKey = 'owner-flat-details-form-state';
+  private readonly formStorageTtl = 4 * 60 * 1000;
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
-  private contactOtpToastTimer: ReturnType<typeof setTimeout> | null = null;
   showCancelConfirmation = false;
   isSaving = false;
 
@@ -79,7 +82,8 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     private propertySearchService: PropertySearchService,
     private propertyCreationService: PropertyCreationService,
     private toastService: ToastService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private ownerPropertyStore: OwnerPropertyStoreService
   ) {
     this.listingForm = this.fb.group({
       city: [''],
@@ -175,13 +179,19 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
         const filterValue = (value ?? '').toString();
         this.locationFilterSubject.next(filterValue);
       });
+
+    this.loadSavedFormState();
+    this.listingForm
+      .valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.saveFormState());
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
     this.clearContactOtpTimer();
-    this.clearContactOtpToastTimer();
+    this.clearSavedFormState();
   }
 
   private loadCities(forceRefresh = false): void {
@@ -297,7 +307,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
         this.contactOtpRequested = true;
         this.showContactOtpSentMessage = true;
         this.showContactResendOption = true;
-        this.toastService.success('OTP sent successfully!');
+        this.openOtpDialog('OTP sent successfully to registered WhatsApp number');
       },
       error: (err) => {
         this.isSendingContactOtp = false;
@@ -330,10 +340,11 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
         this.isVerifyingContactOtp = false;
         if (resp.status === 200) {
           this.contactOtpVerified = true;
-          this.showContactOtpVerifiedToast = true;
           this.contactOtpRequested = false;
-          this.scheduleContactOtpToastHide();
-          this.toastService.success('Mobile verified successfully!');
+          this.showContactResendOption = false;
+          this.showContactOtpSentMessage = false;
+          this.contactOtpInput = '';
+          this.openOtpDialog('Mobile verified successfully');
         } else {
           this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
           this.showContactResendOption = true;
@@ -353,33 +364,14 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
   private resetContactOtpUiFlags(): void {
     this.contactOtpError = null;
     this.showContactOtpSentMessage = false;
-    this.showContactOtpVerifiedToast = false;
     this.contactOtpVerified = false;
-    this.clearContactOtpToastTimer();
+    this.showContactResendOption = false;
   }
 
   private clearContactOtpTimer(): void {
     if (this.contactOtpTimer) {
       clearTimeout(this.contactOtpTimer);
       this.contactOtpTimer = null;
-    }
-  }
-
-  private scheduleContactOtpToastHide(): void {
-    this.clearContactOtpTimer();
-    if (this.contactOtpToastTimer) {
-      clearTimeout(this.contactOtpToastTimer);
-    }
-    this.contactOtpToastTimer = setTimeout(() => {
-      this.showContactOtpVerifiedToast = false;
-      this.contactOtpToastTimer = null;
-    }, 3000);
-  }
-
-  private clearContactOtpToastTimer(): void {
-    if (this.contactOtpToastTimer) {
-      clearTimeout(this.contactOtpToastTimer);
-      this.contactOtpToastTimer = null;
     }
   }
 
@@ -417,15 +409,16 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       next: (result) => {
         this.isSaving = false;
         if (result.success) {
-          this.toastService.success('Flat listing created successfully!');
-          const flatId = result.data?.id;
-          console.log('Created flatId:', flatId);
-          // Stay on the same page for now; skip image upload navigation per request.
-          // Optionally, we can reset the form or show the created ID.
-          // this.listingForm.reset();
-        } else {
-          this.toastService.error(result.error || 'Failed to create flat listing');
-        }
+            this.toastService.success('Flat listing created successfully!');
+            const flatId = result.data?.id;
+            this.recordPropertySummary(ownerId, flatId, 'Flat');
+            console.log('Created flatId:', flatId);
+            // Stay on the same page for now; skip image upload navigation per request.
+            // Optionally, we can reset the form or show the created ID.
+            // this.listingForm.reset();
+          } else {
+            this.toastService.error(result.error || 'Failed to create flat listing');
+          }
       },
       error: (err) => {
         this.isSaving = false;
@@ -440,6 +433,8 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
    */
   private mapFormToPayload(): FlatPayload {
     const v = this.listingForm.value;
+    const rawBhkValue = (v.bhk ?? '').toString().trim();
+    const bhkValue = rawBhkValue || '1 BHK';
 
     // Build parking array from checkboxes
     const parking: string[] = [];
@@ -489,7 +484,8 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       townSector: v.townControl || v.town || '',
       location: v.location || '',
       landmark: v.landmark || '',
-      BHK: v.bhk || '',
+      BHK: bhkValue,
+      bhk: bhkValue,
       maxPrice: parseInt(v.maxPrice, 10) || 0,
       minPrice: parseInt(v.minPrice, 10) || 0,
       offer: v.offer || '',
@@ -520,12 +516,74 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     };
   }
 
+  private recordPropertySummary(ownerId: number, propertyId: number | undefined, propertyType: string): void {
+    const cityName = typeof this.listingForm.get('cityControl')?.value === 'object'
+      ? (this.listingForm.get('cityControl')?.value as any)?.name
+      : this.listingForm.get('cityControl')?.value;
+    const townSector = this.listingForm.get('townControl')?.value || this.listingForm.get('town')?.value || '';
+    const locationValue = this.listingForm.get('location')?.value || '';
+    const nameSegments = [propertyType, cityName, townSector, locationValue].filter(Boolean);
+    const displayName = nameSegments.length ? nameSegments.join(' · ') : propertyType;
+    this.ownerPropertyStore.addProperty(ownerId, {
+      propertyId: propertyId ?? Date.now(),
+      propertyType,
+      displayName,
+      location: [townSector, locationValue].filter(Boolean).join(', ') || 'Location not set',
+      townSector: townSector || undefined,
+      createdAt: Date.now(),
+    });
+  }
+
+  private loadSavedFormState(): void {
+    const rawJson = localStorage.getItem(this.formStorageKey);
+    if (!rawJson) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(rawJson);
+      if (!parsed?.timestamp || Date.now() - parsed.timestamp > this.formStorageTtl) {
+        localStorage.removeItem(this.formStorageKey);
+        return;
+      }
+      this.listingForm.patchValue(parsed.data ?? {}, { emitEvent: false });
+    } catch (err) {
+      console.warn('Failed to restore flat form state:', err);
+      localStorage.removeItem(this.formStorageKey);
+    }
+  }
+
+  private saveFormState(): void {
+    try {
+      const payload = {
+        timestamp: Date.now(),
+        data: this.listingForm.getRawValue(),
+      };
+      localStorage.setItem(this.formStorageKey, JSON.stringify(payload));
+    } catch (err) {
+      console.warn('Unable to persist flat form state:', err);
+    }
+  }
+
+  private clearSavedFormState(): void {
+    localStorage.removeItem(this.formStorageKey);
+  }
+
+  private openOtpDialog(message: string): void {
+    this.otpDialogMessage = message;
+    this.showOtpDialog = true;
+  }
+
+  closeOtpDialog(): void {
+    this.showOtpDialog = false;
+  }
+
   onCancel(): void {
     this.showCancelConfirmation = true;
   }
 
   confirmCancel(): void {
     this.showCancelConfirmation = false;
+    this.clearSavedFormState();
     window.location.reload();
   }
 
@@ -541,5 +599,10 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     const rawString = controlValue.toString();
     const digitsOnly = rawString.replace(/\D/g, '');
     return digitsOnly.length === 10;
+  }
+
+  get otpTargetNumber(): string {
+    const value = this.listingForm.get('whatsappNo')?.value;
+    return value ? value.toString() : '';
   }
 }

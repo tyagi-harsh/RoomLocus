@@ -86,8 +86,12 @@ export class LoginSignup implements OnInit, OnDestroy {
   forgotOtpRequested = false;
   otpVerifiedFlag = false;
   forgotOtpVerified = false;
+  signupMobileLocked = false;
+  forgotMobileLocked = false;
+  signupMobileError: string | null = null;
   // Controls whether password inputs are enabled (false until OTP verified)
   allowPasswordEntry = false;
+  private readonly otpVerifiedToastDuration = 6000;
   showSignupOtpVerifiedToast = false;
   showForgotOtpVerifiedToast = false;
   showResendOtpOption = false;
@@ -159,6 +163,13 @@ export class LoginSignup implements OnInit, OnDestroy {
       .subscribe(() => {
         this.forgotUserLookupError = null;
         this.clearForgotOtpStateForMobileChange();
+      });
+
+    this.signupForm
+      .get('mobile')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.signupMobileError = null;
       });
 
     this.initializeZoneType();
@@ -466,7 +477,9 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.api.getOtp(payload).subscribe((resp: any) => {
       this.isSendingOtp = false;
       if (resp && resp.success === false) {
-        this.snackBar.open('Failed to send OTP: ' + (resp.error || 'Unknown'), 'Close', { duration: 4000 });
+        const message = this.parseBackendErrorString(resp.error) || resp.message || 'Failed to send OTP.';
+        this.signupMobileError = message;
+        this.snackBar.open('Failed to send OTP: ' + message, 'Close', { duration: 4000 });
         this.signupForm.get('password')?.enable({ emitEvent: false });
         this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
         this.showSignupOtpSentMessage = false;
@@ -484,10 +497,12 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.otpSent.emit({ mobile, context: 'signup' });
     }, (err) => {
       this.isSendingOtp = false;
+      const message = this.parseBackendErrorString(err?.error) || this.parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
+      this.signupMobileError = message;
       this.signupForm.get('password')?.enable({ emitEvent: false });
       this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
       this.showSignupOtpSentMessage = false;
-      this.snackBar.open('Failed to send OTP. Please try again.', 'Close', { duration: 4000 });
+      this.snackBar.open('Failed to send OTP: ' + message, 'Close', { duration: 4000 });
     });
   }
 
@@ -522,10 +537,13 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.api.getOtp(payload).subscribe((resp: any) => {
       this.isSendingOtp = false;
       if (resp && resp.success === false) {
-        const message = resp.error || resp.message || 'Please verify the number/role; account not found.';
-        this.forgotUserLookupError = message;
+        const errorMessage = this.parseBackendErrorString(resp.error) || resp.message || 'Please verify the number/role; account not found.';
+        this.forgotUserLookupError = errorMessage;
         this.showForgotOtpSentMessage = false;
-        this.snackBar.open(message, 'Close', { duration: 4000 });
+        const toastMessage = errorMessage && errorMessage.toLowerCase().includes('no user')
+          ? 'User not found / Invalid Number'
+          : errorMessage;
+        this.snackBar.open(toastMessage, 'Close', { duration: 4000 });
         return;
       }
       const responseMessage: string = (
@@ -557,10 +575,10 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.otpSent.emit({ mobile, context: 'forgot' });
     }, (err) => {
       this.isSendingOtp = false;
-      const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Unknown error';
+      const errMsg = this.parseBackendErrorString(err?.error) || this.parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
       this.forgotUserLookupError = errMsg;
       this.showForgotOtpSentMessage = false;
-      this.snackBar.open('Failed to send OTP. Please try again.', 'Close', { duration: 4000 });
+      this.snackBar.open('Failed to send OTP: ' + errMsg, 'Close', { duration: 4000 });
       console.error('Forgot OTP request failed', errMsg);
     });
   }
@@ -613,6 +631,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         this.showResendOtpOption = false;
         this.triggerOtpVerifiedToast('signup');
         this.otpVerified.emit({ mobile: this.pendingMobile, context: 'signup' });
+        this.signupMobileLocked = true;
         this.snackBar.open('OTP verified', 'Close', { duration: 2000 });
         // Debug: show resulting states so it's easy to confirm in browser console
         console.debug('verifySignupOtp: enabled password controls', {
@@ -685,6 +704,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         this.showForgotResendOption = false;
         this.triggerOtpVerifiedToast('forgot');
         this.otpVerified.emit({ mobile: this.pendingMobile, context: 'forgot' });
+        this.forgotMobileLocked = true;
         this.snackBar.open('OTP verified', 'Close', { duration: 2000 });
         return;
       }
@@ -1081,7 +1101,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.signupOtpVerifiedTimer = setTimeout(() => {
         this.showSignupOtpVerifiedToast = false;
         this.signupOtpVerifiedTimer = null;
-      }, 4000);
+      }, this.otpVerifiedToastDuration);
       return;
     }
 
@@ -1092,10 +1112,11 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.forgotOtpVerifiedTimer = setTimeout(() => {
       this.showForgotOtpVerifiedToast = false;
       this.forgotOtpVerifiedTimer = null;
-    }, 4000);
+    }, this.otpVerifiedToastDuration);
   }
 
   private resetSignupOtpUiFlags(): void {
+    this.signupMobileLocked = false;
     this.showSignupOtpVerifiedToast = false;
     this.showResendOtpOption = false;
     this.otpError = null;
@@ -1108,6 +1129,7 @@ export class LoginSignup implements OnInit, OnDestroy {
   }
 
   private resetForgotOtpUiFlags(): void {
+    this.forgotMobileLocked = false;
     this.showForgotOtpVerifiedToast = false;
     this.showForgotResendOption = false;
     this.forgotOtpError = null;
@@ -1146,6 +1168,7 @@ export class LoginSignup implements OnInit, OnDestroy {
   }
 
   private clearForgotOtpStateForMobileChange(): void {
+    this.forgotMobileLocked = false;
     this.forgotOtpRequested = false;
     this.forgotOtpVerified = false;
     this.forgotOtpInput = '';
@@ -1170,6 +1193,31 @@ export class LoginSignup implements OnInit, OnDestroy {
     for (const candidate of candidates) {
       if (typeof candidate === 'string' && candidate.trim().length) {
         return candidate.trim();
+      }
+    }
+    return null;
+  }
+
+  private parseBackendErrorString(error: any): string | null {
+    if (!error) {
+      return null;
+    }
+    if (typeof error === 'string') {
+      return error;
+    }
+    if (typeof error.message === 'string') {
+      return error.message;
+    }
+    if (typeof error.error === 'string') {
+      return error.error;
+    }
+    if (typeof error.details === 'string') {
+      return error.details;
+    }
+    if (typeof error === 'object' && error.error && typeof error.error !== 'function') {
+      const nested = this.parseBackendErrorString(error.error);
+      if (nested) {
+        return nested;
       }
     }
     return null;

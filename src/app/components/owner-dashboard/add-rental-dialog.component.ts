@@ -53,13 +53,13 @@ export type RentalType = 'flat' | 'room' | 'pg' | 'hourly-room';
       border: none;
       /* border: 2px solid #0ea5e9; */
       background: #fff;
-      color: #00b1b1;
+      color: #00b2b2;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s ease;
     }
     .rental-option:hover {
-      background: #00b1b1;
+      background: #00b2b2;
       color: #fff;
     }
     .dialog-actions {
@@ -67,12 +67,12 @@ export type RentalType = 'flat' | 'room' | 'pg' | 'hourly-room';
       justify-content: center;
     }
     .btn-close {
-      padding: 0.625rem 2rem;
+      padding: 0.625rem 1.4rem;
       font-size: 0.95rem;
-      background: gray;
+      background: #d0d0d0;
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 5px;
       cursor: pointer;
       transition: background 0.2s ease;
     }

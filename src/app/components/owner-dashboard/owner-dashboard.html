@@ -75,12 +75,23 @@
     <!-- End Used Lead Section -->
 
     <!-- Placeholders for other tabs -->
-    <div *ngIf="activeTab === 'rentals'" class="placeholder-tab">
+    <div *ngIf="activeTab === 'rentals'" class="owner-rentals">
       <div class="rental-actions">
-        <button type="button" class="btn-add-property" (click)="openAddRentalDialog()">Add New Property</button>
+        <button type="button" class="btn-add-property" (click)="openAddRentalDialog()">Add New Property +</button>
       </div>
       <h3>My Rentals</h3>
-      <p>List of your properties will appear here.</p>
+      <p class="subtext" *ngIf="!ownerId">Log in as an owner to view your rentals.</p>
+      <p class="subtext" *ngIf="ownerId && properties?.length === 0">No rentals yet. Add a property to see it here.</p>
+      <div *ngIf="properties?.length" class="property-list">
+        <article class="property-card" *ngFor="let property of properties; trackBy: trackByPropertyId">
+          <div class="property-card-header">
+            <span class="type">{{ property.propertyType }}</span>
+            <span class="date">Added {{ property.createdAt | date:'mediumDate' }}</span>
+          </div>
+          <a class="property-card-title" [routerLink]="['/property', property.propertyId]">{{ property.displayName }}</a>
+          <p class="property-card-location">{{ property.location }}</p>
+        </article>
+      </div>
     </div>
 
     <div *ngIf="activeTab === 'guide'" class="placeholder-tab">

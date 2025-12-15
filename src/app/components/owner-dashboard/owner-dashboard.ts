@@ -1,9 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Lead } from '../../interface/owner-dash';
 import { AddRentalDialogComponent } from './add-rental-dialog.component';
+import { OwnerPropertySummary, OwnerPropertyStoreService } from '../../services/owner-property-store.service';
+import { PropertyCreationService } from '../../services/property-creation.service';
 
 
 
@@ -14,14 +18,20 @@ import { AddRentalDialogComponent } from './add-rental-dialog.component';
   templateUrl: './owner-dashboard.html',
   styleUrl: './owner-dashboard.css',
 })
-export class OwnerDashboard implements OnInit {
+export class OwnerDashboard implements OnInit, OnDestroy {
 
   activeTab: string = 'used-lead'; // Default active tab based on image
   leadCount: number = 24;
+  properties: OwnerPropertySummary[] = [];
+  ownerId: number | null = null;
+
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private readonly ownerPropertyStore: OwnerPropertyStoreService,
+    private readonly propertyCreationService: PropertyCreationService
   ) {}
 
   ngOnInit(): void {
@@ -31,6 +41,18 @@ export class OwnerDashboard implements OnInit {
         this.activeTab = params['tab'];
       }
     });
+    this.ownerId = this.propertyCreationService.getOwnerId();
+    if (this.ownerId) {
+      this.ownerPropertyStore
+        .watchProperties(this.ownerId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((list) => (this.properties = list));
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // Mock Data for Used Leads
@@ -85,5 +107,9 @@ export class OwnerDashboard implements OnInit {
     this.dialog.open(AddRentalDialogComponent, {
       panelClass: 'rounded-dialog'
     });
+  }
+
+  trackByPropertyId(_: number, property: OwnerPropertySummary): number {
+    return property.propertyId;
   }
 }

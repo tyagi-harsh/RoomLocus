@@ -12,6 +12,7 @@ import { PropertySearchService } from '../../services/property-search.service';
 import { PropertyCreationService, RoomPayload } from '../../services/property-creation.service';
 import { ToastService } from '../../services/toast.service';
 import { ApiService } from '../../services/api';
+import { OwnerPropertyStoreService } from '../../services/owner-property-store.service';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { map, take, takeUntil } from 'rxjs/operators';
 import { City } from '../../interface/City';
@@ -66,9 +67,11 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
   isVerifyingContactOtp = false;
   showContactOtpSentMessage = false;
   showContactResendOption = false;
-  showContactOtpVerifiedToast = false;
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
-  private contactOtpToastTimer: ReturnType<typeof setTimeout> | null = null;
+  showOtpDialog = false;
+  otpDialogMessage = '';
+  private readonly formStorageKey = 'owner-room-details-form-state';
+  private readonly formStorageTtl = 4 * 60 * 1000;
   showCancelConfirmation = false;
   isSaving = false;
 
@@ -78,7 +81,8 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     private propertySearchService: PropertySearchService,
     private propertyCreationService: PropertyCreationService,
     private toastService: ToastService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private ownerPropertyStore: OwnerPropertyStoreService
   ) {
     this.listingForm = this.fb.group({
       city: [''],
@@ -122,7 +126,6 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES)),
       outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES)),
     });
-
     this.filteredCities$ = combineLatest([
       this.citiesSubject.asObservable(),
       this.cityFilterSubject.asObservable(),
@@ -174,13 +177,16 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
         const filterValue = (value ?? '').toString();
         this.locationFilterSubject.next(filterValue);
       });
+
+    this.loadSavedFormState();
+    this.listingForm.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.saveFormState());
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
     this.clearContactOtpTimer();
-    this.clearContactOtpToastTimer();
+    this.clearSavedFormState();
   }
 
   private loadCities(forceRefresh = false): void {
@@ -249,6 +255,49 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       });
   }
 
+    private loadSavedFormState(): void {
+      const rawJson = localStorage.getItem(this.formStorageKey);
+      if (!rawJson) {
+        return;
+      }
+      try {
+        const parsed = JSON.parse(rawJson);
+        if (!parsed?.timestamp || Date.now() - parsed.timestamp > this.formStorageTtl) {
+          localStorage.removeItem(this.formStorageKey);
+          return;
+        }
+        this.listingForm.patchValue(parsed.data ?? {}, { emitEvent: false });
+      } catch (err) {
+        console.warn('Failed to restore room form state:', err);
+        localStorage.removeItem(this.formStorageKey);
+      }
+    }
+
+    private saveFormState(): void {
+      try {
+        const payload = {
+          timestamp: Date.now(),
+          data: this.listingForm.getRawValue(),
+        };
+        localStorage.setItem(this.formStorageKey, JSON.stringify(payload));
+      } catch (err) {
+        console.warn('Unable to persist room form state:', err);
+      }
+    }
+
+    private clearSavedFormState(): void {
+      localStorage.removeItem(this.formStorageKey);
+    }
+
+    private openOtpDialog(message: string): void {
+      this.otpDialogMessage = message;
+      this.showOtpDialog = true;
+    }
+
+    closeOtpDialog(): void {
+      this.showOtpDialog = false;
+    }
+
   startContactOtpFlow(): void {
     this.resetContactOtpUiFlags();
     this.isSendingContactOtp = true;
@@ -269,7 +318,7 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
         this.contactOtpRequested = true;
         this.showContactOtpSentMessage = true;
         this.showContactResendOption = true;
-        this.toastService.success('OTP sent successfully!');
+        this.openOtpDialog('OTP sent successfully to registered WhatsApp number');
       },
       error: (err) => {
         this.isSendingContactOtp = false;
@@ -302,10 +351,10 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
         this.isVerifyingContactOtp = false;
         if (resp.status === 200) {
           this.contactOtpVerified = true;
-          this.showContactOtpVerifiedToast = true;
           this.contactOtpRequested = false;
-          this.scheduleContactOtpToastHide();
-          this.toastService.success('Mobile verified successfully!');
+          this.openOtpDialog('Mobile verified successfully');
+          this.contactOtpInput = '';
+          this.showContactResendOption = false;
         } else {
           this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
           this.showContactResendOption = true;
@@ -325,30 +374,13 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
   private resetContactOtpUiFlags(): void {
     this.contactOtpError = null;
     this.showContactOtpSentMessage = false;
-    this.showContactOtpVerifiedToast = false;
     this.contactOtpVerified = false;
-    this.clearContactOtpToastTimer();
   }
 
   private clearContactOtpTimer(): void {
     if (this.contactOtpTimer) {
       clearTimeout(this.contactOtpTimer);
       this.contactOtpTimer = null;
-    }
-  }
-
-  private scheduleContactOtpToastHide(): void {
-    this.clearContactOtpToastTimer();
-    this.contactOtpToastTimer = setTimeout(() => {
-      this.showContactOtpVerifiedToast = false;
-      this.contactOtpToastTimer = null;
-    }, 2000);
-  }
-
-  private clearContactOtpToastTimer(): void {
-    if (this.contactOtpToastTimer) {
-      clearTimeout(this.contactOtpToastTimer);
-      this.contactOtpToastTimer = null;
     }
   }
 
@@ -387,6 +419,7 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
         this.isSaving = false;
         if (result.success) {
           this.toastService.success('Room listing created successfully!');
+          this.recordPropertySummary(ownerId, result.data?.id, 'Room');
           const roomId = result.data?.id;
           this.router
             .navigate(['/owner/room/images'], { queryParams: { propertyType: 'room', roomId } })
@@ -484,12 +517,31 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     };
   }
 
+  private recordPropertySummary(ownerId: number, propertyId: number | undefined, propertyType: string): void {
+    const cityName = typeof this.listingForm.get('cityControl')?.value === 'object'
+      ? (this.listingForm.get('cityControl')?.value as any)?.name
+      : this.listingForm.get('cityControl')?.value;
+    const townSector = this.listingForm.get('townControl')?.value || this.listingForm.get('town')?.value || '';
+    const locationValue = this.listingForm.get('location')?.value || '';
+    const segments = [propertyType, cityName, townSector, locationValue].filter(Boolean);
+    const displayName = segments.length ? segments.join(' · ') : propertyType;
+    this.ownerPropertyStore.addProperty(ownerId, {
+      propertyId: propertyId ?? Date.now(),
+      propertyType,
+      displayName,
+      location: [townSector, locationValue].filter(Boolean).join(', ') || 'Location not set',
+      townSector: townSector || undefined,
+      createdAt: Date.now(),
+    });
+  }
+
   onCancel(): void {
     this.showCancelConfirmation = true;
   }
 
   confirmCancel(): void {
     this.showCancelConfirmation = false;
+    this.clearSavedFormState();
     window.location.reload();
   }
 
@@ -504,6 +556,11 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     }
     const digitsOnly = value.toString().replace(/\D/g, '');
     return digitsOnly.length === 10;
+  }
+
+  get otpTargetNumber(): string {
+    const value = this.listingForm.get('contact')?.value;
+    return value ? value.toString() : '';
   }
 
   displayCityName(city: City | string | null): string {

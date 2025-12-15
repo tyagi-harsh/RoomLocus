@@ -9,7 +9,7 @@
   font-family: Arial, sans-serif;
   padding: 14px;
   margin: 18px;
-  margin-top: 42px;
+  margin-top: 22px;
   margin-bottom: 42px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.122);
@@ -117,7 +117,7 @@
   top: 58px; /* just below fav button */
   background: #ffffff;
   color: #eb0f0f;
-  width: 80px;
+  width: 57px;
   padding: 4px 8px;
   border-radius: 10px;
   font-size: 0.8rem;
@@ -372,18 +372,20 @@
     font-size: medium;
   }
   .loved-pop {
-    position: absolute;
-    right: 12px;
-    top: 58px; /* just below fav button */
-    background: #ff1717e9;
-    color: #fff;
-    padding: 6px 10px;
-    border-radius: 16px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-    animation: loved-fade 900ms ease-out both;
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 58px; /* just below fav button */
+  background: #ffffff;
+  color: #eb0f0f;
+  width: 57px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  animation: loved-fade 900ms ease-out both;
 }
 }
 

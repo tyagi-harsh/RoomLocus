@@ -117,8 +117,70 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Contact Number</label>
-      <input type="number" formControlName="contact" placeholder="Enter contact number" class="form-control" appNumericOnly>
+      <label class="form-label">WhatsApp Number</label>
+      <input
+        type="number"
+        formControlName="whatsappNo"
+        placeholder="Enter whatsapp number"
+        class="form-control"
+        appNumericOnly
+        [readonly]="contactOtpVerified"
+        [class.readonly-input]="contactOtpVerified"
+      >
+    </div>
+
+    <div class="mobile-extra">
+      <div class="otp-cta">
+        <div class="get-otp-div">
+          <button
+            *ngIf="!contactOtpVerified"
+            type="button"
+            class="otp-button"
+            (click)="startContactOtpFlow()"
+            [disabled]="(contactOtpRequested && !contactOtpVerified) || isSendingContactOtp || !isWhatsAppNumberValid"
+          >
+            <span *ngIf="!isSendingContactOtp">Send OTP</span>
+            <mat-progress-spinner *ngIf="isSendingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+          </button>
+          <small
+            *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
+            style="display:block;margin-top:4px"
+          >
+            OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
+          </small>
+        </div>
+      </div>
+      <div *ngIf="contactOtpRequested" class="otp-panel">
+        <div class="otp-block">
+          <input
+            id="contact-otp"
+            type="tel"
+            maxlength="6"
+            [(ngModel)]="contactOtpInput"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="XXXXXX"
+            name="contactOtp"
+            class="form-control otp-input"
+          />
+        </div>
+        <div *ngIf="contactOtpError" class="validation-error" style="margin-top:6px;">
+          <span><small style="color: red;">{{ contactOtpError }}</small></span>
+          <button
+            *ngIf="showContactResendOption"
+            type="button"
+            class="resend-link"
+            (click)="resendContactOtp()"
+          >
+            Resend OTP
+          </button>
+        </div>
+        <div class="otp-block">
+          <button type="button" class="otp-verify-button" (click)="verifyContactOtp()">
+            <span *ngIf="!isVerifyingContactOtp">Verify OTP</span>
+            <mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="form-row align-start">
@@ -140,6 +202,14 @@
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation"><span>Independent</span></label>
         <label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation"><span>Apartment</span></label>
+      </div>
+    </div>
+
+    <div class="radio-section">
+      <h3 class="section-title">Pets Allowed</h3>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" value="Yes" formControlName="petAllowed"><span>Yes</span></label>
+        <label class="radio-item"><input type="radio" value="No" formControlName="petAllowed"><span>No</span></label>
       </div>
     </div>
 
@@ -176,22 +246,22 @@
       </div>
     </div>
 
-    <div class="radio-section">
+    <div class="radio-section" formGroupName="parking">
       <h3 class="section-title">Parking</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="checkbox"><span>Car</span></label>
-        <label class="radio-item"><input type="checkbox"><span>Bike</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="car"><span>Car</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="bike"><span>Bike</span></label>
       </div>
     </div>
 
-    <div class="radio-section">
+    <div class="radio-section" formGroupName="preferTenant">
       <h3 class="section-title">Prefer Tenant Type</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="checkbox"><span>Family</span></label>
-        <label class="radio-item"><input type="checkbox"><span>Bachelors</span></label>
-        <label class="radio-item"><input type="checkbox"><span>Girls</span></label>
-        <label class="radio-item"><input type="checkbox"><span>Boys</span></label>
-        <label class="radio-item"><input type="checkbox"><span>Professionals</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="family"><span>Family</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="bachelors"><span>Bachelors</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="girls"><span>Girls</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="boys"><span>Boys</span></label>
+        <label class="radio-item"><input type="checkbox" formControlName="professionals"><span>Professionals</span></label>
       </div>
     </div>
 
@@ -216,7 +286,15 @@
     </div>
 
     <div class="button-group">
-      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid">Next</button>
+      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid || isSaving">
+        <span *ngIf="!isSaving">Next</span>
+        <mat-progress-spinner
+          *ngIf="isSaving"
+          color="accent"
+          diameter="18"
+          mode="indeterminate"
+        ></mat-progress-spinner>
+      </button>
       <button type="button" (click)="onCancel()" class="btn btn-cancel">Cancel</button>
     </div>
     <div *ngIf="showCancelConfirmation" class="cancel-toast">
@@ -224,6 +302,12 @@
       <div class="toast-actions">
         <button type="button" class="toast-btn" (click)="confirmCancel()">Yes</button>
         <button type="button" class="toast-btn ghost" (click)="dismissCancelConfirmation()">No</button>
+      </div>
+    </div>
+    <div *ngIf="showOtpDialog" class="token-dialog-backdrop">
+      <div class="token-dialog">
+        <p>{{ otpDialogMessage }}</p>
+        <button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
       </div>
     </div>
   </form>

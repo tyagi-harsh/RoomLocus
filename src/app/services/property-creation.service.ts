@@ -9,6 +9,7 @@ export interface FlatPayload {
   location?: string;
   landmark?: string;
   BHK: string;
+  bhk?: string;
   maxPrice: number;
   minPrice: number;
   offer?: string;
@@ -116,6 +117,39 @@ export interface PGPayload {
   verificationPending?: boolean;
 }
 
+export interface HourlyRoomPayload {
+  type: string;
+  city: string;
+  townSector: string;
+  location?: string;
+  landmark?: string;
+  luxuryTier?: string;
+  bedCount?: number;
+  guestCapacity?: number;
+  totalFloor: number;
+  palaceName?: string;
+  totalRoom: number;
+  minPrice: number;
+  maxPrice: number;
+  address: string;
+  manager?: string;
+  mobile: string;
+  contactName?: string;
+  petAllowed: string;
+  furnishingType: string;
+  accomoType: string;
+  genderPrefer: string;
+  foodAvailable: boolean;
+  roomType: string;
+  acType: string;
+  parking: string[];
+  preferTenants: string[];
+  insideFacilities: string[];
+  outsideFacilities: string[];
+  verificationPending?: boolean;
+  isDraft?: boolean;
+}
+
 export interface ApiResult<T> {
   success: boolean;
   data?: T;
@@ -190,6 +224,24 @@ export class PropertyCreationService {
         console.error('createPG error:', error);
         const message =
           error?.error?.message || error?.error?.error || error?.message || 'Failed to create PG';
+        return of({ success: false, error: message });
+      })
+    );
+  }
+
+  createHourlyRoom(ownerId: number, payload: HourlyRoomPayload): Observable<ApiResult<any>> {
+    const url = `${this.PRIVATE_API}/hourly-rooms/owner/${ownerId}`;
+    return this.http.post<any>(url, payload).pipe(
+      map((resp) => {
+        if (resp && resp.success !== undefined) {
+          return { success: resp.success, data: resp.data, error: resp.message };
+        }
+        return { success: true, data: resp };
+      }),
+      catchError((error) => {
+        console.error('createHourlyRoom error:', error);
+        const message =
+          error?.error?.message || error?.error?.error || error?.message || 'Failed to create hourly room listing';
         return of({ success: false, error: message });
       })
     );

@@ -97,6 +97,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
     priceMin: 4500,
     priceMax: 6000,
     pricePeriod: 'Per Month',
+    bhk: '1 BHK',
     keyDetails: {
       security: '1000',
       maintenance: '0',
@@ -258,6 +259,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
       priceMin: minPriceFromApi ?? this.details.priceMin,
       priceMax: maxPriceFromApi ?? this.details.priceMax,
       propertyName: data.palaceName || this.details.propertyName,
+      bhk: data.bhk || this.details.bhk,
       keyDetails: {
         security: this.toDisplayNumber(data.security),
         maintenance: this.toDisplayNumber(data.maintenance),
@@ -353,6 +355,26 @@ export class PropertyDetails implements OnInit, OnDestroy {
     }
   }
 
+  get typeWithBhk(): string {
+    const baseType = this.details.keyDetails.type?.trim() ?? '';
+    const bhkSegment = this.details.bhk?.trim();
+    if (!baseType && !bhkSegment) {
+      return 'N/A';
+    }
+    if (!bhkSegment) {
+      return baseType || 'N/A';
+    }
+    if (!baseType) {
+      return bhkSegment;
+    }
+
+    const normalizedBhk = bhkSegment.toLowerCase();
+    if (baseType.toLowerCase().includes(normalizedBhk)) {
+      return baseType;
+    }
+    return `${baseType} | ${bhkSegment}`;
+  }
+
   get isFlatProperty(): boolean {
     return this.propertyCategory === 'flat';
   }
@@ -393,6 +415,21 @@ export class PropertyDetails implements OnInit, OnDestroy {
       return this.details.pgOutsideFacilities ?? [];
     }
     return this.details.roomOutsideFacilities ?? [];
+  }
+
+  formatDisplayName(value: string | undefined | null): string {
+    if (!value) {
+      return '';
+    }
+    const spaced = value
+      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+      .replace(/[_-]+/g, ' ')
+      .trim();
+    const words = spaced.split(/\s+/).filter(Boolean);
+    const formatted = words
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+    return formatted || value;
   }
 
   get pgTypeValue(): string | undefined {

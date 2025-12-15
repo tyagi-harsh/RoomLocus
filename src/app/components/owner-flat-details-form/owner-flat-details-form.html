@@ -140,12 +140,21 @@
 
     <div class="form-row">
       <label class="form-label">Whatsapp No</label>
-      <input type="number" formControlName="whatsappNo" placeholder="Enter whatsapp number" class="form-control" appNumericOnly>
+      <input
+        type="number"
+        formControlName="whatsappNo"
+        placeholder="Enter whatsapp number"
+        class="form-control"
+        appNumericOnly
+        [readonly]="contactOtpVerified"
+        [class.readonly-input]="contactOtpVerified"
+      >
     </div>
     <div class="mobile-extra">
       <div class="otp-cta">
         <div class="get-otp-div">
           <button
+            *ngIf="!contactOtpVerified"
             type="button"
             class="otp-button"
             (click)="startContactOtpFlow()"
@@ -158,7 +167,7 @@
             *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
             style="display:block;margin-top:4px"
           >
-            OTP sent successfully to registered mobile number <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
+            OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
           </small>
         </div>
       </div>
@@ -192,10 +201,6 @@
             <mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
           </button>
         </div>
-      </div>
-      <div *ngIf="showContactOtpVerifiedToast" class="otp-status verified-toast">
-        <i class="fas fa-check-circle"></i>
-        <span>Mobile verified successfully</span>
       </div>
     </div>
   
@@ -318,6 +323,13 @@
       <div class="toast-actions">
         <button type="button" class="toast-btn" (click)="confirmCancel()">Yes</button>
         <button type="button" class="toast-btn ghost" (click)="dismissCancelConfirmation()">No</button>
+      </div>
+    </div>
+    <div *ngIf="showOtpDialog" class="token-dialog-backdrop">
+      <div class="token-dialog">
+        <h2>www.roomlocus.com says</h2>
+        <p>{{ otpDialogMessage }}</p>
+        <button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
       </div>
     </div>
   </form>

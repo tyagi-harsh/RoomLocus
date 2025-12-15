@@ -20,6 +20,7 @@ export interface PropertyDetails {
   priceMin: number;
   priceMax: number;
   pricePeriod: string;
+  bhk?: string;
   keyDetails: {
     security: string;
     maintenance: string;

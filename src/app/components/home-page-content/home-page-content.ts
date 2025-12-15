@@ -151,7 +151,7 @@ export class HomePageContent implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.searchForm = this.fb.group({
-      lookingFor: ['Flat', Validators.required],
+      lookingFor: ['', Validators.required],
       city: ['', Validators.required],
       location: [{ value: '', disabled: true }, Validators.required],
     });

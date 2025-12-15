@@ -327,13 +327,11 @@
   margin-bottom: -1.25em;
 }
 
+
 .mobile-extra {
   margin-top: -0.5rem;
   margin-bottom: 1rem;
   border-radius: 0.75rem;
-  /* padding: 0.85rem 1rem; */
-  /* background-color: #f1fbff;
-  border: 1px dashed rgba(3, 152, 3, 0.3); */
 }
 
 .otp-cta {
@@ -349,9 +347,101 @@
   align-items: flex-end;
 }
 
+.otp-panel {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
 
+.otp-block {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
 
-.otp-button,
+.form-control.readonly-input {
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.token-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 15, 28, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.token-dialog {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.3rem 1.4rem;
+  /* width: min(90vw, 360px); */
+  max-width: 290px;
+  min-width: 170px;
+  text-align: right;
+  box-shadow: 0 35px 45px rgba(15, 23, 42, 0.35);
+  font-size: 1rem;
+  color: #0b0b0b;
+  padding-top: 0px;
+}
+
+.token-dialog h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.2rem;
+  font-weight: 400;
+  color: #49494b;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.token-dialog p {
+  font-size: 0.86rem;
+  margin-top: 1rem;
+  text-align: left;
+  color: #4d4c4c;
+}
+
+.token-dialog-btn {
+  margin-top: 1.5rem;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  background: #03a4d4;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.token-dialog-btn:hover {
+  transform: translateY(-1px);
+}
+
+.otp-input {
+  max-width: 180px;
+  text-align: center;
+  letter-spacing: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.resend-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #036f9c;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
 .validation-error {
   display: flex;
   justify-content: flex-end;
@@ -373,7 +463,6 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  /* box-shadow: 0 6px 16px rgba(10, 127, 164, 0.25); */
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   margin-bottom: 10px;
 }
@@ -387,44 +476,6 @@
   opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
-}
-
-.otp-panel {
-  margin-top: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.otp-block {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-.otp-input {
-  max-width: 180px;
-  text-align: center;
-  letter-spacing: 0.35rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  
-}
-
-.contact-otp-message {
-  text-align: right;
-}
-
-.resend-link {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #036f9c;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-  margin-left: 10px;
 }
 
 .otp-status {
@@ -441,7 +492,6 @@
   font-weight: 500;
   justify-content: flex-end;
 }
-
 
 
 

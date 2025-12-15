@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OwnerListingFormService } from '../../services/owner-listing-form.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PropertySearchService } from '../../services/property-search.service';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { City } from '../../interface/City';
@@ -17,6 +18,10 @@ import {
   OUTSIDE_FACILITIES,
 } from '../../constants/facility-options';
 import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
+import { ToastService } from '../../services/toast.service';
+import { ApiService } from '../../services/api';
+import { PropertyCreationService, HourlyRoomPayload } from '../../services/property-creation.service';
+import { OwnerPropertyStoreService } from '../../services/owner-property-store.service';
 
 @Component({
   selector: 'app-owner-hourly-room-details-form',
@@ -24,11 +29,13 @@ import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
     MatAutocompleteModule,
     MatOptionModule,
+    MatProgressSpinnerModule,
     NumericOnlyDirective,
   ],
   templateUrl: './owner-hourly-room-details-form.html',
@@ -55,12 +62,31 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
   readonly insideFacilities = INSIDE_FACILITIES;
   readonly outsideFacilities = OUTSIDE_FACILITIES;
 
+  contactOtpRequested = false;
+  contactOtpVerified = false;
+  contactOtpInput = '';
+  contactOtpError: string | null = null;
+  isSendingContactOtp = false;
+  isVerifyingContactOtp = false;
+  showContactOtpSentMessage = false;
+  showContactResendOption = false;
+  showOtpDialog = false;
+  otpDialogMessage = '';
+  private readonly formStorageKey = 'owner-hourly-room-details-form-state';
+  private readonly formStorageTtl = 4 * 60 * 1000;
+  private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
+
   showCancelConfirmation = false;
+  isSaving = false;
 
   constructor(
     private readonly listingFormService: OwnerListingFormService,
     private readonly router: Router,
-    private propertySearchService: PropertySearchService
+    private propertySearchService: PropertySearchService,
+    private readonly toastService: ToastService,
+    private readonly apiService: ApiService,
+    private readonly propertyCreationService: PropertyCreationService,
+    private readonly ownerPropertyStore: OwnerPropertyStoreService
   ) {
     this.filteredCities$ = combineLatest([
       this.citiesSubject.asObservable(),
@@ -118,11 +144,19 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
         const filterValue = (value ?? '').toString();
         this.locationFilterSubject.next(filterValue);
       });
+
+    this.loadSavedFormState();
+    this.listingForm
+      .valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.saveFormState());
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearContactOtpTimer();
+    this.clearSavedFormState();
   }
 
   private loadCities(forceRefresh = false): void {
@@ -168,16 +202,15 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     );
   }
 
-  private loadLocations(city: string) {
+  private loadLocations(city: string): void {
     if (!city) {
       this.locationsSubject.next([]);
       return;
     }
 
-    const type = 'Hourly Room';
     this.locationLoadingSubject.next(true);
     this.propertySearchService
-      .getTownSectors(city, type)
+      .getRentalSectorsByCity(city)
       .pipe(take(1))
       .subscribe({
         next: (locations) => {
@@ -185,11 +218,114 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
           this.locationLoadingSubject.next(false);
         },
         error: (err) => {
-          console.error('Failed to load town/sector data:', err);
+          console.error('Failed to load rental sectors:', err);
           this.locationLoadingSubject.next(false);
           this.locationsSubject.next([]);
         },
       });
+  }
+
+  startContactOtpFlow(): void {
+    this.resetContactOtpUiFlags();
+    this.isSendingContactOtp = true;
+    this.clearContactOtpTimer();
+
+    const mobile = this.listingForm.get('whatsappNo')?.value?.toString() || '';
+    const accessToken = localStorage.getItem('accessToken') || '';
+    const payload = { mobile, userType: 'OWNER', purpose: 'R', accessToken };
+
+    this.apiService.getOtp(payload).pipe(take(1)).subscribe({
+      next: (resp) => {
+        this.isSendingContactOtp = false;
+        if (resp && resp.success === false) {
+          this.contactOtpError = resp.error || 'Failed to send OTP';
+          this.toastService.error(this.contactOtpError || 'Failed to send OTP');
+          return;
+        }
+        this.contactOtpRequested = true;
+        this.showContactOtpSentMessage = true;
+        this.showContactResendOption = true;
+        this.openOtpDialog('OTP sent successfully to registered WhatsApp number');
+      },
+      error: (err) => {
+        this.isSendingContactOtp = false;
+        console.error('getOtp error:', err);
+        this.contactOtpError = 'Failed to send OTP. Please try again.';
+        this.toastService.error(this.contactOtpError);
+      },
+    });
+  }
+
+  resendContactOtp(): void {
+    this.resetContactOtpUiFlags();
+    this.startContactOtpFlow();
+  }
+
+  verifyContactOtp(): void {
+    if (!this.contactOtpInput?.trim()) {
+      this.contactOtpError = 'Enter OTP to verify';
+      return;
+    }
+    this.contactOtpError = null;
+    this.isVerifyingContactOtp = true;
+    this.clearContactOtpTimer();
+
+    const mobile = this.listingForm.get('whatsappNo')?.value?.toString() || '';
+    const payload = { mobile, userType: 'OWNER', otp: this.contactOtpInput.trim(), purpose: 'R' };
+
+    this.apiService.verifyOtp(payload).pipe(take(1)).subscribe({
+      next: (resp) => {
+        this.isVerifyingContactOtp = false;
+        if (resp.status === 200) {
+          this.contactOtpVerified = true;
+          this.contactOtpRequested = false;
+          this.showContactResendOption = false;
+          this.showContactOtpSentMessage = false;
+          this.contactOtpInput = '';
+          this.openOtpDialog('WhatsApp number verified successfully!');
+        } else {
+          this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
+          this.showContactResendOption = true;
+          this.toastService.error(this.contactOtpError || 'Invalid or expired OTP');
+        }
+      },
+      error: (err) => {
+        this.isVerifyingContactOtp = false;
+        console.error('verifyOtp error:', err);
+        this.contactOtpError = 'Verification failed. Please try again.';
+        this.showContactResendOption = true;
+        this.toastService.error(this.contactOtpError || 'Verification failed');
+      },
+    });
+  }
+
+  private resetContactOtpUiFlags(): void {
+    this.contactOtpError = null;
+    this.showContactOtpSentMessage = false;
+    this.contactOtpVerified = false;
+    this.showContactResendOption = false;
+    this.clearContactOtpTimer();
+  }
+
+  private clearContactOtpTimer(): void {
+    if (this.contactOtpTimer) {
+      clearTimeout(this.contactOtpTimer);
+      this.contactOtpTimer = null;
+    }
+  }
+
+  get isWhatsAppNumberValid(): boolean {
+    const value = this.listingForm.get('whatsappNo')?.value;
+    if (value === null || value === undefined) {
+      return false;
+    }
+    const digitsOnly = value.toString().replace(/\D/g, '');
+    return digitsOnly.length === 10;
+  }
+
+  get otpTargetNumber(): string {
+    const value = this.listingForm.get('whatsappNo')?.value;
+    return value ? value.toString() : '';
   }
 
   displayCityName(city: City | string | null): string {
@@ -219,14 +355,163 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     );
   }
 
+  private loadSavedFormState(): void {
+    const rawJson = localStorage.getItem(this.formStorageKey);
+    if (!rawJson) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(rawJson);
+      if (!parsed?.timestamp || Date.now() - parsed.timestamp > this.formStorageTtl) {
+        localStorage.removeItem(this.formStorageKey);
+        return;
+      }
+      this.listingForm.patchValue(parsed.data ?? {}, { emitEvent: false });
+    } catch (err) {
+      console.warn('Failed to restore hourly form state:', err);
+      localStorage.removeItem(this.formStorageKey);
+    }
+  }
+
+  private saveFormState(): void {
+    try {
+      const payload = {
+        timestamp: Date.now(),
+        data: this.listingForm.getRawValue(),
+      };
+      localStorage.setItem(this.formStorageKey, JSON.stringify(payload));
+    } catch (err) {
+      console.warn('Unable to persist hourly form state:', err);
+    }
+  }
+
+  private clearSavedFormState(): void {
+    localStorage.removeItem(this.formStorageKey);
+  }
+
+  private openOtpDialog(message: string): void {
+    this.otpDialogMessage = message;
+    this.showOtpDialog = true;
+  }
+
+  closeOtpDialog(): void {
+    this.showOtpDialog = false;
+  }
+
+  private mapFormToPayload(): HourlyRoomPayload {
+    const f = this.listingForm.value;
+    const parking: string[] = [];
+    if (f.parking?.car) parking.push('Car');
+    if (f.parking?.bike) parking.push('Bike');
+
+    const preferTenants: string[] = [];
+    if (f.preferTenant?.family) preferTenants.push('Family');
+    if (f.preferTenant?.bachelors) preferTenants.push('Bachelors');
+    if (f.preferTenant?.girls) preferTenants.push('Girls');
+    if (f.preferTenant?.boys) preferTenants.push('Boys');
+    if (f.preferTenant?.professionals) preferTenants.push('Professionals');
+
+    const insideFacilities: string[] = [];
+    if (f.insideFacility) {
+      Object.entries(f.insideFacility).forEach(([key, checked]) => {
+        if (checked) insideFacilities.push(key);
+      });
+    }
+
+    const outsideFacilities: string[] = [];
+    if (f.outsideFacility) {
+      Object.entries(f.outsideFacility).forEach(([key, checked]) => {
+        if (checked) outsideFacilities.push(key);
+      });
+    }
+
+    const cityName = typeof f.cityControl === 'object' ? f.cityControl?.name : f.city;
+    const townSector = f.townControl || f.town || '';
+
+    return {
+      type: 'Hourly Room',
+      city: cityName || '',
+      townSector,
+      location: f.location || '',
+      landmark: f.landmark || '',
+      luxuryTier: f.luxury || '',
+      bedCount: parseInt(f.bedCount, 10) || 0,
+      guestCapacity: parseInt(f.guests, 10) || 0,
+      totalFloor: parseInt(f.totalFloors, 10) || 0,
+      palaceName: f.palaceName || '',
+      totalRoom: parseInt(f.totalRoom, 10) || 0,
+      minPrice: parseFloat(f.minPrice) || 0,
+      maxPrice: parseFloat(f.maxPrice) || 0,
+      address: f.address || '',
+      manager: f.manager || '',
+      mobile: f.whatsappNo?.toString() || '',
+      contactName: f.manager || '',
+      petAllowed: f.petAllowed || 'No',
+      furnishingType: f.furnishing || '',
+      accomoType: f.accommodation || '',
+      genderPrefer: f.gender || '',
+      foodAvailable: f.food === 'Yes' || f.food === true,
+      roomType: f.roomType1 || '',
+      acType: f.roomType2 || '',
+      parking,
+      preferTenants,
+      insideFacilities,
+      outsideFacilities,
+      verificationPending: true,
+      isDraft: false,
+    };
+  }
+
   onNext(): void {
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
       return;
     }
-    this.router
-      .navigate(['/owner/hourly-room/images'], { queryParams: { propertyType: 'hourly-room' } })
-      .catch((err) => console.error('Navigation failed', err));
+    const ownerId = this.propertyCreationService.getOwnerId();
+    if (!ownerId) {
+      this.toastService.error('You must be logged in as an owner to create a listing');
+      return;
+    }
+    const payload = this.mapFormToPayload();
+    this.isSaving = true;
+    this.propertyCreationService.createHourlyRoom(ownerId, payload).pipe(take(1)).subscribe({
+      next: (result) => {
+        this.isSaving = false;
+        if (result.success) {
+          this.toastService.success('Hourly room listing created successfully!');
+          this.recordPropertySummary(ownerId, result.data?.id, 'Hourly Room');
+          this.clearSavedFormState();
+          this.router
+            .navigate(['/owner/hourly-room/images'], { queryParams: { propertyType: 'hourly-room' } })
+            .catch((err) => console.error('Navigation failed', err));
+        } else {
+          this.toastService.error(result.error || 'Failed to create hourly room listing');
+        }
+      },
+      error: (err) => {
+        this.isSaving = false;
+        console.error('createHourlyRoom error:', err);
+        this.toastService.error('Failed to create hourly room listing. Please try again.');
+      },
+    });
+  }
+
+  private recordPropertySummary(ownerId: number, propertyId: number | undefined, propertyType: string): void {
+    const cityValue = typeof this.listingForm.get('cityControl')?.value === 'object'
+      ? (this.listingForm.get('cityControl')?.value as City)?.name
+      : this.listingForm.get('city')?.value || this.listingForm.get('cityControl')?.value;
+    const townSector = this.listingForm.get('townControl')?.value || this.listingForm.get('town')?.value || '';
+    const locationValue = this.listingForm.get('location')?.value || '';
+    const segments = [propertyType, cityValue, townSector, locationValue].filter(Boolean);
+    const displayName = segments.length ? segments.join(' · ') : propertyType;
+    this.ownerPropertyStore.addProperty(ownerId, {
+      propertyId: propertyId ?? Date.now(),
+      propertyType,
+      displayName,
+      location: [townSector, locationValue].filter(Boolean).join(', ') || 'Location not set',
+      townSector: townSector || undefined,
+      createdAt: Date.now(),
+    });
   }
 
   onCancel(): void {
@@ -235,6 +520,7 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
 
   confirmCancel(): void {
     this.showCancelConfirmation = false;
+    this.clearSavedFormState();
     window.location.reload();
   }
 

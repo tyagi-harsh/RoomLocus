@@ -95,7 +95,9 @@
               <div class="input-with-icon">
                 <i class="fas fa-mobile-alt icon"></i>
                 <input type="tel" id="signup-mobile" formControlName="mobile" placeholder="Number"
-                  aria-label="Whatsapp Number" />
+                  aria-label="Whatsapp Number"
+                  [readonly]="signupMobileLocked"
+                  [class.locked-input]="signupMobileLocked" />
               </div>
               <div class="mobile-extra">
                 <div class="otp-cta">
@@ -105,8 +107,11 @@
                     <div *ngIf="signupControls['mobile'].errors?.['required']">Whatsapp Number is required.</div>
                     <div *ngIf="signupControls['mobile'].errors?.['pattern']">Enter a 10-digit number.</div>
                   </div>
+                  <div *ngIf="signupMobileError" class="validation-error" style="margin-top: 6px">
+                    {{ signupMobileError }}
+                  </div>
                   <div class="get-otp-div">
-                    <button type="button" class="otp-button" (click)="startSignupOtpFlow()"
+                    <button *ngIf="!otpVerifiedFlag" type="button" class="otp-button" (click)="startSignupOtpFlow()"
                       [disabled]="(otpRequested && !otpVerifiedFlag) || isSendingOtp">
                       <span *ngIf="!isSendingOtp">Send OTP</span>
                       <mat-progress-spinner *ngIf="isSendingOtp" diameter="18"
@@ -232,10 +237,12 @@
         <form [formGroup]="forgotForm" (ngSubmit)="onResetPassword()">
           <div class="input-group">
             <label for="forgot-mobile">Whatsapp No:</label>
-            <div class="input-with-icon">
-              <i class="fas fa-mobile-alt icon"></i>
-              <input type="tel" id="forgot-mobile" formControlName="mobile" placeholder="Number"
-                aria-label="Whatsapp Number" />
+              <div class="input-with-icon">
+                <i class="fas fa-mobile-alt icon"></i>
+                <input type="tel" id="forgot-mobile" formControlName="mobile" placeholder="Number"
+                  aria-label="Whatsapp Number"
+                  [readonly]="forgotMobileLocked"
+                  [class.locked-input]="forgotMobileLocked" />
             </div>
             <div
               *ngIf="forgotControls['mobile'].invalid && (forgotControls['mobile'].dirty || forgotControls['mobile'].touched)"
@@ -250,7 +257,7 @@
 
             <div class="otp-cta">
               <div class="get-otp-div">
-                <button type="button" class="otp-button" (click)="startForgotOtpFlow()"
+                <button *ngIf="!forgotOtpVerified" type="button" class="otp-button" (click)="startForgotOtpFlow()"
                   [disabled]="(forgotOtpRequested && !forgotOtpVerified) || isSendingOtp">
                   <span *ngIf="!isSendingOtp">Send OTP</span>
                   <mat-progress-spinner *ngIf="isSendingOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
