@@ -135,7 +135,6 @@ export interface HourlyRoomPayload {
   manager?: string;
   mobile: string;
   contactName?: string;
-  petAllowed: string;
   furnishingType: string;
   accomoType: string;
   genderPrefer: string;
@@ -162,7 +161,7 @@ export interface ApiResult<T> {
 export class PropertyCreationService {
   private readonly PRIVATE_API = 'http://localhost:8082/api/v1/private';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Create a new flat listing for the given owner.
@@ -230,7 +229,7 @@ export class PropertyCreationService {
   }
 
   createHourlyRoom(ownerId: number, payload: HourlyRoomPayload): Observable<ApiResult<any>> {
-    const url = `${this.PRIVATE_API}/hourly-rooms/owner/${ownerId}`;
+    const url = `${this.PRIVATE_API}/hourly_rooms/owner/${ownerId}`;
     return this.http.post<any>(url, payload).pipe(
       map((resp) => {
         if (resp && resp.success !== undefined) {
@@ -255,9 +254,9 @@ export class PropertyCreationService {
     const id = localStorage.getItem('userId');
     const userType = localStorage.getItem('userType');
     const accessToken = localStorage.getItem('accessToken');
-    
+
     console.debug('getOwnerId check:', { id, userType, hasAccessToken: !!accessToken });
-    
+
     // Check if userType is OWNER (case-insensitive) and has a valid id
     if (id && userType && userType.toUpperCase() === 'OWNER') {
       const parsed = parseInt(id, 10);
@@ -265,12 +264,12 @@ export class PropertyCreationService {
         return parsed;
       }
     }
-    
+
     // If no userId but user is logged in as OWNER, log a warning
     if (userType && userType.toUpperCase() === 'OWNER' && accessToken) {
       console.warn('User is logged in as OWNER but userId is missing or invalid:', id);
     }
-    
+
     return null;
   }
 }

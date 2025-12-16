@@ -428,6 +428,8 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     const cityName = typeof f.cityControl === 'object' ? f.cityControl?.name : f.city;
     const townSector = f.townControl || f.town || '';
 
+    const truthy = (val: any) => ['yes', 'true', '1', 'y'].includes(String(val).toLowerCase());
+
     return {
       type: 'Hourly Room',
       city: cityName || '',
@@ -446,11 +448,10 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       manager: f.manager || '',
       mobile: f.whatsappNo?.toString() || '',
       contactName: f.manager || '',
-      petAllowed: f.petAllowed || 'No',
       furnishingType: f.furnishing || '',
       accomoType: f.accommodation || '',
       genderPrefer: f.gender || '',
-      foodAvailable: f.food === 'Yes' || f.food === true,
+      foodAvailable: truthy(f.food),
       roomType: f.roomType1 || '',
       acType: f.roomType2 || '',
       parking,
@@ -481,9 +482,9 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
           this.toastService.success('Hourly room listing created successfully!');
           this.recordPropertySummary(ownerId, result.data?.id, 'Hourly Room');
           this.clearSavedFormState();
-          this.router
-            .navigate(['/owner/hourly-room/images'], { queryParams: { propertyType: 'hourly-room' } })
-            .catch((err) => console.error('Navigation failed', err));
+          // Stay on this page for now; skipping images flow similar to Flat form per request.
+          // Optionally reset the form here.
+          // this.listingForm.reset();
         } else {
           this.toastService.error(result.error || 'Failed to create hourly room listing');
         }

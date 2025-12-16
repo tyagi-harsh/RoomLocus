@@ -382,7 +382,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     console.log('onNext called - PG form');
     console.log('Form valid:', this.listingForm.valid);
     console.log('Form errors:', this.listingForm.errors);
-    
+
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
       // Log which controls are invalid
@@ -461,22 +461,27 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       });
     }
 
-    // Convert waterSupply string to number (e.g., "24 hr" -> 24)
+    // Convert waterSupply mixed-type value to number (e.g., "24 hr" -> 24)
     let waterSupplyNum = 0;
-    if (f.waterSupply) {
-      const match = f.waterSupply.match(/\d+/);
-      if (match) waterSupplyNum = parseInt(match[0], 10);
+    if (f.waterSupply !== undefined && f.waterSupply !== null) {
+      const wsStr = String(f.waterSupply);
+      const match = wsStr.match(/\d+/);
+      if (match) {
+        const parsed = parseInt(match[0], 10);
+        waterSupplyNum = isNaN(parsed) ? 0 : parsed;
+      }
     }
 
-    // Convert powerBackup string to number (Yes -> 1, No -> 0)
-    const powerBackupNum = f.powerBackup === 'Yes' ? 1 : 0;
+    // Convert powerBackup mixed-type to number (truthy -> 1, else 0)
+    const powerBackupNum = ['yes', 'true', '1', 'y'].includes(String(f.powerBackup).toLowerCase()) ? 1 : 0;
 
-    // Convert foodAvailable and timeRestrict to boolean
-    const foodAvailBool = f.foodAvailable === 'Yes' || f.foodAvailable === true;
-    const timeRestrictBool = f.timeRestrict === 'Yes' || f.timeRestrict === true;
+    // Convert foodAvailable and timeRestrict to boolean (accept Yes/true/1)
+    const truthy = (val: any) => ['yes', 'true', '1', 'y'].includes(String(val).toLowerCase());
+    const foodAvailBool = truthy(f.foodAvailable);
+    const timeRestrictBool = truthy(f.timeRestrict);
 
-    // Convert petsAllowed to boolean
-    const petsAllowedBool = f.petAllowed === 'Yes' || f.petAllowed === true;
+    // Convert petsAllowed to boolean (accept Yes/true/1)
+    const petsAllowedBool = truthy(f.petAllowed);
 
     return {
       type: 'PG',

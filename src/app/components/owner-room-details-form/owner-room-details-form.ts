@@ -255,48 +255,48 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       });
   }
 
-    private loadSavedFormState(): void {
-      const rawJson = localStorage.getItem(this.formStorageKey);
-      if (!rawJson) {
+  private loadSavedFormState(): void {
+    const rawJson = localStorage.getItem(this.formStorageKey);
+    if (!rawJson) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(rawJson);
+      if (!parsed?.timestamp || Date.now() - parsed.timestamp > this.formStorageTtl) {
+        localStorage.removeItem(this.formStorageKey);
         return;
       }
-      try {
-        const parsed = JSON.parse(rawJson);
-        if (!parsed?.timestamp || Date.now() - parsed.timestamp > this.formStorageTtl) {
-          localStorage.removeItem(this.formStorageKey);
-          return;
-        }
-        this.listingForm.patchValue(parsed.data ?? {}, { emitEvent: false });
-      } catch (err) {
-        console.warn('Failed to restore room form state:', err);
-        localStorage.removeItem(this.formStorageKey);
-      }
-    }
-
-    private saveFormState(): void {
-      try {
-        const payload = {
-          timestamp: Date.now(),
-          data: this.listingForm.getRawValue(),
-        };
-        localStorage.setItem(this.formStorageKey, JSON.stringify(payload));
-      } catch (err) {
-        console.warn('Unable to persist room form state:', err);
-      }
-    }
-
-    private clearSavedFormState(): void {
+      this.listingForm.patchValue(parsed.data ?? {}, { emitEvent: false });
+    } catch (err) {
+      console.warn('Failed to restore room form state:', err);
       localStorage.removeItem(this.formStorageKey);
     }
+  }
 
-    private openOtpDialog(message: string): void {
-      this.otpDialogMessage = message;
-      this.showOtpDialog = true;
+  private saveFormState(): void {
+    try {
+      const payload = {
+        timestamp: Date.now(),
+        data: this.listingForm.getRawValue(),
+      };
+      localStorage.setItem(this.formStorageKey, JSON.stringify(payload));
+    } catch (err) {
+      console.warn('Unable to persist room form state:', err);
     }
+  }
 
-    closeOtpDialog(): void {
-      this.showOtpDialog = false;
-    }
+  private clearSavedFormState(): void {
+    localStorage.removeItem(this.formStorageKey);
+  }
+
+  private openOtpDialog(message: string): void {
+    this.otpDialogMessage = message;
+    this.showOtpDialog = true;
+  }
+
+  closeOtpDialog(): void {
+    this.showOtpDialog = false;
+  }
 
   startContactOtpFlow(): void {
     this.resetContactOtpUiFlags();
@@ -388,7 +388,7 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     console.log('onNext called - Room form');
     console.log('Form valid:', this.listingForm.valid);
     console.log('Form errors:', this.listingForm.errors);
-    
+
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
       // Log which controls are invalid
@@ -471,15 +471,15 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       }
     }
 
-    // Map waterSupply string to number
+    // Map waterSupply to number (coerce to string to be defensive)
     let waterSupply = 0;
     if (v.waterSupply) {
-      const match = v.waterSupply.toString().match(/\\d+/);
+      const match = String(v.waterSupply).match(/\d+/);
       if (match) waterSupply = parseInt(match[0], 10);
     }
 
-    // Map powerBackup string to number
-    const powerBackup = v.powerBackup?.toLowerCase() === 'yes' ? 1 : 0;
+    // Map powerBackup mixed-type value to number (truthy -> 1, else 0)
+    const powerBackup = ['yes', 'true', '1', 'y'].includes(String(v.powerBackup).toLowerCase()) ? 1 : 0;
 
     // Get city name from cityControl
     const cityName = typeof v.cityControl === 'object' ? v.cityControl?.name : v.cityControl;
