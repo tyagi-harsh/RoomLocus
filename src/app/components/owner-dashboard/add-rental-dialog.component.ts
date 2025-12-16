@@ -69,7 +69,7 @@ export type RentalType = 'flat' | 'room' | 'pg' | 'hourly-room';
     .btn-close {
       padding: 0.625rem 1.4rem;
       font-size: 0.95rem;
-      background: #d0d0d0;
+      background: #17a2b8;
       color: white;
       border: none;
       border-radius: 5px;
