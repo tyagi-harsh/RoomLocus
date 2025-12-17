@@ -13,7 +13,7 @@
   <form [formGroup]="listingForm">
     <div class="form-group">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Select City</mat-label>
+        <mat-label class="required">Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
         <input
           matInput
@@ -38,7 +38,7 @@
 
     <div class="form-group">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Town & Sector</mat-label>
+        <mat-label class="required">Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
         <input
           matInput
@@ -65,7 +65,7 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Area/Colony</label>
+      <label class="form-label required">Area/Colony</label>
       <input type="text" formControlName="location" placeholder="Enter area/colony" class="form-control bg-light-blue">
     </div>
 
@@ -75,12 +75,12 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Minimum Price per Month</label>
+      <label class="form-label required">Minimum Price per Month</label>
       <input type="number" formControlName="minPrice" placeholder="Enter min price per month" class="form-control bg-light-blue" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Maximum Price per Month</label>
+      <label class="form-label required">Maximum Price per Month</label>
       <input type="number" formControlName="maxPrice" placeholder="Enter max price per month" class="form-control bg-light-blue" appNumericOnly>
     </div>
 
@@ -97,37 +97,37 @@
     </div> -->
 
     <div class="form-row">
-      <label class="form-label">Security Deposit</label>
+      <label class="form-label required">Security Deposit</label>
       <input type="number" formControlName="security" placeholder="Enter security amount" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Maintenance</label>
+      <label class="form-label required">Maintenance</label>
       <input type="number" formControlName="maintenance" placeholder="Enter maintenance" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Total Floors</label>
+      <label class="form-label required">Total Floors</label>
       <input type="number" formControlName="totalFloors" placeholder="Enter total floors" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Total Rooms</label>
+      <label class="form-label required">Total Rooms</label>
       <input type="number" formControlName="totalRoom" placeholder="Enter total rooms" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Water Supply in Hours</label>
+      <label class="form-label required">Water Supply in Hours</label>
       <input type="number" formControlName="waterSupply" placeholder="Enter water supply in hours" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Power Backup in hours</label>
+      <label class="form-label required">Power Backup in hours</label>
       <input type="number" formControlName="powerBackup" placeholder="Enter power backup in hours" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Notice Period</label>
+      <label class="form-label required">Notice Period</label>
       <input type="number" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control" appNumericOnly>
     </div>
 
@@ -137,16 +137,21 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Contact Number</label>
-      <input
-        type="number"
-        formControlName="contact"
-        placeholder="Enter contact number"
-        class="form-control"
-        appNumericOnly
-        [readonly]="contactOtpVerified"
-        [class.readonly-input]="contactOtpVerified"
-      >
+      <label class="form-label required">Contact Number</label>
+      <div class="input-with-indicator">
+        <input
+          type="number"
+          formControlName="contact"
+          placeholder="Enter contact number"
+          class="form-control"
+          appNumericOnly
+          [readonly]="contactOtpVerified"
+          [class.readonly-input]="contactOtpVerified"
+        >
+        <span class="verified-indicator" *ngIf="contactOtpVerified" aria-hidden="true">
+          <i class="fas fa-check-circle"></i>
+        </span>
+      </div>
     </div>
 
     <div class="mobile-extra">
@@ -166,7 +171,7 @@
             *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
             style="display:block;margin-top:4px"
           >
-            OTP sent successfully to {{ otpTargetNumber || 'entered mobile number' }} <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
+            OTP sent successfully  <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
           </small>
         </div>
       </div>
@@ -204,22 +209,29 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Contact Name</label>
+      <label class="form-label required">Contact Name</label>
       <input type="text" formControlName="contactName" placeholder="Enter contact name" class="form-control">
     </div>
 
     <div class="form-row">
-      <label class="form-label">BHK</label>
-      <input type="text" formControlName="bhk" placeholder="Select BHK" class="form-control bg-light-blue">
+      <label class="form-label required">BHK</label>
+      <select formControlName="bhk" class="form-control bg-light-blue" title="Select BHK">
+        <option value="">Select BHK</option>
+        <option value="1 BHK">1 BHK</option>
+        <option value="2 BHK">2 BHK</option>
+        <option value="3 BHK">3 BHK</option>
+        <option value="4 BHK">4 BHK</option>
+        <option value="Other">Other</option>
+      </select>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Manager/Owner</label>
+      <label class="form-label required">Manager/Owner</label>
       <input type="text" formControlName="manager" placeholder="Enter manager/owner name" class="form-control">
     </div>
 
     <div class="form-row align-start">
-      <label class="form-label pt-2">Full Address</label>
+      <label class="form-label pt-2 required">Full Address</label>
       <textarea formControlName="address" placeholder="Enter full address" rows="4" class="form-control"></textarea>
     </div>
 
@@ -328,6 +340,7 @@
     </div>
     <div *ngIf="showOtpDialog" class="token-dialog-backdrop">
       <div class="token-dialog">
+        <h2>www.roomlocus.com says</h2>
         <p>{{ otpDialogMessage }}</p>
         <button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
       </div>

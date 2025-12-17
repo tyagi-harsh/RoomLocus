@@ -475,6 +475,7 @@
 }
   /* Create the top 2-column layout */
   .top-content-wrapper {
+    height: 100%;
     display: grid;
     grid-template-columns: 5.5fr 4.5fr; /* Left: gallery, Right: info */
     gap: 25px;
@@ -488,7 +489,8 @@
   .right-pane {
     display: block;
     overflow: auto;
-    max-height: calc(100vh - 160px);
+    /* max-height: calc(100vh - 160px); */
+    height: 100%;
     padding-right: 4px; /* small space so hidden scrollbar doesn't clip content */
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
@@ -540,8 +542,10 @@
   .top-content-wrapper {
     grid-template-columns: 5.5fr 4.5fr; /* More space for gallery */
     gap: 30px;
+    height: 100%;
   }
   .right-pane{
-    max-height: calc(100vh - 100px);
+    /* max-height: calc(100vh - 100px); */
+    height: 100%;
   }
 }

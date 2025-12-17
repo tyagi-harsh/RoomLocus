@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {
   INSIDE_FACILITIES,
   OUTSIDE_FACILITIES,
   buildFacilityControls,
 } from '../constants/facility-options';
+import { MOBILE_NUMBER_PATTERN } from '../constants/validation-patterns';
 
 @Injectable({ providedIn: 'root' })
 export class OwnerListingFormService {
@@ -12,31 +13,31 @@ export class OwnerListingFormService {
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
-      city: ['Delhi'],
-      cityControl: ['Delhi'],
-      town: ['Sector 1'],
-      townControl: ['Sector 1'],
-      location: ['Delhi silampur'],
-      landmark: ['Shadra delhi'],
+      city: [''],
+      cityControl: [''],
+      town: [''],
+      townControl: [''],
+      location: [''],
+      landmark: [''],
       luxury: [''],
-      bedCount: [3],
-      guests: [3],
-      totalFloors: [5],
-      minPrice: [5000],
-      maxPrice: [6000],
+      bedCount: [''],
+      guests: [''],
+      totalFloors: [''],
+      minPrice: [''],
+      maxPrice: [''],
       palaceName: [''],
       totalRoom: [''],
       manager: [''],
-      contact: [''],
-      whatsappNo: [''],
+      contact: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
+      whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       address: [''],
-      petAllowed: ['No'],
-      furnishing: ['Fully furnished'],
-      accommodation: ['Independent'],
-      gender: ['Male'],
-      food: ['Yes'],
-      roomType1: ['Shared Room'],
-      roomType2: ['AC'],
+      petAllowed: [''],
+      furnishing: [''],
+      accommodation: [''],
+      gender: [''],
+      food: [''],
+      roomType1: [''],
+      roomType2: [''],
       parking: this.fb.group({
         car: [false],
         bike: [false],

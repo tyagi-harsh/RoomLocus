@@ -18,10 +18,12 @@ import {
   OUTSIDE_FACILITIES,
 } from '../../constants/facility-options';
 import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
+import { parseBackendErrorString } from '../../utils/error-utils';
 import { ToastService } from '../../services/toast.service';
 import { ApiService } from '../../services/api';
 import { PropertyCreationService, HourlyRoomPayload } from '../../services/property-creation.service';
 import { OwnerPropertyStoreService } from '../../services/owner-property-store.service';
+import { MOBILE_NUMBER_REGEX } from '../../constants/validation-patterns';
 
 @Component({
   selector: 'app-owner-hourly-room-details-form',
@@ -238,8 +240,9 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       next: (resp) => {
         this.isSendingContactOtp = false;
         if (resp && resp.success === false) {
-          this.contactOtpError = resp.error || 'Failed to send OTP';
-          this.toastService.error(this.contactOtpError || 'Failed to send OTP');
+          const message = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Failed to send OTP';
+          this.contactOtpError = message;
+          this.toastService.error(message);
           return;
         }
         this.contactOtpRequested = true;
@@ -250,8 +253,9 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       error: (err) => {
         this.isSendingContactOtp = false;
         console.error('getOtp error:', err);
-        this.contactOtpError = 'Failed to send OTP. Please try again.';
-        this.toastService.error(this.contactOtpError);
+        const message = parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
+        this.contactOtpError = message;
+        this.toastService.error(message);
       },
     });
   }
@@ -284,17 +288,19 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
           this.contactOtpInput = '';
           this.openOtpDialog('WhatsApp number verified successfully!');
         } else {
-          this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
+          const message = parseBackendErrorString(resp.body) || parseBackendErrorString(resp) || 'Invalid or expired OTP';
+          this.contactOtpError = message;
           this.showContactResendOption = true;
-          this.toastService.error(this.contactOtpError || 'Invalid or expired OTP');
+          this.toastService.error(message);
         }
       },
       error: (err) => {
         this.isVerifyingContactOtp = false;
         console.error('verifyOtp error:', err);
-        this.contactOtpError = 'Verification failed. Please try again.';
+        const message = parseBackendErrorString(err) || 'Verification failed. Please try again.';
+        this.contactOtpError = message;
         this.showContactResendOption = true;
-        this.toastService.error(this.contactOtpError || 'Verification failed');
+        this.toastService.error(message);
       },
     });
   }
@@ -320,7 +326,7 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       return false;
     }
     const digitsOnly = value.toString().replace(/\D/g, '');
-    return digitsOnly.length === 10;
+    return MOBILE_NUMBER_REGEX.test(digitsOnly);
   }
 
   get otpTargetNumber(): string {

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -22,6 +22,22 @@ import {
   buildFacilityControls,
 } from '../../constants/facility-options';
 import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
+import { parseBackendErrorString } from '../../utils/error-utils';
+import { MOBILE_NUMBER_PATTERN, MOBILE_NUMBER_REGEX } from '../../constants/validation-patterns';
+
+// Validator: require at least one checkbox in a FormGroup to be selected
+const atLeastOneChecked = (control: AbstractControl): ValidationErrors | null => {
+  if (!control || typeof control.value !== 'object') {
+    return { atLeastOneRequired: true };
+  }
+  try {
+    const vals = Object.values(control.value);
+    const any = vals.some((v) => !!v);
+    return any ? null : { atLeastOneRequired: true };
+  } catch (e) {
+    return { atLeastOneRequired: true };
+  }
+};
 
 @Component({
   selector: 'app-owner-flat-details-form',
@@ -86,46 +102,50 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     private ownerPropertyStore: OwnerPropertyStoreService
   ) {
     this.listingForm = this.fb.group({
-      city: [''],
+      city: ['',],
       cityControl: ['', Validators.required],
       town: [''],
       townControl: ['', Validators.required],
       location: ['', Validators.required],
-      landmark: [''],
-      bhk: ['1 BHK', Validators.required],
-      totalFlat: ['', Validators.required],
-      totalFloors: ['', Validators.required],
+      landmark: ['',Validators.required],
+      bhk: ['', Validators.required],
+      totalFlat: [''],
+      totalFloors: [''],
       minPrice: ['', Validators.required],
       maxPrice: ['', Validators.required],
       security: ['', Validators.required],
       maintenance: ['', Validators.required],
       offer: [''],
       caretaker: [''],
-      petAllowed: ['', Validators.required],
-      noticePeriod: ['1 Month', Validators.required],
-      manager: [''],
+      petAllowed: [''],
+      noticePeriod: ['', Validators.required],
+      manager: ['', Validators.required ],
       contact: ['', Validators.required],
-      whatsappNo: ['', [Validators.required]],
+      whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       address: ['', Validators.required],
       furnishing: ['', Validators.required],
       accommodation: ['', Validators.required],
       gender: ['', Validators.required],
-      waterSupply: ['24 hr', Validators.required],
-      powerBackup: ['Yes', Validators.required],
+      // waterSupply: ['24 hr', Validators.required],
+      // powerBackup: ['Yes', Validators.required],
+      // constrain hours to 0-24
+      // use numeric defaults and validators
+      waterSupply: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
+      powerBackup: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
       flatType: ['', Validators.required],
       parking: this.fb.group({
         car: [false],
-        bike: [false]
-      }),
+        bike: [false],
+      }, { validators: atLeastOneChecked }),
       preferTenant: this.fb.group({
         family: [false],
         bachelors: [false],
         girls: [false],
         boys: [false],
-        professionals: [false]
-      }),
-      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES)),
-      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES))
+        professionals: [false],
+      }, { validators: atLeastOneChecked }),
+      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES), { validators: atLeastOneChecked }),
+      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES), { validators: atLeastOneChecked })
     });
 
     this.filteredCities$ = combineLatest([
@@ -300,8 +320,9 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       next: (resp) => {
         this.isSendingContactOtp = false;
         if (resp && resp.success === false) {
-          this.contactOtpError = resp.error || 'Failed to send OTP';
-          this.toastService.error(this.contactOtpError || 'Failed to send OTP');
+          const message = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Failed to send OTP';
+          this.contactOtpError = message;
+          this.toastService.error(message);
           return;
         }
         this.contactOtpRequested = true;
@@ -312,8 +333,9 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       error: (err) => {
         this.isSendingContactOtp = false;
         console.error('getOtp error:', err);
-        this.contactOtpError = 'Failed to send OTP. Please try again.';
-        this.toastService.error(this.contactOtpError);
+        const message = parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
+        this.contactOtpError = message;
+        this.toastService.error(message);
       },
     });
   }
@@ -346,17 +368,19 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
           this.contactOtpInput = '';
           this.openOtpDialog('Mobile verified successfully');
         } else {
-          this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
+          const message = parseBackendErrorString(resp.body) || parseBackendErrorString(resp) || 'Invalid or expired OTP';
+          this.contactOtpError = message;
           this.showContactResendOption = true;
-          this.toastService.error(this.contactOtpError || 'Invalid or expired OTP');
+          this.toastService.error(message);
         }
       },
       error: (err) => {
         this.isVerifyingContactOtp = false;
         console.error('verifyOtp error:', err);
-        this.contactOtpError = 'Verification failed. Please try again.';
+        const message = parseBackendErrorString(err) || 'Verification failed. Please try again.';
+        this.contactOtpError = message;
         this.showContactResendOption = true;
-        this.toastService.error(this.contactOtpError || 'Verification failed');
+        this.toastService.error(message);
       },
     });
   }
@@ -434,7 +458,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
   private mapFormToPayload(): FlatPayload {
     const v = this.listingForm.value;
     const rawBhkValue = (v.bhk ?? '').toString().trim();
-    const bhkValue = rawBhkValue || '1 BHK';
+    const bhkValue = rawBhkValue || '';
 
     // Build parking array from checkboxes
     const parking: string[] = [];
@@ -598,7 +622,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     }
     const rawString = controlValue.toString();
     const digitsOnly = rawString.replace(/\D/g, '');
-    return digitsOnly.length === 10;
+    return MOBILE_NUMBER_REGEX.test(digitsOnly);
   }
 
   get otpTargetNumber(): string {

@@ -94,6 +94,24 @@
   letter-spacing: 0.02em;
 }
 
+.form-label.required::after {
+  content: '*';
+  color: #dc2626;
+  margin-left: 0.2rem;
+}
+
+.section-title.required::after {
+  content: '*';
+  color: #dc2626;
+  margin-left: 0.25rem;
+}
+
+.required-label::after {
+  content: '*';
+  color: #dc2626;
+  margin-left: 0.2rem;
+}
+
 /* Form Controls */
 .form-control {
   width: 100%;
@@ -116,6 +134,21 @@
 .form-control::placeholder {
   color: #d1d5db;
 }
+
+/* Remove native spin buttons from number inputs for better UX across owner forms */
+/* Remove native spin buttons from number inputs for better UX across owner forms */
+.form-control[type="number"]::-webkit-outer-spin-button,
+.form-control[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.form-control[type="number"] {
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 
 .bg-light-blue {
   background-color: #eff6ff;
@@ -315,10 +348,25 @@
 }
 
 
+
+.token-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 15, 28, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center; /* place towards top */
+  justify-content: center;
+  padding-top: 6vh; /* slight top offset */
+  z-index: 1050;
+}
+
 .token-dialog {
   background: #fff;
   border-radius: 1rem;
   padding: 1.3rem 1.4rem;
+  
   /* width: min(90vw, 360px); */
   max-width: 290px;
   min-width: 170px;
@@ -357,6 +405,7 @@
   cursor: pointer;
   transition: transform 0.15s ease;
 }
+
 
 .token-dialog-btn:hover {
   transform: translateY(-1px);
@@ -420,6 +469,20 @@
   text-align: right;
   width: 100%;
   font-size: 0.85rem;
+}
+
+.form-row .validation-error {
+  grid-column: 2 / -1;
+  color: #dc2626;
+  margin-top: 0.35rem;
+  justify-content: flex-start;
+  text-align: left;
+  align-items: center;
+  margin-top: 0px !important;
+}
+
+.validation-error small {
+  margin-top: 0px !important;
 }
 
 .otp-button,

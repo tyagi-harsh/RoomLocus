@@ -118,18 +118,32 @@
 
     <div class="form-row">
       <label class="form-label">WhatsApp Number</label>
-      <input
-        type="number"
-        formControlName="whatsappNo"
-        placeholder="Enter whatsapp number"
-        class="form-control"
-        appNumericOnly
-        [readonly]="contactOtpVerified"
-        [class.readonly-input]="contactOtpVerified"
+      <div class="input-with-indicator">
+        <input
+          type="number"
+          formControlName="whatsappNo"
+          placeholder="Enter whatsapp number"
+          class="form-control"
+          appNumericOnly
+          [readonly]="contactOtpVerified"
+          [class.readonly-input]="contactOtpVerified"
+        >
+        <span class="verified-indicator" *ngIf="contactOtpVerified" aria-hidden="true">
+          <i class="fas fa-check-circle"></i>
+        </span>
+      </div>
+      <div
+        *ngIf="listingForm.get('whatsappNo')?.invalid && (listingForm.get('whatsappNo')?.dirty || listingForm.get('whatsappNo')?.touched)"
+        class="validation-error"
       >
+        <small *ngIf="listingForm.get('whatsappNo')?.errors?.['required']">Whatsapp Number is required.</small>
+        <small *ngIf="listingForm.get('whatsappNo')?.errors?.['pattern']">
+          Enter a 10-digit mobile number starting with 6-9.
+        </small>
+      </div>
     </div>
 
-    <div class="mobile-extra">
+      <div class="mobile-extra">
       <div class="otp-cta">
         <div class="get-otp-div">
           <button
@@ -148,6 +162,7 @@
           >
             OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
           </small>
+          <!-- Inline OTP message removed; overlay dialog used instead -->
         </div>
       </div>
       <div *ngIf="contactOtpRequested" class="otp-panel">
@@ -205,7 +220,7 @@
       </div>
     </div>
 
-    <!-- Pets Allowed removed for hourly room listings -->
+    <!-- Pets Allowed removed for hourly room details as requested -->
 
     <div class="radio-section">
       <h3 class="section-title">Gender Preferences</h3>
@@ -300,6 +315,7 @@
     </div>
     <div *ngIf="showOtpDialog" class="token-dialog-backdrop">
       <div class="token-dialog">
+        <h2>www.roomlocus.com says</h2>
         <p>{{ otpDialogMessage }}</p>
         <button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
       </div>

@@ -119,3 +119,25 @@ body {
 .toast-info .mat-mdc-button {
   color: #fff !important;
 }
+
+.input-with-indicator {
+  position: relative;
+  width: 100%;
+}
+
+.input-with-indicator input {
+  width: 100%;
+  padding-right: 2.75rem;
+}
+
+.verified-indicator {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  color: #16a34a;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

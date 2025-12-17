@@ -22,6 +22,8 @@ import {
   buildFacilityControls,
 } from '../../constants/facility-options';
 import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
+import { parseBackendErrorString } from '../../utils/error-utils';
+import { MOBILE_NUMBER_PATTERN, MOBILE_NUMBER_REGEX } from '../../constants/validation-patterns';
 
 @Component({
   selector: 'app-owner-pg-details-form',
@@ -90,10 +92,10 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       town: [''],
       townControl: ['', Validators.required],
       location: ['', Validators.required],
-      landmark: [''],
-      bhk: ['1 BHK', Validators.required],
-      totalFlat: ['', Validators.required],
-      totalFloors: ['', Validators.required],
+      landmark: ['', Validators.required],
+      bhk: ['', Validators.required],
+      totalFlat: [''],
+      totalFloors: [''],
       minPrice: ['', Validators.required],
       maxPrice: ['', Validators.required],
       security: ['', Validators.required],
@@ -101,23 +103,25 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       offer: [''],
       bedCount: ['', Validators.required],
       caretaker: [''],
-      petAllowed: ['', Validators.required],
-      noticePeriod: ['1 Month', Validators.required],
-      manager: [''],
+      petAllowed: [''],
+      noticePeriod: ['', Validators.required],
+      manager: ['', Validators.required],
       contact: ['', Validators.required],
-      whatsappNo: ['', [Validators.required]],
+      whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       address: ['', Validators.required],
       furnishing: ['', Validators.required],
       accommodation: ['', Validators.required],
       gender: ['', Validators.required],
-      waterSupply: ['24 hr', Validators.required],
-      powerBackup: ['Yes', Validators.required],
+      // waterSupply: ['24 hr', Validators.required],
+      waterSupply: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
+      powerBackup: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
       flatType: ['', Validators.required],
       timeRestrict: ['', Validators.required],
       foodAvailable: ['', Validators.required],
       parking: this.fb.group({
         car: [false],
         bike: [false],
+        
       }),
       preferTenant: this.fb.group({
         family: [false],
@@ -125,8 +129,9 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
         girls: [false],
         boys: [false],
         professionals: [false],
+        
       }),
-      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES)),
+      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES)) ,
       outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES)),
     });
 
@@ -275,8 +280,9 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       next: (resp) => {
         this.isSendingContactOtp = false;
         if (resp && resp.success === false) {
-          this.contactOtpError = resp.error || 'Failed to send OTP';
-          this.toastService.error(this.contactOtpError || 'Failed to send OTP');
+          const message = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Failed to send OTP';
+          this.contactOtpError = message;
+          this.toastService.error(message);
           return;
         }
         this.contactOtpRequested = true;
@@ -287,8 +293,9 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       error: (err) => {
         this.isSendingContactOtp = false;
         console.error('getOtp error:', err);
-        this.contactOtpError = 'Failed to send OTP. Please try again.';
-        this.toastService.error(this.contactOtpError);
+        const message = parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
+        this.contactOtpError = message;
+        this.toastService.error(message);
       },
     });
   }
@@ -321,17 +328,19 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
           this.contactOtpInput = '';
           this.openOtpDialog('Mobile verified successfully');
         } else {
-          this.contactOtpError = resp.body?.message || 'Invalid or expired OTP';
+          const message = parseBackendErrorString(resp.body) || parseBackendErrorString(resp) || 'Invalid or expired OTP';
+          this.contactOtpError = message;
           this.showContactResendOption = true;
-          this.toastService.error(this.contactOtpError || 'Invalid or expired OTP');
+          this.toastService.error(message);
         }
       },
       error: (err) => {
         this.isVerifyingContactOtp = false;
         console.error('verifyOtp error:', err);
-        this.contactOtpError = 'Verification failed. Please try again.';
+        const message = parseBackendErrorString(err) || 'Verification failed. Please try again.';
+        this.contactOtpError = message;
         this.showContactResendOption = true;
-        this.toastService.error(this.contactOtpError || 'Verification failed');
+        this.toastService.error(message);
       },
     });
   }
@@ -603,7 +612,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     }
     const rawString = controlValue.toString();
     const digitsOnly = rawString.replace(/\D/g, '');
-    return digitsOnly.length === 10;
+    return MOBILE_NUMBER_REGEX.test(digitsOnly);
   }
 
   get otpTargetNumber(): string {

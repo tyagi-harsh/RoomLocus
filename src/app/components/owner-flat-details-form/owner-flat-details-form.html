@@ -13,7 +13,7 @@
   <form [formGroup]="listingForm">
     <div class="form-group">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Select City</mat-label>
+        <mat-label >Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
         <input
           matInput
@@ -38,7 +38,7 @@
 
     <div class="form-group">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Town & Sector</mat-label>
+        <mat-label >Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
         <input
           matInput
@@ -65,22 +65,22 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Area/Colony</label>
+      <label class="form-label required">Area/Colony</label>
       <input type="text" formControlName="location" placeholder="Enter area/colony" class="form-control bg-light-blue">
     </div>
 
     <div class="form-row">
-      <label class="form-label">Landmark</label>
+      <label class="form-label required">Landmark</label>
       <input type="text" formControlName="landmark" placeholder="Enter landmark" class="form-control bg-light-blue">
     </div>
 
     <div class="form-row">
-      <label class="form-label">Minimum Price per Month</label>
+      <label class="form-label required">Minimum Price per Month</label>
       <input type="number" formControlName="minPrice" placeholder="Enter min price per month" class="form-control bg-light-blue" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Maximum Price per Month</label>
+      <label class="form-label required">Maximum Price per Month</label>
       <input type="number" formControlName="maxPrice" placeholder="Enter max price per month" class="form-control bg-light-blue" appNumericOnly>
     </div>
     
@@ -98,12 +98,12 @@
     </div> -->
 
     <div class="form-row">
-      <label class="form-label">Security Deposit</label>
+      <label class="form-label required">Security Deposit</label>
       <input type="number" formControlName="security" placeholder="Enter security amount" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Maintenance</label>
+      <label class="form-label required">Maintenance</label>
       <input type="number" formControlName="maintenance" placeholder="Enter maintenance" class="form-control" appNumericOnly>
     </div>
 
@@ -117,18 +117,18 @@
       <input type="number" formControlName="totalFlat" placeholder="Enter total flats" class="form-control" appNumericOnly>
     </div>
 
-     <div class="form-row">
-      <label class="form-label">Water Supply in Hours</label>
-      <input type="number" formControlName="waterSupply" placeholder="Enter water supply in hours" class="form-control" appNumericOnly>
+    <div class="form-row">
+     <label class="form-label required">Water Supply in Hours</label>
+      <input type="number" formControlName="waterSupply" placeholder="Enter water supply in hours" class="form-control" appNumericOnly min="0" max="24" step="1">
     </div>
 
     <div class="form-row">
-      <label class="form-label">Power Backup in hours </label>
-      <input type="number" formControlName="powerBackup" placeholder="Enter power backup in hours" class="form-control" appNumericOnly>
+      <label class="form-label required">Power Backup in hours </label>
+      <input type="number" formControlName="powerBackup" placeholder="Enter power backup in hours" class="form-control" appNumericOnly min="0" max="24" step="1">
     </div>
 
-     <div class="form-row">
-      <label class="form-label">Notice Period</label>
+    <div class="form-row">
+     <label class="form-label required">Notice Period</label>
       <input type="number" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control" appNumericOnly>
     </div>
 
@@ -139,16 +139,30 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Whatsapp No</label>
-      <input
-        type="number"
-        formControlName="whatsappNo"
-        placeholder="Enter whatsapp number"
-        class="form-control"
-        appNumericOnly
-        [readonly]="contactOtpVerified"
-        [class.readonly-input]="contactOtpVerified"
+      <label class="form-label required">Whatsapp No</label>
+      <div class="input-with-indicator">
+        <input
+          type="number"
+          formControlName="whatsappNo"
+          placeholder="Enter whatsapp number"
+          class="form-control"
+          appNumericOnly
+          [readonly]="contactOtpVerified"
+          [class.readonly-input]="contactOtpVerified"
+        >
+        <span class="verified-indicator" *ngIf="contactOtpVerified" aria-hidden="true">
+          <i class="fas fa-check-circle"></i>
+        </span>
+      </div>
+      <div
+        *ngIf="listingForm.get('whatsappNo')?.invalid && (listingForm.get('whatsappNo')?.dirty || listingForm.get('whatsappNo')?.touched)"
+        class="validation-error"
       >
+        <small *ngIf="listingForm.get('whatsappNo')?.errors?.['required']">Whatsapp Number is required.</small>
+        <small *ngIf="listingForm.get('whatsappNo')?.errors?.['pattern']">
+          Enter a 10-digit mobile number starting with 6-9.
+        </small>
+      </div>
     </div>
     <div class="mobile-extra">
       <div class="otp-cta">
@@ -204,33 +218,40 @@
       </div>
     </div>
   
- <div class="form-row">
-      <label class="form-label">Contact Name</label>
+    <div class="form-row">
+      <label class="form-label required">Contact Name</label>
       <input type="text" formControlName="contact" placeholder="Enter contact name" class="form-control">
     </div>
 
   
     <div class="form-row">
-      <label class="form-label">BHK</label>
-      <input type="text" formControlName="bhk" placeholder="Select BHK" class="form-control bg-light-blue">
+      <label class="form-label required">BHK</label>
+      <select formControlName="bhk" class="form-control bg-light-blue" title="Select BHK">
+        <option value="">Select BHK</option>
+        <option value="1 BHK">1 BHK</option>
+        <option value="2 BHK">2 BHK</option>
+        <option value="3 BHK">3 BHK</option>
+        <option value="4 BHK">4 BHK</option>
+        <option value="Other">Other</option>
+      </select>
     </div>
 
     
 
     <div class="form-row">
-      <label class="form-label">Manager/Owner</label>
+      <label class="form-label required">Manager/Owner</label>
       <input type="text" formControlName="manager" placeholder="Enter manager/owner name" class="form-control">
     </div>
 
    
 
     <div class="form-row align-start">
-      <label class="form-label pt-2">Full Address</label>
+      <label class="form-label required pt-2">Full Address</label>
       <textarea formControlName="address" placeholder="Enter full address" rows="4" class="form-control"></textarea>
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">Furnishing Type *</h3>
+      <h3 class="section-title required">Furnishing Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Fully furnished" formControlName="furnishing"><span>Fully furnished</span></label>
         <label class="radio-item"><input type="radio" value="Semi furnished" formControlName="furnishing"><span>Semi furnished</span></label>
@@ -239,7 +260,7 @@
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">Accommodation Type</h3>
+      <h3 class="section-title required">Accommodation Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation"><span>Independent</span></label>
         <label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation"><span>Apartment</span></label>
@@ -256,7 +277,7 @@
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">Gender Preferences</h3>
+      <h3 class="section-title required">Gender Preferences</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Male" formControlName="gender"><span>Male</span></label>
         <label class="radio-item"><input type="radio" value="Female" formControlName="gender"><span>Female</span></label>
@@ -268,7 +289,7 @@
     
 
     <div class="radio-section">
-      <h3 class="section-title">Flat Type</h3>
+      <h3 class="section-title required">Flat Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Private" formControlName="flatType"><span>Private</span></label>
         <label class="radio-item"><input type="radio" value="Shared" formControlName="flatType"><span>Shared</span></label>
@@ -295,7 +316,7 @@
     </div>
 
     <div class="radio-section" formGroupName="insideFacility">
-      <h3 class="section-title">Flat Inside Facility</h3>
+      <h3 class="section-title required">Flat Inside Facility</h3>
       <div class="radio-group">
         <label class="radio-item" *ngFor="let facility of insideFacilities">
           <input type="checkbox" [formControlName]="facility.key">
@@ -305,7 +326,7 @@
     </div>
 
     <div class="radio-section" formGroupName="outsideFacility">
-      <h3 class="section-title">Flat Outside Facility</h3>
+      <h3 class="section-title required">Flat Outside Facility</h3>
       <div class="radio-group">
         <label class="radio-item" *ngFor="let facility of outsideFacilities">
           <input type="checkbox" [formControlName]="facility.key">

@@ -20,6 +20,8 @@ import { ApiService } from '../../services/api';
 import { WishlistService } from '../../services/wishlist.service';
 import { encryptWithBackendRsa } from '../../utils/rsa-encryption';
 import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
+import { parseBackendErrorString } from '../../utils/error-utils';
+import { MOBILE_NUMBER_PATTERN } from '../../constants/validation-patterns';
 
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'otp';
@@ -76,6 +78,8 @@ export class LoginSignup implements OnInit, OnDestroy {
   showForgotConfirmPassword = false;
   showSignupOtpSentMessage = false;
   showForgotOtpSentMessage = false;
+  showOtpDialog = false;
+  otpDialogMessage = '';
   forgotResetToken: string | null = null;
   otpCode = '';
   otpContext: 'signup' | 'forgot' = 'signup';
@@ -194,9 +198,19 @@ export class LoginSignup implements OnInit, OnDestroy {
     });
   }
 
+  private openOtpDialog(message: string): void {
+    this.otpDialogMessage = message;
+    this.showOtpDialog = true;
+  }
+
+  closeOtpDialog(): void {
+    this.showOtpDialog = false;
+    this.otpDialogMessage = '';
+  }
+
   private buildLoginForm(): FormGroup {
     return new FormGroup({
-      whatsappNo: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
+      whatsappNo: new FormControl('', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]),
       password: new FormControl('', [Validators.required, Validators.minLength(6)]),
     });
   }
@@ -205,7 +219,7 @@ export class LoginSignup implements OnInit, OnDestroy {
     return new FormGroup({
       name: new FormControl('', [Validators.required]),
       email: new FormControl('', [Validators.email]),
-      mobile: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
+      mobile: new FormControl('', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]),
       password: new FormControl('', [Validators.required, Validators.minLength(6), passwordValidator()]),
       confirmPassword: new FormControl('', [Validators.required]),
     });
@@ -213,7 +227,7 @@ export class LoginSignup implements OnInit, OnDestroy {
 
   private buildForgotForm(): FormGroup {
     return new FormGroup({
-      mobile: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{10}$')]),
+      mobile: new FormControl('', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]),
       newPassword: new FormControl({ value: '', disabled: true }, [Validators.required, Validators.minLength(6), passwordValidator()]),
       confirmPassword: new FormControl({ value: '', disabled: true }, [Validators.required]),
     });
@@ -477,7 +491,7 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.api.getOtp(payload).subscribe((resp: any) => {
       this.isSendingOtp = false;
       if (resp && resp.success === false) {
-        const message = this.parseBackendErrorString(resp.error) || resp.message || 'Failed to send OTP.';
+        const message = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Failed to send OTP.';
         this.signupMobileError = message;
         this.snackBar.open('Failed to send OTP: ' + message, 'Close', { duration: 4000 });
         this.signupForm.get('password')?.enable({ emitEvent: false });
@@ -495,9 +509,10 @@ export class LoginSignup implements OnInit, OnDestroy {
         if (resp.otp) console.log('DEV OTP:', resp.otp);
       }
       this.otpSent.emit({ mobile, context: 'signup' });
+      this.openOtpDialog('OTP sent successfully');
     }, (err) => {
       this.isSendingOtp = false;
-      const message = this.parseBackendErrorString(err?.error) || this.parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
+      const message = parseBackendErrorString(err?.error) || parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
       this.signupMobileError = message;
       this.signupForm.get('password')?.enable({ emitEvent: false });
       this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
@@ -537,7 +552,7 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.api.getOtp(payload).subscribe((resp: any) => {
       this.isSendingOtp = false;
       if (resp && resp.success === false) {
-        const errorMessage = this.parseBackendErrorString(resp.error) || resp.message || 'Please verify the number/role; account not found.';
+        const errorMessage = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Please verify the number/role; account not found.';
         this.forgotUserLookupError = errorMessage;
         this.showForgotOtpSentMessage = false;
         const toastMessage = errorMessage && errorMessage.toLowerCase().includes('no user')
@@ -573,9 +588,10 @@ export class LoginSignup implements OnInit, OnDestroy {
         if (resp.otp) console.log('DEV OTP:', resp.otp);
       }
       this.otpSent.emit({ mobile, context: 'forgot' });
+      this.openOtpDialog('OTP sent successfully to registered WhatsApp number');
     }, (err) => {
       this.isSendingOtp = false;
-      const errMsg = this.parseBackendErrorString(err?.error) || this.parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
+      const errMsg = parseBackendErrorString(err?.error) || parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
       this.forgotUserLookupError = errMsg;
       this.showForgotOtpSentMessage = false;
       this.snackBar.open('Failed to send OTP: ' + errMsg, 'Close', { duration: 4000 });
@@ -633,6 +649,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         this.otpVerified.emit({ mobile: this.pendingMobile, context: 'signup' });
         this.signupMobileLocked = true;
         this.snackBar.open('OTP verified', 'Close', { duration: 2000 });
+        this.openOtpDialog('WhatsApp number verified successfully!');
         // Debug: show resulting states so it's easy to confirm in browser console
         console.debug('verifySignupOtp: enabled password controls', {
           allowPasswordEntry: this.allowPasswordEntry,
@@ -643,14 +660,14 @@ export class LoginSignup implements OnInit, OnDestroy {
       }
       // extract message from response body when backend returns { status, body }
       const respBody = resp && resp.body ? resp.body : resp;
-      const errMsg = (respBody && (respBody.error || respBody.message)) || 'Invalid OTP';
+      const errMsg = parseBackendErrorString(respBody) || 'Invalid OTP';
       this.otpError = errMsg;
       this.showSignupOtpSentMessage = false;
       this.showResendOtpOption = true;
       this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
     }, (err) => {
       this.isVerifyingOtp = false;
-      const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Server error';
+      const errMsg = parseBackendErrorString(err) || 'Server error';
       this.otpError = errMsg;
       this.showSignupOtpSentMessage = false;
       this.showResendOtpOption = true;
@@ -706,10 +723,11 @@ export class LoginSignup implements OnInit, OnDestroy {
         this.otpVerified.emit({ mobile: this.pendingMobile, context: 'forgot' });
         this.forgotMobileLocked = true;
         this.snackBar.open('OTP verified', 'Close', { duration: 2000 });
+        this.openOtpDialog('WhatsApp number verified successfully!');
         return;
       }
 
-      const errMsg = (respBody && (respBody.error || respBody.message)) || 'Invalid OTP';
+      const errMsg = parseBackendErrorString(respBody) || 'Invalid OTP';
       this.forgotOtpError = errMsg;
       this.showForgotOtpSentMessage = false;
       this.showForgotResendOption = true;
@@ -717,7 +735,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
     }, (err) => {
       this.isVerifyingForgotOtp = false;
-      const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Server error';
+      const errMsg = parseBackendErrorString(err) || 'Server error';
       this.forgotOtpError = errMsg;
       this.showForgotOtpSentMessage = false;
       this.showForgotResendOption = true;
@@ -877,12 +895,12 @@ export class LoginSignup implements OnInit, OnDestroy {
         return;
       }
       const respBody = resp && resp.body ? resp.body : resp;
-      const errMsg = (respBody && (respBody.error || respBody.message)) || 'Invalid OTP';
+      const errMsg = parseBackendErrorString(respBody) || 'Invalid OTP';
       this.otpError = errMsg;
       this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
     }, (err) => {
       this.isVerifyingOtp = false;
-      const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Server error';
+      const errMsg = parseBackendErrorString(err) || 'Server error';
       this.otpError = errMsg;
       this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
     });
@@ -1198,28 +1216,4 @@ export class LoginSignup implements OnInit, OnDestroy {
     return null;
   }
 
-  private parseBackendErrorString(error: any): string | null {
-    if (!error) {
-      return null;
-    }
-    if (typeof error === 'string') {
-      return error;
-    }
-    if (typeof error.message === 'string') {
-      return error.message;
-    }
-    if (typeof error.error === 'string') {
-      return error.error;
-    }
-    if (typeof error.details === 'string') {
-      return error.details;
-    }
-    if (typeof error === 'object' && error.error && typeof error.error !== 'function') {
-      const nested = this.parseBackendErrorString(error.error);
-      if (nested) {
-        return nested;
-      }
-    }
-    return null;
-  }
 }

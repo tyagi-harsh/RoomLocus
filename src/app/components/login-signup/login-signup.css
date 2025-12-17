@@ -401,6 +401,60 @@
   font-weight: 500;
 }
 
+.token-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 7, 16, 0.5);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 6vh;
+  z-index: 1100;
+}
+
+.token-dialog {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.3rem 1.4rem;
+  max-width: 320px;
+  min-width: 200px;
+  text-align: right;
+  box-shadow: 0 35px 45px rgba(15, 23, 42, 0.35);
+}
+
+.token-dialog h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: #49494b;
+  text-align: left;
+}
+
+.token-dialog p {
+  font-size: 0.95rem;
+  color: #4d4c4c;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.token-dialog-btn {
+  margin-top: 1rem;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  background: #03a4d4;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.token-dialog-btn:hover {
+  transform: translateY(-1px);
+}
+
 .forgot-password-link:hover,
 .sign-up-link:hover {
   text-decoration: underline;

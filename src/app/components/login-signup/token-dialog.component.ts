@@ -31,7 +31,7 @@ export interface TokenDialogData {
         <textarea readonly rows="3" style="width:100%">{{ data.refreshToken }}</textarea>
       </div>
     </div>
-    <div mat-dialog-actions style="justify-content:flex-end">
+    <div mat-dialog-actions style="justify-content: center;">
       <button mat-flat-button color="primary" (click)="close()">Close</button>
     </div>
   `,
