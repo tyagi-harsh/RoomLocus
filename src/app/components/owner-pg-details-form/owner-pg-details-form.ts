@@ -12,7 +12,7 @@ import { PropertySearchService } from '../../services/property-search.service';
 import { PropertyCreationService, PGPayload } from '../../services/property-creation.service';
 import { ToastService } from '../../services/toast.service';
 import { ApiService } from '../../services/api';
-import { OwnerPropertyStoreService } from '../../services/owner-property-store.service';
+import { PropertyCreationDraftService } from '../../services/property-creation-draft.service';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { City } from '../../interface/City';
 import { map, take, takeUntil } from 'rxjs/operators';
@@ -84,7 +84,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     private propertyCreationService: PropertyCreationService,
     private toastService: ToastService,
     private apiService: ApiService,
-    private ownerPropertyStore: OwnerPropertyStoreService
+    private creationDraftService: PropertyCreationDraftService
   ) {
     this.listingForm = this.fb.group({
       city: [''],
@@ -405,37 +405,25 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       return;
     }
 
-    this.isSaving = true;
     const ownerId = this.propertyCreationService.getOwnerId();
     console.log('Owner ID:', ownerId);
     if (!ownerId) {
-      this.isSaving = false;
       this.toastService.error('Owner ID not found. Please login again.');
       return;
     }
 
     const payload = this.mapFormToPayload();
-    console.log('Payload:', payload);
-    console.log('Calling createPG API...');
-    this.propertyCreationService.createPG(ownerId, payload).pipe(take(1)).subscribe({
-      next: (result) => {
-        this.isSaving = false;
-        if (result.success) {
-          this.toastService.success('PG details saved successfully!');
-          this.recordPropertySummary(ownerId, result.data?.id, 'PG');
-          this.router
-            .navigate(['/owner/pg/images'], { queryParams: { propertyType: 'pg' } })
-            .catch((err) => console.error('Navigation failed', err));
-        } else {
-          this.toastService.error(result.error || 'Failed to save PG details');
-        }
-      },
-      error: (err) => {
-        this.isSaving = false;
-        console.error('Error creating PG:', err);
-        this.toastService.error('Failed to save PG details. Please try again.');
-      },
+    console.log('Payload saved for image upload:', payload);
+    this.creationDraftService.setDraft({
+      propertyType: 'pg',
+      payload,
+      ownerId,
+      timestamp: Date.now(),
     });
+    this.toastService.success('PG details saved. Upload images to complete the listing.');
+    this.router
+      .navigate(['/owner/pg/images'], { queryParams: { propertyType: 'pg' } })
+      .catch((err) => console.error('Navigation failed', err));
   }
 
   mapFormToPayload(): PGPayload {
@@ -482,7 +470,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     }
 
     // Convert powerBackup mixed-type to number (truthy -> 1, else 0)
-    const powerBackupNum = ['yes', 'true', '1', 'y'].includes(String(f.powerBackup).toLowerCase()) ? 1 : 0;
+    const powerBackupNum = parseInt(String(f.powerBackup), 10);
 
     // Convert foodAvailable and timeRestrict to boolean (accept Yes/true/1)
     const truthy = (val: any) => ['yes', 'true', '1', 'y'].includes(String(val).toLowerCase());
@@ -508,7 +496,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       totalPg: parseInt(f.totalFlat, 10) || 0,
       totalFloor: parseInt(f.totalFloors, 10) || 0,
       waterSupply: waterSupplyNum,
-      powerBackup: powerBackupNum,
+      powerBackup: isNaN(powerBackupNum) ? 0 : powerBackupNum,
       noticePeriod: f.noticePeriod || '',
       furnishingType: f.furnishing || '',
       accomoType: f.accommodation || '',
@@ -528,24 +516,6 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       isDraft: false,
       verificationPending: true,
     };
-  }
-
-  private recordPropertySummary(ownerId: number, propertyId: number | undefined, propertyType: string): void {
-    const cityName = typeof this.listingForm.get('cityControl')?.value === 'object'
-      ? (this.listingForm.get('cityControl')?.value as any)?.name
-      : this.listingForm.get('cityControl')?.value;
-    const townSector = this.listingForm.get('townControl')?.value || this.listingForm.get('town')?.value || '';
-    const locationValue = this.listingForm.get('location')?.value || '';
-    const segments = [propertyType, cityName, townSector, locationValue].filter(Boolean);
-    const displayName = segments.length ? segments.join(' · ') : propertyType;
-    this.ownerPropertyStore.addProperty(ownerId, {
-      propertyId: propertyId ?? Date.now(),
-      propertyType,
-      displayName,
-      location: [townSector, locationValue].filter(Boolean).join(', ') || 'Location not set',
-      townSector: townSector || undefined,
-      createdAt: Date.now(),
-    });
   }
 
   private loadSavedFormState(): void {

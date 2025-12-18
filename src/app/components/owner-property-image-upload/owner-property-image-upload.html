@@ -29,6 +29,8 @@
 
   <div class="footer-actions">
     <button type="button" (click)="onBack()" class="btn-back">Back</button>
-    <button type="button" (click)="onUpload()" class="btn-upload">Upload Images</button>
+    <button type="button" (click)="onUpload()" class="btn-upload" [disabled]="isSaving">
+      {{ isSaving ? 'Creating listing...' : 'Upload Images' }}
+    </button>
   </div>
 </div>

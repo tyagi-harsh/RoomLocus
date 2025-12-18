@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import {
   INSIDE_FACILITIES,
   OUTSIDE_FACILITIES,
@@ -7,41 +7,56 @@ import {
 } from '../constants/facility-options';
 import { MOBILE_NUMBER_PATTERN } from '../constants/validation-patterns';
 
+const atLeastOneChecked = (control: AbstractControl): ValidationErrors | null => {
+  if (!control || typeof control.value !== 'object') {
+    return { atLeastOneRequired: true };
+  }
+  try {
+    const values = Object.values(control.value);
+    const anySelected = values.some((val) => !!val);
+    return anySelected ? null : { atLeastOneRequired: true };
+  } catch (error) {
+    return { atLeastOneRequired: true };
+  }
+};
+
 @Injectable({ providedIn: 'root' })
 export class OwnerListingFormService {
   readonly form: FormGroup;
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
-      city: [''],
-      cityControl: [''],
+      city: ['', Validators.required],
+      cityControl: ['', Validators.required],
       town: [''],
-      townControl: [''],
-      location: [''],
-      landmark: [''],
-      luxury: [''],
-      bedCount: [''],
-      guests: [''],
+      townControl: ['', Validators.required],
+      location: ['', Validators.required],
+      landmark: ['', Validators.required],
+      luxury: ['', Validators.required],
+      bedCount: ['', Validators.required],
+      guests: ['', Validators.required],
       totalFloors: [''],
-      minPrice: [''],
-      maxPrice: [''],
-      palaceName: [''],
-      totalRoom: [''],
-      manager: [''],
-      contact: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
+      minPrice: ['', Validators.required],
+      maxPrice: ['', Validators.required],
+      palaceName: ['', Validators.required],
+      totalRoom: ['', Validators.required],
+      manager: ['', Validators.required],
       whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
-      address: [''],
+      address: ['', Validators.required],
       petAllowed: [''],
-      furnishing: [''],
-      accommodation: [''],
-      gender: [''],
+      furnishing: ['', Validators.required],
+      accommodation: ['', Validators.required],
+      gender: ['', Validators.required],
       food: [''],
-      roomType1: [''],
-      roomType2: [''],
-      parking: this.fb.group({
-        car: [false],
-        bike: [false],
-      }),
+      roomType1: ['', Validators.required],
+      roomType2: ['', Validators.required],
+      parking: this.fb.group(
+        {
+          car: [false],
+          bike: [false],
+        },
+        { validators: atLeastOneChecked }
+      ),
       preferTenant: this.fb.group({
         family: [false],
         bachelors: [false],
@@ -49,8 +64,8 @@ export class OwnerListingFormService {
         boys: [false],
         professionals: [false],
       }),
-      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES)),
-      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES)),
+      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES), { validators: atLeastOneChecked }),
+      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES), { validators: atLeastOneChecked }),
     });
   }
 }

@@ -33,6 +33,9 @@
           </mat-option>
           <mat-option *ngIf="(filteredCities$ | async)?.length === 0" disabled>No cities found</mat-option>
         </mat-autocomplete>
+        <mat-error *ngIf="listingForm.get('cityControl')?.hasError('required') && (listingForm.get('cityControl')?.dirty || listingForm.get('cityControl')?.touched)">
+          City is required.
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -61,27 +64,42 @@
             No locations found
           </mat-option>
         </mat-autocomplete>
+        <mat-error *ngIf="listingForm.get('townControl')?.hasError('required') && (listingForm.get('townControl')?.dirty || listingForm.get('townControl')?.touched)">
+          Town/Sector is required.
+        </mat-error>
       </mat-form-field>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Area/Colony</label>
       <input type="text" formControlName="location" placeholder="Enter area/colony" class="form-control bg-light-blue">
+      <div class="validation-error" *ngIf="listingForm.get('location')?.hasError('required') && (listingForm.get('location')?.dirty || listingForm.get('location')?.touched)">
+        <small>Area/Colony is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Landmark</label>
       <input type="text" formControlName="landmark" placeholder="Enter landmark" class="form-control bg-light-blue">
+      <div class="validation-error" *ngIf="listingForm.get('landmark')?.hasError('required') && (listingForm.get('landmark')?.dirty || listingForm.get('landmark')?.touched)">
+        <small>Landmark is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Minimum Price per Month</label>
       <input type="number" formControlName="minPrice" placeholder="Enter min price per month" class="form-control bg-light-blue" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('minPrice')?.hasError('required') && (listingForm.get('minPrice')?.dirty || listingForm.get('minPrice')?.touched)">
+        <small>Minimum price is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Maximum Price per Month</label>
       <input type="number" formControlName="maxPrice" placeholder="Enter max price per month" class="form-control bg-light-blue" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('maxPrice')?.hasError('required') && (listingForm.get('maxPrice')?.dirty || listingForm.get('maxPrice')?.touched)">
+        <small>Maximum price is required.</small>
+      </div>
     </div>
     
 
@@ -100,11 +118,17 @@
     <div class="form-row">
       <label class="form-label required">Security Deposit</label>
       <input type="number" formControlName="security" placeholder="Enter security amount" class="form-control" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('security')?.hasError('required') && (listingForm.get('security')?.dirty || listingForm.get('security')?.touched)">
+        <small>Security deposit is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Maintenance</label>
       <input type="number" formControlName="maintenance" placeholder="Enter maintenance" class="form-control" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('maintenance')?.hasError('required') && (listingForm.get('maintenance')?.dirty || listingForm.get('maintenance')?.touched)">
+        <small>Maintenance is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
@@ -120,16 +144,27 @@
     <div class="form-row">
      <label class="form-label required">Water Supply in Hours</label>
       <input type="number" formControlName="waterSupply" placeholder="Enter water supply in hours" class="form-control" appNumericOnly min="0" max="24" step="1">
+      <div class="validation-error" *ngIf="listingForm.get('waterSupply')?.invalid && (listingForm.get('waterSupply')?.dirty || listingForm.get('waterSupply')?.touched)">
+        <small *ngIf="listingForm.get('waterSupply')?.hasError('required')">Water supply is required.</small>
+        <small *ngIf="listingForm.get('waterSupply')?.hasError('max')">Water supply cannot exceed 24 hours.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Power Backup in hours </label>
       <input type="number" formControlName="powerBackup" placeholder="Enter power backup in hours" class="form-control" appNumericOnly min="0" max="24" step="1">
+      <div class="validation-error" *ngIf="listingForm.get('powerBackup')?.invalid && (listingForm.get('powerBackup')?.dirty || listingForm.get('powerBackup')?.touched)">
+        <small *ngIf="listingForm.get('powerBackup')?.hasError('required')">Power backup is required.</small>
+        <small *ngIf="listingForm.get('powerBackup')?.hasError('max')">Power backup cannot exceed 24 hours.</small>
+      </div>
     </div>
 
     <div class="form-row">
      <label class="form-label required">Notice Period</label>
       <input type="number" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('noticePeriod')?.hasError('required') && (listingForm.get('noticePeriod')?.dirty || listingForm.get('noticePeriod')?.touched)">
+        <small>Notice period is required.</small>
+      </div>
     </div>
 
 
@@ -221,6 +256,9 @@
     <div class="form-row">
       <label class="form-label required">Contact Name</label>
       <input type="text" formControlName="contact" placeholder="Enter contact name" class="form-control">
+      <div class="validation-error" *ngIf="listingForm.get('contact')?.hasError('required') && (listingForm.get('contact')?.dirty || listingForm.get('contact')?.touched)">
+        <small>Contact name is required.</small>
+      </div>
     </div>
 
   
@@ -234,20 +272,26 @@
         <option value="4 BHK">4 BHK</option>
         <option value="Other">Other</option>
       </select>
+      <div class="validation-error" *ngIf="listingForm.get('bhk')?.hasError('required') && (listingForm.get('bhk')?.dirty || listingForm.get('bhk')?.touched)">
+        <small>BHK selection is required.</small>
+      </div>
     </div>
 
     
 
-    <div class="form-row">
-      <label class="form-label required">Manager/Owner</label>
-      <input type="text" formControlName="manager" placeholder="Enter manager/owner name" class="form-control">
-    </div>
+    <!-- <div class="form-row">
+      <label class="form-label required">Caretaker</label>
+      <input type="text" formControlName="careTaker" placeholder="Enter caretaker name" class="form-control">
+    </div> -->
 
    
 
     <div class="form-row align-start">
       <label class="form-label required pt-2">Full Address</label>
       <textarea formControlName="address" placeholder="Enter full address" rows="4" class="form-control"></textarea>
+      <div class="validation-error" *ngIf="listingForm.get('address')?.hasError('required') && (listingForm.get('address')?.dirty || listingForm.get('address')?.touched)">
+        <small>Full address is required.</small>
+      </div>
     </div>
 
     <div class="radio-section">
@@ -264,7 +308,7 @@
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation"><span>Independent</span></label>
         <label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation"><span>Apartment</span></label>
-        <label class="radio-item"><input type="radio" value="Builder Floor" formControlName="accommodation"><span>Builder Floor</span></label>
+        <!-- <label class="radio-item"><input type="radio" value="Builder Floor" formControlName="accommodation"><span>Builder Floor</span></label> -->
       </div>
     </div>
 
@@ -282,7 +326,7 @@
         <label class="radio-item"><input type="radio" value="Male" formControlName="gender"><span>Male</span></label>
         <label class="radio-item"><input type="radio" value="Female" formControlName="gender"><span>Female</span></label>
         <label class="radio-item"><input type="radio" value="Both M &amp; F" formControlName="gender"><span>Both M &amp; F</span></label>
-        <label class="radio-item"><input type="radio" value="Any" formControlName="gender"><span>Any</span></label>
+        <!-- <label class="radio-item"><input type="radio" value="Any" formControlName="gender"><span>Any</span></label> -->
       </div>
     </div>
 
@@ -336,7 +380,7 @@
     </div>
 
     <div class="button-group">
-      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid">Next</button>
+      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid || !isOtpVerified()">Next</button>
       <button type="button" (click)="onCancel()" class="btn btn-cancel">Cancel</button>
     </div>
     <div *ngIf="showCancelConfirmation" class="cancel-toast">

@@ -22,7 +22,7 @@ import { parseBackendErrorString } from '../../utils/error-utils';
 import { ToastService } from '../../services/toast.service';
 import { ApiService } from '../../services/api';
 import { PropertyCreationService, HourlyRoomPayload } from '../../services/property-creation.service';
-import { OwnerPropertyStoreService } from '../../services/owner-property-store.service';
+import { PropertyCreationDraftService } from '../../services/property-creation-draft.service';
 import { MOBILE_NUMBER_REGEX } from '../../constants/validation-patterns';
 
 @Component({
@@ -88,7 +88,7 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     private readonly toastService: ToastService,
     private readonly apiService: ApiService,
     private readonly propertyCreationService: PropertyCreationService,
-    private readonly ownerPropertyStore: OwnerPropertyStoreService
+    private readonly creationDraftService: PropertyCreationDraftService
   ) {
     this.filteredCities$ = combineLatest([
       this.citiesSubject.asObservable(),
@@ -334,6 +334,59 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     return value ? value.toString() : '';
   }
 
+  isOtpVerified(): boolean {
+    return this.contactOtpVerified;
+  }
+
+  private showVerificationRequiredPopup(): void {
+    window.alert('OTP needs to be verified before proceeding. Please verify your WhatsApp number.');
+  }
+
+  private showMissingFieldsPopup(): void {
+    const missingFields = this.getMissingRequiredFields();
+    if (missingFields.length) {
+      window.alert(`Please fill the following required fields: ${missingFields.join(', ')}`);
+    } else {
+      window.alert('Please fill all required fields before continuing.');
+    }
+    this.toastService.warning('Complete required fields before submitting.');
+  }
+
+  private getMissingRequiredFields(): string[] {
+    const friendlyNames: Record<string, string> = {
+      cityControl: 'City',
+      townControl: 'Town/Sector',
+      location: 'Location',
+      landmark: 'Landmark',
+      luxury: 'Luxury',
+      bedCount: 'Bed Count',
+      guests: 'Guest Count',
+      minPrice: 'Minimum Price',
+      maxPrice: 'Maximum Price',
+      palaceName: 'Palace Name',
+      totalRoom: 'Total Rooms',
+      manager: 'Manager/Owner',
+      whatsappNo: 'WhatsApp Number',
+      address: 'Full Address',
+      furnishing: 'Furnishing Type',
+      accommodation: 'Accommodation Type',
+      gender: 'Gender Preference',
+      roomType1: 'Room Type',
+      roomType2: 'AC Type',
+      parking: 'Parking',
+      insideFacility: 'Inside Facilities',
+      outsideFacility: 'Outside Facilities',
+    };
+    const missing: string[] = [];
+    Object.keys(friendlyNames).forEach((key) => {
+      const control = this.listingForm.get(key);
+      if (control?.invalid) {
+        missing.push(friendlyNames[key]);
+      }
+    });
+    return missing;
+  }
+
   displayCityName(city: City | string | null): string {
     if (!city) {
       return '';
@@ -442,9 +495,11 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       townSector,
       location: f.location || '',
       landmark: f.landmark || '',
+      luxury: f.luxury || '',
       luxuryTier: f.luxury || '',
       bedCount: parseInt(f.bedCount, 10) || 0,
       guestCapacity: parseInt(f.guests, 10) || 0,
+      noOfGuests: parseInt(f.guests, 10) || 0,
       totalFloor: parseInt(f.totalFloors, 10) || 0,
       palaceName: f.palaceName || '',
       totalRoom: parseInt(f.totalRoom, 10) || 0,
@@ -464,14 +519,23 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       preferTenants,
       insideFacilities,
       outsideFacilities,
+      roomInside: insideFacilities,
+      roomOutside: outsideFacilities,
       verificationPending: true,
       isDraft: false,
     };
   }
 
   onNext(): void {
+    if (!this.isOtpVerified()) {
+      this.listingForm.markAllAsTouched();
+      this.showVerificationRequiredPopup();
+      return;
+    }
+
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
+      this.showMissingFieldsPopup();
       return;
     }
     const ownerId = this.propertyCreationService.getOwnerId();
@@ -480,45 +544,16 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       return;
     }
     const payload = this.mapFormToPayload();
-    this.isSaving = true;
-    this.propertyCreationService.createHourlyRoom(ownerId, payload).pipe(take(1)).subscribe({
-      next: (result) => {
-        this.isSaving = false;
-        if (result.success) {
-          this.toastService.success('Hourly room listing created successfully!');
-          this.recordPropertySummary(ownerId, result.data?.id, 'Hourly Room');
-          this.clearSavedFormState();
-          // Stay on this page for now; skipping images flow similar to Flat form per request.
-          // Optionally reset the form here.
-          // this.listingForm.reset();
-        } else {
-          this.toastService.error(result.error || 'Failed to create hourly room listing');
-        }
-      },
-      error: (err) => {
-        this.isSaving = false;
-        console.error('createHourlyRoom error:', err);
-        this.toastService.error('Failed to create hourly room listing. Please try again.');
-      },
+    this.creationDraftService.setDraft({
+      propertyType: 'hourly-room',
+      payload,
+      ownerId,
+      timestamp: Date.now(),
     });
-  }
-
-  private recordPropertySummary(ownerId: number, propertyId: number | undefined, propertyType: string): void {
-    const cityValue = typeof this.listingForm.get('cityControl')?.value === 'object'
-      ? (this.listingForm.get('cityControl')?.value as City)?.name
-      : this.listingForm.get('city')?.value || this.listingForm.get('cityControl')?.value;
-    const townSector = this.listingForm.get('townControl')?.value || this.listingForm.get('town')?.value || '';
-    const locationValue = this.listingForm.get('location')?.value || '';
-    const segments = [propertyType, cityValue, townSector, locationValue].filter(Boolean);
-    const displayName = segments.length ? segments.join(' · ') : propertyType;
-    this.ownerPropertyStore.addProperty(ownerId, {
-      propertyId: propertyId ?? Date.now(),
-      propertyType,
-      displayName,
-      location: [townSector, locationValue].filter(Boolean).join(', ') || 'Location not set',
-      townSector: townSector || undefined,
-      createdAt: Date.now(),
-    });
+    this.toastService.success('Hourly room details saved. Upload images to complete the listing.');
+    this.router
+      .navigate(['/owner/hourly-room/images'], { queryParams: { propertyType: 'hourly-room' } })
+      .catch((err) => console.error('Navigation failed', err));
   }
 
   onCancel(): void {

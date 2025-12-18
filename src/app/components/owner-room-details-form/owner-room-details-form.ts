@@ -12,7 +12,7 @@ import { PropertySearchService } from '../../services/property-search.service';
 import { PropertyCreationService, RoomPayload } from '../../services/property-creation.service';
 import { ToastService } from '../../services/toast.service';
 import { ApiService } from '../../services/api';
-import { OwnerPropertyStoreService } from '../../services/owner-property-store.service';
+import { PropertyCreationDraftService } from '../../services/property-creation-draft.service';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { map, take, takeUntil } from 'rxjs/operators';
 import { City } from '../../interface/City';
@@ -84,7 +84,7 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     private propertyCreationService: PropertyCreationService,
     private toastService: ToastService,
     private apiService: ApiService,
-    private ownerPropertyStore: OwnerPropertyStoreService
+    private creationDraftService: PropertyCreationDraftService
   ) {
     this.listingForm = this.fb.group({
       city: [''],
@@ -417,30 +417,17 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     }
 
     const payload = this.mapFormToPayload();
-    console.log('Payload:', payload);
-    this.isSaving = true;
-
-    console.log('Calling createRoom API...');
-    this.propertyCreationService.createRoom(ownerId, payload).pipe(take(1)).subscribe({
-      next: (result) => {
-        this.isSaving = false;
-        if (result.success) {
-          this.toastService.success('Room listing created successfully!');
-          this.recordPropertySummary(ownerId, result.data?.id, 'Room');
-          const roomId = result.data?.id;
-          this.router
-            .navigate(['/owner/room/images'], { queryParams: { propertyType: 'room', roomId } })
-            .catch((err) => console.error('Navigation failed', err));
-        } else {
-          this.toastService.error(result.error || 'Failed to create room listing');
-        }
-      },
-      error: (err) => {
-        this.isSaving = false;
-        console.error('createRoom error:', err);
-        this.toastService.error('An unexpected error occurred');
-      },
+    console.log('Payload saved for image upload:', payload);
+    this.creationDraftService.setDraft({
+      propertyType: 'room',
+      payload,
+      ownerId,
+      timestamp: Date.now(),
     });
+    this.toastService.success('Room details saved. Upload images to complete the listing.');
+    this.router
+      .navigate(['/owner/room/images'], { queryParams: { propertyType: 'room' } })
+      .catch((err) => console.error('Navigation failed', err));
   }
 
   /**
@@ -486,7 +473,7 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     }
 
     // Map powerBackup mixed-type value to number (truthy -> 1, else 0)
-    const powerBackup = ['yes', 'true', '1', 'y'].includes(String(v.powerBackup).toLowerCase()) ? 1 : 0;
+    const powerBackup = parseInt(String(v.powerBackup), 10);
 
     // Get city name from cityControl
     const cityName = typeof v.cityControl === 'object' ? v.cityControl?.name : v.cityControl;
@@ -503,7 +490,7 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       totalFloor: parseInt(v.totalFloors, 10) || 0,
       totalRoom: parseInt(v.totalRoom, 10) || 0,
       waterSupply,
-      powerBackup,
+      powerBackup: isNaN(powerBackup) ? 0 : powerBackup,
       noticePeriod: v.noticePeriod || '',
       offer: v.offer || '',
       careTaker: v.manager || '',
@@ -522,24 +509,6 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       insideFacilities,
       outsideFacilities,
     };
-  }
-
-  private recordPropertySummary(ownerId: number, propertyId: number | undefined, propertyType: string): void {
-    const cityName = typeof this.listingForm.get('cityControl')?.value === 'object'
-      ? (this.listingForm.get('cityControl')?.value as any)?.name
-      : this.listingForm.get('cityControl')?.value;
-    const townSector = this.listingForm.get('townControl')?.value || this.listingForm.get('town')?.value || '';
-    const locationValue = this.listingForm.get('location')?.value || '';
-    const segments = [propertyType, cityName, townSector, locationValue].filter(Boolean);
-    const displayName = segments.length ? segments.join(' · ') : propertyType;
-    this.ownerPropertyStore.addProperty(ownerId, {
-      propertyId: propertyId ?? Date.now(),
-      propertyType,
-      displayName,
-      location: [townSector, locationValue].filter(Boolean).join(', ') || 'Location not set',
-      townSector: townSector || undefined,
-      createdAt: Date.now(),
-    });
   }
 
   onCancel(): void {

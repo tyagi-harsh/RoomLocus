@@ -12,7 +12,7 @@ import { PropertySearchService } from '../../services/property-search.service';
 import { PropertyCreationService, FlatPayload } from '../../services/property-creation.service';
 import { ToastService } from '../../services/toast.service';
 import { ApiService } from '../../services/api';
-import { OwnerPropertyStoreService } from '../../services/owner-property-store.service';
+import { PropertyCreationDraftService } from '../../services/property-creation-draft.service';
 import { Observable, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { City } from '../../interface/City';
 import { map, take, takeUntil } from 'rxjs/operators';
@@ -99,7 +99,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     private propertyCreationService: PropertyCreationService,
     private toastService: ToastService,
     private apiService: ApiService,
-    private ownerPropertyStore: OwnerPropertyStoreService
+    private creationDraftService: PropertyCreationDraftService
   ) {
     this.listingForm = this.fb.group({
       city: ['',],
@@ -119,7 +119,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       caretaker: [''],
       petAllowed: [''],
       noticePeriod: ['', Validators.required],
-      manager: ['', Validators.required ],
+      // manager: ['', Validators.required ],
       contact: ['', Validators.required],
       whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       address: ['', Validators.required],
@@ -136,14 +136,14 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       parking: this.fb.group({
         car: [false],
         bike: [false],
-      }, { validators: atLeastOneChecked }),
+      } ),
       preferTenant: this.fb.group({
         family: [false],
         bachelors: [false],
         girls: [false],
         boys: [false],
         professionals: [false],
-      }, { validators: atLeastOneChecked }),
+      } ),
       insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES), { validators: atLeastOneChecked }),
       outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES), { validators: atLeastOneChecked })
     });
@@ -404,6 +404,11 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     console.log('Form valid:', this.listingForm.valid);
     console.log('Form errors:', this.listingForm.errors);
 
+    if (!this.isOtpVerified()) {
+      this.showVerificationRequiredPopup();
+      return;
+    }
+
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
       // Log which controls are invalid
@@ -413,7 +418,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
           console.log(`Invalid field: ${key}`, control.errors);
         }
       });
-      this.toastService.warning('Please fill all required fields');
+      this.showMissingFieldsPopup();
       return;
     }
 
@@ -425,31 +430,17 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     }
 
     const payload = this.mapFormToPayload();
-    console.log('Payload:', payload);
-    this.isSaving = true;
-
-    console.log('Calling createFlat API...');
-    this.propertyCreationService.createFlat(ownerId, payload).pipe(take(1)).subscribe({
-      next: (result) => {
-        this.isSaving = false;
-        if (result.success) {
-            this.toastService.success('Flat listing created successfully!');
-            const flatId = result.data?.id;
-            this.recordPropertySummary(ownerId, flatId, 'Flat');
-            console.log('Created flatId:', flatId);
-            // Stay on the same page for now; skip image upload navigation per request.
-            // Optionally, we can reset the form or show the created ID.
-            // this.listingForm.reset();
-          } else {
-            this.toastService.error(result.error || 'Failed to create flat listing');
-          }
-      },
-      error: (err) => {
-        this.isSaving = false;
-        console.error('createFlat error:', err);
-        this.toastService.error('An unexpected error occurred');
-      },
+    console.log('Payload saved for image upload:', payload);
+    this.creationDraftService.setDraft({
+      propertyType: 'flat',
+      payload,
+      ownerId,
+      timestamp: Date.now(),
     });
+    this.toastService.success('Listing details saved. Upload images to complete the listing.');
+    this.router
+      .navigate(['/owner/flat/images'], { queryParams: { propertyType: 'flat' } })
+      .catch((err) => console.error('Navigation failed', err));
   }
 
   /**
@@ -497,7 +488,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
     }
 
     // Map powerBackup mixed-type value to number (truthy -> 1, else 0)
-    const powerBackup = ['yes', 'true', '1', 'y'].includes(String(v.powerBackup).toLowerCase()) ? 1 : 0;
+    const powerBackup = parseInt(String(v.powerBackup), 10);
 
     // Get city name from cityControl (could be City object or string)
     const cityName = typeof v.cityControl === 'object' ? v.cityControl?.name : v.cityControl;
@@ -519,7 +510,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       address: v.address || '',
       totalFloor: parseInt(v.totalFloors, 10) || 0,
       waterSupply,
-      powerBackup,
+      powerBackup: isNaN(powerBackup) ? 0 : powerBackup,
       noticePeriod: v.noticePeriod || '',
       furnishingType: v.furnishing || '',
       accomoType: v.accommodation || '',
@@ -538,24 +529,6 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       isDraft: false,
       verificationPending: true,
     };
-  }
-
-  private recordPropertySummary(ownerId: number, propertyId: number | undefined, propertyType: string): void {
-    const cityName = typeof this.listingForm.get('cityControl')?.value === 'object'
-      ? (this.listingForm.get('cityControl')?.value as any)?.name
-      : this.listingForm.get('cityControl')?.value;
-    const townSector = this.listingForm.get('townControl')?.value || this.listingForm.get('town')?.value || '';
-    const locationValue = this.listingForm.get('location')?.value || '';
-    const nameSegments = [propertyType, cityName, townSector, locationValue].filter(Boolean);
-    const displayName = nameSegments.length ? nameSegments.join(' · ') : propertyType;
-    this.ownerPropertyStore.addProperty(ownerId, {
-      propertyId: propertyId ?? Date.now(),
-      propertyType,
-      displayName,
-      location: [townSector, locationValue].filter(Boolean).join(', ') || 'Location not set',
-      townSector: townSector || undefined,
-      createdAt: Date.now(),
-    });
   }
 
   private loadSavedFormState(): void {
@@ -628,5 +601,52 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
   get otpTargetNumber(): string {
     const value = this.listingForm.get('whatsappNo')?.value;
     return value ? value.toString() : '';
+  }
+
+  isOtpVerified(): boolean {
+    return this.contactOtpVerified;
+  }
+
+  private showVerificationRequiredPopup(): void {
+    window.alert('OTP needs to be verified before proceeding. Please verify your WhatsApp number.');
+  }
+
+  private showMissingFieldsPopup(): void {
+    const missingFields = this.getMissingRequiredFields();
+    if (missingFields.length) {
+      window.alert(`Please fill the following required fields: ${missingFields.join(', ')}`);
+    } else {
+      window.alert('Please fill all required fields before continuing.');
+    }
+    this.toastService.warning('Complete required fields before submitting.');
+  }
+
+  private getMissingRequiredFields(): string[] {
+    const friendlyNames: Record<string, string> = {
+      cityControl: 'City',
+      townControl: 'Town/Sector',
+      location: 'Area/Colony',
+      landmark: 'Landmark',
+      minPrice: 'Minimum Price',
+      maxPrice: 'Maximum Price',
+      security: 'Security Deposit',
+      maintenance: 'Maintenance',
+      noticePeriod: 'Notice Period',
+      manager: 'Manager/Owner',
+      contact: 'Contact Name',
+      whatsappNo: 'WhatsApp Number',
+      address: 'Full Address',
+      furnishing: 'Furnishing Type',
+      accommodation: 'Accommodation Type',
+      gender: 'Gender Preference',
+    };
+    const missing: string[] = [];
+    Object.keys(this.listingForm.controls).forEach((key) => {
+      const control = this.listingForm.get(key);
+      if (control?.invalid && control.errors?.['required']) {
+        missing.push(friendlyNames[key] || key);
+      }
+    });
+    return missing;
   }
 }
