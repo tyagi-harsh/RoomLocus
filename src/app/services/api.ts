@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of, catchError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
+import { parseBackendErrorString } from '../utils/error-utils';
 
 //mock data for cities
 
@@ -155,8 +156,10 @@ export class ApiService {
       }),
       catchError((error) => {
         console.error('getOtp API error:', error);
-        const message = (error && error.error && error.error.message) || error.message || 'Unknown error';
-        return of({ success: false, error: message });
+        // Prefer server-provided message (may be JSON string or object) over Angular's generic HttpErrorResponse.message
+        const serverMsg = parseBackendErrorString(error?.error) || parseBackendErrorString(error);
+        const message = serverMsg || error?.statusText || error?.message || 'Unknown error';
+        return of({ success: false, error: message, status: error?.status || 0 });
       })
     );
   }

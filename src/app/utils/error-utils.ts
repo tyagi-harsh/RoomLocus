@@ -17,7 +17,21 @@ function extractErrorMessage(value: unknown, seen: Set<unknown>): string | null 
 
   if (typeof value === 'string') {
     const trimmed = value.trim();
-    return trimmed.length ? trimmed : null;
+    if (!trimmed.length) {
+      return null;
+    }
+    // If backend sent a JSON string (e.g. '{"message":"..."}'), parse and traverse it
+    const first = trimmed[0];
+    if (first === '{' || first === '[') {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const parsedMsg = extractErrorMessage(parsed, seen);
+        if (parsedMsg) return parsedMsg;
+      } catch {
+        // ignore JSON parse failure, fall back to raw string
+      }
+    }
+    return trimmed;
   }
 
   if (typeof value !== 'object') {

@@ -152,14 +152,14 @@ export class LoginSignup implements OnInit, OnDestroy {
   @Output() otpSent = new EventEmitter<{ mobile: string; context: 'signup' | 'forgot' }>();
   @Output() otpVerified = new EventEmitter<{ mobile?: string; context: 'signup' | 'forgot' }>();
 
- constructor(
+  constructor(
     private route: ActivatedRoute,
     private api: ApiService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private router: Router,
     private wishlistService: WishlistService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.forgotForm
       .get('mobile')
@@ -278,9 +278,9 @@ export class LoginSignup implements OnInit, OnDestroy {
                 }
                 localStorage.setItem('userType', userType);
                 localStorage.setItem('userMobile', values.whatsappNo);
-                console.debug('Login stored:', { 
-                  userId: localStorage.getItem('userId'), 
-                  userType: localStorage.getItem('userType'), 
+                console.debug('Login stored:', {
+                  userId: localStorage.getItem('userId'),
+                  userType: localStorage.getItem('userType'),
                   hasAccessToken: !!resp.accessToken,
                   respUserId: resp.userId
                 });
@@ -493,7 +493,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       if (resp && resp.success === false) {
         const message = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Failed to send OTP.';
         this.signupMobileError = message;
-        this.snackBar.open('Failed to send OTP: ' + message, 'Close', { duration: 4000 });
+        this.snackBar.open(message, 'Close', { duration: 4000 });
         this.signupForm.get('password')?.enable({ emitEvent: false });
         this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
         this.showSignupOtpSentMessage = false;
@@ -517,7 +517,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.signupForm.get('password')?.enable({ emitEvent: false });
       this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
       this.showSignupOtpSentMessage = false;
-      this.snackBar.open('Failed to send OTP: ' + message, 'Close', { duration: 4000 });
+      this.snackBar.open(message, 'Close', { duration: 4000 });
     });
   }
 
@@ -1088,7 +1088,7 @@ export class LoginSignup implements OnInit, OnDestroy {
     return this.zoneClasses[this.zoneType];
   }
 
-   private initializeZoneType(queryParam?: string | null): void {
+  private initializeZoneType(queryParam?: string | null): void {
     const rawType = queryParam ?? this.route.snapshot.queryParamMap.get('userType');
     const normalized = rawType ? rawType.toUpperCase() : undefined;
     if (normalized && Object.prototype.hasOwnProperty.call(this.zoneParamMap, normalized)) {
