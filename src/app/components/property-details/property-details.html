@@ -4,42 +4,22 @@
       <div class="main-image-container">
         <img [src]="selectedImage" alt="Main property view" class="property-image" />
 
-        <img
-          *ngIf="!details.isVerified"
-          src="/assets/images/icons/not_verified_n.png"
-          alt="Property not verified"
-          class="not-verified-img"
-        />
+        <img *ngIf="!details.isVerified" src="/assets/images/icons/not_verified_n.png" alt="Property not verified"
+          class="not-verified-img" />
 
         <div class="top-right-buttons">
-          <button
-            *ngIf="showFavoriteButton"
-            class="fav-btn"
-            [class.liked]="liked"
-            [class.popping]="animateHeart"
-            (click)="toggleFavorite()"
-            aria-label="Toggle favorite"
-            [title]="liked ? 'Added to Wishlist' : 'Add to Wishlist'"
-          >
-            <i class="fas fa-heart"></i>
+          <button *ngIf="showFavoriteButton" class="fav-btn" [class.liked]="liked" [class.popping]="animateHeart"
+            (click)="toggleFavorite()" aria-label="Toggle favorite" [attr.aria-pressed]="liked"
+            [title]="liked ? 'Added to Wishlist' : 'Add to Wishlist'">
+            <i class="fa-heart" [class.fas]="liked" [class.far]="!liked" aria-hidden="true"></i>
           </button>
           <div class="loved-pop" *ngIf="showLoved && canUseFavorites">Liked ❤️</div>
-          <button
-            class="share-btn"
-            (click)="shareProperty()"
-            aria-label="Share property"
-            title="Share"
-          >
+          <button class="share-btn" (click)="shareProperty()" aria-label="Share property" title="Share">
             <i class="fas fa-share-alt"></i>
           </button>
         </div>
 
-        <button
-          class="nav-btn prev"
-          (click)="prevImage()"
-          aria-label="Previous image"
-          title="Previous"
-        >
+        <button class="nav-btn prev" (click)="prevImage()" aria-label="Previous image" title="Previous">
           <i class="fas fa-chevron-left"></i>
         </button>
         <button class="nav-btn next" (click)="nextImage()" aria-label="Next image" title="Next">
@@ -48,13 +28,8 @@
       </div>
 
       <div class="thumbnail-list">
-        <img
-          *ngFor="let img of details.gallery"
-          [src]="img"
-          (click)="selectImage(img)"
-          [class.active]="img === selectedImage"
-          alt="Property thumbnail"
-        />
+        <img *ngFor="let img of details.gallery" [src]="img" (click)="selectImage(img)"
+          [class.active]="img === selectedImage" alt="Property thumbnail" />
       </div>
     </div>
 
@@ -96,7 +71,7 @@
 
       <div class="secondary-info-section">
         <div class="details-grid-large">
-            <div class="grid-item" *ngIf="!isPGProperty">
+          <div class="grid-item" *ngIf="!isPGProperty">
             <h3>{{ typeDisplayName }} Type</h3>
             <p>{{ roomTypeValue }}</p>
           </div>
@@ -124,7 +99,7 @@
             <h3>AC Type</h3>
             <p>{{ hourlyAcType }}</p>
           </div>
-           <div class="grid-item" *ngIf="isHourlyRoomProperty && hourlyLuxuryTier">
+          <div class="grid-item" *ngIf="isHourlyRoomProperty && hourlyLuxuryTier">
             <h3>Luxury Tier</h3>
             <p>{{ hourlyLuxuryTier }}</p>
           </div>
@@ -136,7 +111,7 @@
             <h3>Power Backup</h3>
             <p>{{ details.specs.powerBackup }}</p>
           </div>
-           <div class="grid-item" *ngIf="!isPGProperty && !isHourlyRoomProperty">
+          <div class="grid-item" *ngIf="!isPGProperty && !isHourlyRoomProperty">
             <h3>Room Available</h3>
             <p>{{ details.specs.roomAvailable }}</p>
           </div>
@@ -198,7 +173,7 @@
         </div>
 
         <div class="info-section">
-           <h2>{{ typeDisplayName }} Inside Facilities :</h2>
+          <h2>{{ typeDisplayName }} Inside Facilities :</h2>
           <ul class="facility-list">
             <li *ngFor="let item of insideFacilitiesList">
               <i class="fas fa-check"></i> {{ formatDisplayName(item) }}
@@ -219,6 +194,15 @@
   </div>
 
   <div class="contact-section">
-    <button mat-flat-button color="primary" class="contact-btn">Contact Owner</button>
+    <button mat-flat-button color="primary" class="contact-btn" (click)="contactOwner()">Contact Owner</button>
+
+    <div class="contact-owner-output" style="margin-top: 8px;">
+      <div *ngIf="isFetchingOwnerContact">Fetching owner contact…</div>
+      <div *ngIf="!isFetchingOwnerContact && contactOwnerError" class="validation-error">{{ contactOwnerError }}</div>
+      <div *ngIf="!isFetchingOwnerContact && ownerContact" class="owner-contact">
+        <div *ngIf="ownerContact.name">Name: {{ ownerContact.name }}</div>
+        <div *ngIf="ownerContact.mobile">Mobile: {{ ownerContact.mobile }}</div>
+      </div>
+    </div>
   </div>
 </div>

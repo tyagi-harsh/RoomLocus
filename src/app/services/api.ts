@@ -58,6 +58,7 @@ const lookingForOptions: string[] = ['Flat', 'Room', 'PG', 'Hourly Room'];
 export class ApiService {
   // Backend base includes the internal API prefix used by the server
   private readonly API_URL = 'http://localhost:8082/api/v1/internal';
+  private readonly BASE_URL = 'http://localhost:8082/api/v1';
 
   constructor(private http: HttpClient) { }
 
@@ -253,5 +254,99 @@ export class ApiService {
           return of([]); // Return empty array on error
         })
       );
+  }
+
+  /**
+   * Contact the owner of a property. Requires Authorization bearer token.
+   * Backend endpoint: POST /property-owner/contact
+   */
+  getOwnerContact(payload: { type: 'FLAT' | 'ROOM' | 'PG' | 'HOURLY_ROOM'; id: number }): Observable<any> {
+    const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('accessToken') : null;
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
+    const options = headers ? { headers } : {} as any;
+
+    try {
+      console.debug('ApiService.getOwnerContact -> POST', `${this.API_URL}/property-owner/contact`, payload);
+    } catch {
+      /* noop */
+    }
+
+    return this.http.post<any>(`${this.API_URL}/property-owner/contact`, payload, options as any).pipe(
+      map((resp: any) => {
+        // Prefer standard ApiResponse shape if present
+        if (resp && resp.success !== undefined) {
+          return resp;
+        }
+        // Fallback: wrap raw response
+        return { success: true, data: resp };
+      }),
+      catchError((error) => {
+        console.error('getOwnerContact API error:', error);
+        const msg = parseBackendErrorString(error?.error) || parseBackendErrorString(error) || error?.statusText || error?.message || 'Unknown error';
+        const status = error?.status || 0;
+        return of({ success: false, error: msg, status });
+      })
+    );
+  }
+
+  /**
+   * Like a property (END_USER). Calls PATCH /api/v1/private/end_user
+   * Payload: { propertyType, propertyId } — user inferred from token unless provided.
+   */
+  likeProperty(payload: { propertyType: 'FLAT' | 'ROOM' | 'PG' | 'HOURLY_ROOM'; propertyId: number; userId?: string | number }): Observable<{ success: boolean; error?: string }> {
+    const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('accessToken') : null;
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
+    const options = headers ? { headers } : {} as any;
+    const url = `${this.BASE_URL}/private/end_user`;
+    const storedUserId = (typeof localStorage !== 'undefined') ? Number(localStorage.getItem('userId')) : undefined;
+    const body = {
+      propertyType: payload.propertyType,
+      propertyId: payload.propertyId,
+      userId: payload.userId ?? storedUserId,
+    };
+
+    try { console.debug('ApiService.likeProperty -> PATCH', url, body); } catch { }
+
+    return this.http.patch<any>(url, body as any, options as any).pipe(
+      map((resp: any) => {
+        if (resp && resp.success !== undefined) return resp;
+        return { success: true };
+      }),
+      catchError((error) => {
+        console.error('likeProperty API error:', error);
+        const msg = parseBackendErrorString(error?.error) || parseBackendErrorString(error) || error?.statusText || error?.message || 'Unknown error';
+        return of({ success: false, error: msg });
+      })
+    );
+  }
+
+  /**
+   * Unlike a property (END_USER). Calls DELETE /api/v1/private/end_user
+   * Note: Use http.request to support a request body with DELETE.
+   */
+  unlikeProperty(payload: { propertyType: 'FLAT' | 'ROOM' | 'PG' | 'HOURLY_ROOM'; propertyId: number; userId?: string | number }): Observable<{ success: boolean; error?: string }> {
+    const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('accessToken') : null;
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
+    const url = `${this.BASE_URL}/private/end_user`;
+    const storedUserId = (typeof localStorage !== 'undefined') ? Number(localStorage.getItem('userId')) : undefined;
+    const body = {
+      propertyType: payload.propertyType,
+      propertyId: payload.propertyId,
+      userId: payload.userId ?? storedUserId,
+    };
+
+    try { console.debug('ApiService.unlikeProperty -> DELETE', url, body); } catch { }
+
+    return this.http.request<any>('DELETE', url, { body: body as any, headers } as any).pipe(
+      map((resp: any) => {
+        if (resp && resp.success !== undefined) return resp;
+        return { success: true };
+      }),
+      catchError((error) => {
+        console.error('unlikeProperty API error:', error);
+        const msg = parseBackendErrorString(error?.error) || parseBackendErrorString(error) || error?.statusText || error?.message || 'Unknown error';
+        return of({ success: false, error: msg });
+      })
+    );
   }
 }

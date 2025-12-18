@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button'; // For the button
 import { PropertyDetails as PropertyDetailsInterface } from '../../interface/Property';
 import { PropertyCategory, WishlistItem } from '../../interface/user-dash';
 import { PropertySearchService } from '../../services/property-search.service';
+import { ApiService } from '../../services/api';
 import { Subscription } from 'rxjs';
 import { WishlistService } from '../../services/wishlist.service';
 import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
@@ -168,8 +169,10 @@ export class PropertyDetails implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private readonly router: Router,
     private propertySearch: PropertySearchService,
-    private readonly wishlistService: WishlistService
-  ) {}
+    private readonly wishlistService: WishlistService,
+    private readonly api: ApiService
+  ) { }
+
   selectedImage: string = '';
   private wishlistSubscription?: Subscription;
 
@@ -177,7 +180,9 @@ export class PropertyDetails implements OnInit, OnDestroy {
     // Only allow non-OWNER users to use favorites
     const userType = localStorage.getItem('userType');
     this.canUseFavorites = userType === 'END_USER';
-    this.showFavoriteButton = userType !== 'OWNER';
+    // Show heart for END_USER and logged-out users (so click can redirect to login);
+    // hide for other logged-in roles (e.g., OWNER)
+    this.showFavoriteButton = !userType || userType === 'END_USER';
 
     this.selectedImage = this.details.gallery.length > 0 ? this.details.gallery[0] : '';
     this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(() => this.syncLikedState());
@@ -186,8 +191,8 @@ export class PropertyDetails implements OnInit, OnDestroy {
       this.propertyId = params.get('id');
       const queryType = this.route.snapshot.queryParamMap.get('type');
       const propertyType = queryType || params.get('type') || 'room';
-       this.requestedPropertyType = propertyType;
-       this.propertyCategory = this.normalizeType(propertyType); 
+      this.requestedPropertyType = propertyType;
+      this.propertyCategory = this.normalizeType(propertyType);
       if (this.propertyId) {
         const numericId = Number(this.propertyId);
         if (!Number.isNaN(numericId)) {
@@ -232,7 +237,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
     const formattedLocation = addressLocation ?? fallbackLocation ?? this.details.location;
     const apiLandmark = data.address?.landmark || data.landmark || this.details.address.landmark;
 
-        const propertyTypeSource = this.requestedPropertyType || data.propertyType || data.type;
+    const propertyTypeSource = this.requestedPropertyType || data.propertyType || data.type;
     this.propertyCategory = this.normalizeType(propertyTypeSource);
     const isFlat = this.propertyCategory === 'flat';
     const apiTypeSegments = [data.bhk, data.type].filter((segment) => !!segment);
@@ -281,7 +286,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
         landmark: apiLandmark,
         location: addressLocation || this.details.address.location,
       },
-            preferTenants: data.preferTenants ?? this.details.preferTenants,
+      preferTenants: data.preferTenants ?? this.details.preferTenants,
       parking: data.parking ?? this.details.parking,
       roomInsideFacilities: roomInsideFacilities,
       roomOutsideFacilities: roomOutsideFacilities,
@@ -318,7 +323,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
     if (propertyName && locationParts.length > 0) {
       return `${propertyName} · ${locationParts.join(', ')}`;
     }
-      if (propertyName) {
+    if (propertyName) {
       return propertyName;
     }
     if (locationParts.length > 0) {
@@ -487,6 +492,58 @@ export class PropertyDetails implements OnInit, OnDestroy {
     this.wishlistSubscription?.unsubscribe();
   }
 
+  // --- Contact Owner state ---
+  isFetchingOwnerContact = false;
+  contactOwnerError: string | null = null;
+  ownerContact: { name?: string; mobile?: string } | null = null;
+
+  private mapCategoryToPropertyType(): 'FLAT' | 'ROOM' | 'PG' | 'HOURLY_ROOM' {
+    const cat = this.propertyCategory;
+    if (cat === 'flat') return 'FLAT';
+    if (cat === 'pg') return 'PG';
+    if (cat === 'hourlyroom') return 'HOURLY_ROOM';
+    return 'ROOM';
+  }
+
+  contactOwner(): void {
+    // Require login with any role; needs accessToken
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      this.redirectToLogin();
+      return;
+    }
+    if (!this.propertyId) {
+      this.contactOwnerError = 'Missing property id.';
+      return;
+    }
+
+    this.isFetchingOwnerContact = true;
+    this.contactOwnerError = null;
+    this.ownerContact = null;
+
+    const type = this.mapCategoryToPropertyType();
+    const idNum = Number(this.propertyId);
+    this.api.getOwnerContact({ type, id: idNum }).subscribe((resp: { success: boolean; data?: any; error?: string }) => {
+      this.isFetchingOwnerContact = false;
+      if (!resp || resp.success === false) {
+        this.contactOwnerError = resp?.error || 'Unable to fetch owner contact.';
+        return;
+      }
+      // ApiResponse.success(dto) should appear in resp.data
+      const data = resp.data || resp;
+      this.ownerContact = {
+        name: data?.name || data?.ownerName || data?.username,
+        mobile: data?.mobile || data?.whatsappNo || data?.phone,
+      };
+      if (!this.ownerContact.name && !this.ownerContact.mobile) {
+        this.contactOwnerError = 'Contact details not available.';
+      }
+    }, (err: any) => {
+      this.isFetchingOwnerContact = false;
+      this.contactOwnerError = (err && (err.error?.message || err.message)) || 'Request failed';
+    });
+  }
+
   private normalizeType(input?: string | null): PropertyCategory {
     if (!input) {
       return 'room';
@@ -509,9 +566,9 @@ export class PropertyDetails implements OnInit, OnDestroy {
       return;
     }
 
-    // Owners are not allowed to manage wishlist
+    // Only END_USER can like/unlike; silently ignore otherwise
     const userType = localStorage.getItem('userType');
-    if (userType === 'OWNER') {
+    if (userType !== 'END_USER') {
       return;
     }
 
@@ -520,20 +577,43 @@ export class PropertyDetails implements OnInit, OnDestroy {
       return;
     }
 
+    const type = this.mapCategoryToPropertyType();
+    const idNum = Number(this.propertyId);
+    if (Number.isNaN(idNum)) {
+      return;
+    }
+    const userId = Number(localStorage.getItem('userId'));
+    if (!userId) {
+      this.redirectToLogin();
+      return;
+    }
+
+    // If already liked -> unlike
     if (this.wishlistService.has(this.propertyId)) {
-      this.wishlistService.remove(this.propertyId);
-      this.liked = false;
+      this.api.unlikeProperty({ propertyType: type, propertyId: idNum, userId }).subscribe((resp) => {
+        if (!resp || resp.success === false) {
+          console.error('Unlike failed', resp?.error);
+          return;
+        }
+        this.wishlistService.remove(this.propertyId!);
+        this.liked = false;
+      });
       return;
     }
 
-    const wishlistItem = this.buildWishlistItem();
-    if (!wishlistItem) {
-      return;
-    }
-
-    this.wishlistService.add(wishlistItem);
-    this.liked = true;
-    this.triggerLikeAnimation();
+    // Not liked -> like
+    this.api.likeProperty({ propertyType: type, propertyId: idNum, userId }).subscribe((resp) => {
+      if (!resp || resp.success === false) {
+        console.error('Like failed', resp?.error);
+        return;
+      }
+      const wishlistItem = this.buildWishlistItem();
+      if (wishlistItem) {
+        this.wishlistService.add(wishlistItem);
+      }
+      this.liked = true;
+      this.triggerLikeAnimation();
+    });
   }
 
   private triggerLikeAnimation(): void {
@@ -588,8 +668,8 @@ export class PropertyDetails implements OnInit, OnDestroy {
     this.router
       .navigate(['/login'], { queryParams: { returnUrl: currentUrl, userType: 'END_USER' } })
       .catch((err) => {
-      console.error('Navigation to login failed', err);
-    });
+        console.error('Navigation to login failed', err);
+      });
   }
 
   // --- NEW SHARE FUNCTION ---
