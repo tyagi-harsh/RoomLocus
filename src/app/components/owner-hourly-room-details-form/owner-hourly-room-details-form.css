@@ -1,18 +1,14 @@
-/* Layout & Animation */
 .form-container {
   width: 100%;
   max-width: 720px;
   margin: 20px auto;
   padding: 2rem 2rem;
   background: linear-gradient(135deg, #f8fbff 0%, #f8fbff 100%);
-  /* background: whitesmoke; */
   border: 1px solid #e5e7eb;
   border-radius: 1rem;
   box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08);
 }
-
-
-.animate-fade-in { 
+.animate-fade-in {
   animation: fadeIn 0.3s ease-in-out; 
 }
 
@@ -21,7 +17,6 @@
   to { opacity: 1; transform: translateY(0); } 
 }
 
-/* Header */
 .header-section {
   text-align: center;
   margin-bottom: 2rem;
@@ -30,7 +25,7 @@
 .main-title {
   font-size: 1.5rem;
   font-weight: 400;
-  color: #03aec8; /* Teal-500 */
+  color: #03aec8;
   letter-spacing: 0.03em;
   margin-bottom: 2.2rem;
 }
@@ -43,14 +38,13 @@
   text-align: left;
 }
 
-/* Form Groups & Rows */
 .form-group {
   margin-bottom: 0.5rem;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 2fr; /* Label takes 1 part, Input takes 2 parts */
+  grid-template-columns: 1fr 2fr;
   gap: 1rem;
   margin-bottom: 1.15rem;
   align-items: center;
@@ -77,10 +71,9 @@
   margin-left: 0.15rem;
 }
 
-/* Form Controls */
 .form-control {
   width: 100%;
-  border: 1px solid #d1d5db; /* Gray-300 */
+  border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   padding: 0.75rem;
   font-size: 1rem;
@@ -100,7 +93,6 @@
   color: #d1d5db;
 }
 
-/* Hide number input spinners for consistent styling */
 .form-control[type="number"]::-webkit-outer-spin-button,
 .form-control[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -112,64 +104,9 @@
 }
 
 .bg-light-blue {
-  background-color: #eff6ff; /* Blue-50 */
+  background-color: #eff6ff;
 }
 
-
-/* Select Wrapper */
-.select-wrapper {
-  position: relative;
-}
-
-.select-wrapper select {
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.select-arrow {
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  padding-right: 0.75rem;
-  color: #374151;
-}
-
-.icon {
-  fill: currentColor;
-  height: 1rem;
-  width: 1rem;
-}
-
-/* Special Artifact: Blue Arrow below Input */
-.input-with-artifact {
-  position: relative;
-  width: 100%;
-}
-
-.blue-arrow-artifact {
-  position: absolute;
-  bottom: -8px;
-  left: 8px;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 8px solid #3b82f6; /* Blue-500 */
-  transform: rotate(180deg);
-  opacity: 0;
- 
-}
-
-.input-with-artifact:focus-within .blue-arrow-artifact {
-  opacity: 0;
-  transform: rotate(180deg) translateY(2px);
-}
-
-/* Radio & Checkbox Sections */
 .radio-section {
   margin-bottom: 1.2rem;
   padding: 1rem;
@@ -209,9 +146,9 @@
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
-  align-items: center; /* place towards top */
+  align-items: center;
   justify-content: center;
-  padding-top: 6vh; /* slight top offset */
+  padding-top: 6vh;
   z-index: 1050;
 }
 
@@ -219,8 +156,6 @@
   background: #fff;
   border-radius: 1rem;
   padding: 1.3rem 1.4rem;
-  
-  /* width: min(90vw, 360px); */
   max-width: 290px;
   min-width: 170px;
   text-align: right;
@@ -279,21 +214,20 @@
   background-color: rgba(20, 184, 166, 0.08);
 }
 
-.radio-item input[type="radio"],
-.radio-item input[type="checkbox"] {
+radio-item input[type="radio"],
+radio-item input[type="checkbox"] {
   height: 1.25rem;
   width: 1.25rem;
   border: 1px solid #9ca3af;
-  border-radius: 0.25rem; /* For checkboxes */
-  accent-color: #159bb3; /* Teal-600 */
+  border-radius: 0.25rem;
+  accent-color: #159bb3;
 }
 
 .radio-item span {
-  color: #0b96af; /* Teal-600 */
+  color: #0b96af;
   font-weight: 500;
 }
 
-/* Buttons */
 .button-group {
   display: flex;
   justify-content: center;
@@ -434,7 +368,6 @@
   max-width: 820px !important;
 }
 }
-/* New styles for mat-form-field icons */
 .full-width {
   width: 100%;
 }
@@ -451,7 +384,6 @@
   margin-left: 8px;
 }
 
-/* Custom styling for mat-form-field to match image */
 ::ng-deep .mat-form-field-wrapper {
   margin-bottom: -1.25em;
 }
@@ -608,7 +540,6 @@
   justify-content: flex-end;
 }
 
-/* Remove native spin buttons from number inputs for better UX across owner forms */
 .form-control[type="number"]::-webkit-outer-spin-button,
 .form-control[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;

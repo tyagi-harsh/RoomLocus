@@ -1,6 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormsModule,
+  ReactiveFormsModule,
+  FormGroup,
+  FormBuilder,
+  ValidatorFn,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -92,29 +101,28 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       town: [''],
       townControl: ['', Validators.required],
       location: ['', Validators.required],
-      landmark: [''],
+      landmark: ['', Validators.required],
       minPrice: ['', Validators.required],
       maxPrice: ['', Validators.required],
       security: ['', Validators.required],
       maintenance: ['', Validators.required],
-      totalFloors: ['', Validators.required],
-      totalRoom: ['', Validators.required],
+      totalFloors: [''],
+      totalRoom: [''],
       noticePeriod: ['', Validators.required],
       offer: [''],
       contact: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       contactName: ['', Validators.required],
-      bhk: ['', Validators.required],
+        bhk: ['', Validators.required],
       manager: ['', Validators.required],
       address: ['', Validators.required],
       availableFor: ['', Validators.required],
       furnishing: ['', Validators.required],
       accommodation: ['', Validators.required],
-      petAllowed: ['', Validators.required],
+      petAllowed: [''],
       gender: ['', Validators.required],
       roomType: ['', Validators.required],
-      // waterSupply: ['24 hr', Validators.required],
-      waterSupply: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
-      powerBackup: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
+        waterSupply: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
+        powerBackup: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
       parking: this.fb.group({
         car: [false],
         bike: [false],
@@ -126,8 +134,12 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
         boys: [false],
         professionals: [false],
       }),
-      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES)),
-      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES)),
+      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES), {
+        validators: this.requireCheckboxSelectionValidator(),
+      }),
+      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES), {
+        validators: this.requireCheckboxSelectionValidator(),
+      }),
     });
     this.filteredCities$ = combineLatest([
       this.citiesSubject.asObservable(),
@@ -396,8 +408,15 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     console.log('Form valid:', this.listingForm.valid);
     console.log('Form errors:', this.listingForm.errors);
 
+    if (!this.isOtpVerified()) {
+      this.showContactVerificationRequired();
+      return;
+    }
+
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
+      this.listingForm.get('insideFacility')?.markAsTouched();
+      this.listingForm.get('outsideFacility')?.markAsTouched();
       // Log which controls are invalid
       Object.keys(this.listingForm.controls).forEach(key => {
         const control = this.listingForm.get(key);
@@ -539,11 +558,29 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     return value ? value.toString() : '';
   }
 
+  isOtpVerified(): boolean {
+    return this.contactOtpVerified;
+  }
+
+  private showContactVerificationRequired(): void {
+    this.toastService.warning('Verify contact number before proceeding.');
+  }
+
   displayCityName(city: City | string | null): string {
     if (!city) {
       return '';
     }
     return typeof city === 'string' ? city : city.name;
+  }
+
+  private requireCheckboxSelectionValidator(minRequired = 1): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control || typeof control.value !== 'object' || control.value === null) {
+        return { required: true };
+      }
+      const selectedCount = Object.values(control.value).filter(Boolean).length;
+      return selectedCount >= minRequired ? null : { required: true };
+    };
   }
 
   private filterCities(cities: City[], filter: string): City[] {
