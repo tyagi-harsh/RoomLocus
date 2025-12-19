@@ -5,3 +5,14 @@
 </main>
 
 <app-footer></app-footer>
+
+<!-- Global dialog outlet (reuses the same visual style as login/registration dialogs) -->
+<div *ngIf="dialog.visible()" class="token-dialog-backdrop">
+  <div class="token-dialog">
+    <p>{{ dialog.message() }}</p>
+    <button type="button" class="token-dialog-btn" (click)="dialog.confirm()">
+      {{ dialog.buttonLabel() }}
+    </button>
+  </div>
+
+</div>

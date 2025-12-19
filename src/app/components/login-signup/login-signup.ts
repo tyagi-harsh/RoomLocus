@@ -15,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, filter } from 'rxjs';
 import { ApiService } from '../../services/api';
+import { AuthService } from '../../services/auth.service';
 import { WishlistService } from '../../services/wishlist.service';
 import { encryptWithBackendRsa } from '../../utils/rsa-encryption';
 import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
@@ -159,7 +160,8 @@ export class LoginSignup implements OnInit, OnDestroy {
     private api: ApiService,
     private snackBar: MatSnackBar,
     private router: Router,
-    private wishlistService: WishlistService
+    private wishlistService: WishlistService,
+    private authService: AuthService
   ) { }
   ngOnInit(): void {
     this.forgotForm
@@ -328,6 +330,8 @@ export class LoginSignup implements OnInit, OnDestroy {
               } catch (e) {
                 console.warn('Failed to store tokens locally', e);
               }
+              // Schedule auto-logout for the new token
+              this.authService.onLogin(resp.accessToken);
               this.loginAttempt.emit({ whatsappNo: values.whatsappNo, password: values.password });
               this.navigateToRole(userType);
               return;

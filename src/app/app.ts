@@ -18,6 +18,8 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle'; // For "F
 // App Components
 import { Header } from './components/header/header';
 import { Footer } from './components/footer/footer';
+import { AuthService } from './services/auth.service';
+import { DialogService } from './services/dialog.service';
 
 @Component({
   selector: 'app-root',
@@ -46,4 +48,9 @@ import { Footer } from './components/footer/footer';
 })
 export class App {
   protected readonly title = signal('roomlocus_UI');
+  // expose dialog service to template
+  constructor(public dialog: DialogService, private auth: AuthService) {
+    // Schedule auto-logout if a token exists at startup
+    this.auth.initFromStoredToken();
+  }
 }
