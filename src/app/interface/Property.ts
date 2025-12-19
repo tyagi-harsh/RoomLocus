@@ -2,7 +2,8 @@
 export interface Property {
   id: number;
   imageUrl: string;
-  isVerified: boolean;
+  verified?: boolean;
+  isVerified?: boolean; // legacy support
   location: string;
   subLocation: string;
   type: string; // '1 BHK', '1 RK'
@@ -14,7 +15,8 @@ export interface Property {
 
 export interface PropertyDetails {
   gallery: string[];
-  isVerified: boolean;
+  verified?: boolean;
+  isVerified?: boolean; // legacy support
   location: string;
   propertyName?: string;
   priceMin: number;

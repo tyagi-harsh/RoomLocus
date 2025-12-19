@@ -19,6 +19,7 @@ export interface PropertySearchResult {
   minPrice?: number | null;
   maxPrice?: number | null;
   bhk?: string | null;
+  verified?: boolean | null;
 }
 
 export interface PropertySearchResponse {

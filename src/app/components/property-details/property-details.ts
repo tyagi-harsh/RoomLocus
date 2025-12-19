@@ -92,7 +92,6 @@ export class PropertyDetails implements OnInit, OnDestroy {
       'https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg', // Thumbnail 3
       'https://images.pexels.com/photos/276583/pexels-photo-276583.jpeg', // Thumbnail 4
     ],
-    isVerified: false,
     propertyName: 'Sea View Palace',
     location: 'Himmat Nagar',
     priceMin: 4500,
@@ -309,6 +308,10 @@ export class PropertyDetails implements OnInit, OnDestroy {
       acType: data.acType || this.details.acType,
       guestCapacity: data.noOfGuests ?? this.details.guestCapacity,
     };
+
+    // Map backend `verified` flag into details
+    const verifiedFlag = (data as any)?.verified;
+    (this.details as any).verified = !!verifiedFlag;
 
     if (this.details.gallery.length > 0) {
       this.selectedImage = this.details.gallery[0];
