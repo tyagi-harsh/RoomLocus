@@ -9,6 +9,8 @@ import { ApiService } from '../../services/api';
 import { Subscription } from 'rxjs';
 import { WishlistService } from '../../services/wishlist.service';
 import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
+import { DEFAULT_PROPERTY_GALLERY } from '../../constants/property-images';
+import { INSIDE_FACILITIES, OUTSIDE_FACILITIES } from '../../constants/facility-options';
 // import { Footer } from '../footer/footer';
 
 interface ApiPropertyDetailsResponse {
@@ -85,13 +87,8 @@ export class PropertyDetails implements OnInit, OnDestroy {
   // Mock data created from the images
   // In a real application, you would fetch this based on propertyId
   details: PropertyDetailsInterface = {
-    gallery: [
-      'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg', // Main image
-      'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg', // Thumbnail 1
-      'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg', // Thumbnail 2
-      'https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg', // Thumbnail 3
-      'https://images.pexels.com/photos/276583/pexels-photo-276583.jpeg', // Thumbnail 4
-    ],
+    gallery: [...DEFAULT_PROPERTY_GALLERY],
+    isVerified: false,
     propertyName: 'Sea View Palace',
     location: 'Himmat Nagar',
     priceMin: 4500,
@@ -174,6 +171,7 @@ export class PropertyDetails implements OnInit, OnDestroy {
 
   selectedImage: string = '';
   private wishlistSubscription?: Subscription;
+  private readonly facilityOptions = [...INSIDE_FACILITIES, ...OUTSIDE_FACILITIES];
 
   ngOnInit(): void {
     // Only allow non-OWNER users to use favorites
@@ -435,9 +433,29 @@ export class PropertyDetails implements OnInit, OnDestroy {
       .trim();
     const words = spaced.split(/\s+/).filter(Boolean);
     const formatted = words
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .map((word) => {
+        if (word.length === 2) {
+          return word.toUpperCase();
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
       .join(' ');
     return formatted || value;
+  }
+
+  formatFacilityLabel(value: string | undefined | null): string {
+    if (!value) {
+      return '';
+    }
+    const normalizedValue = value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    const match = this.facilityOptions.find((option) =>
+      option.key.toLowerCase() === normalizedValue ||
+      option.label.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === normalizedValue
+    );
+    if (match) {
+      return match.label;
+    }
+    return this.formatDisplayName(value);
   }
 
   get pgTypeValue(): string | undefined {
@@ -485,6 +503,10 @@ export class PropertyDetails implements OnInit, OnDestroy {
 
   get hourlyLuxuryTier(): string | undefined {
     return this.details.luxury;
+  }
+
+  get hourlyTotalRooms(): number | undefined {
+    return this.details.specs.totalRoom ?? this.details.totalRoom;
   }
 
   get totalFloorValue(): number | undefined {

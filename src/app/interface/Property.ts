@@ -58,6 +58,7 @@ export interface PropertyDetails {
   flatInsideFacilities?: string[];
   flatOutsideFacilities?: string[];
   totalFloor?: number;
+  totalRoom?: number;
   pgType?: string;
   totalPg?: number;
   foodAvailable?: string | boolean;

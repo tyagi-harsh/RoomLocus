@@ -43,15 +43,15 @@
         </p>
 
         <div class="details-grid-small">
-          <div class="grid-item">
+          <div class="grid-item" *ngIf="!isHourlyRoomProperty">
             <h3>Security</h3>
             <p>{{ details.keyDetails.security }}</p>
           </div>
-          <div class="grid-item">
+          <div class="grid-item" *ngIf="!isHourlyRoomProperty">
             <h3>Maintenance</h3>
             <p>{{ details.keyDetails.maintenance }}</p>
           </div>
-          <div class="grid-item">
+          <div class="grid-item" *ngIf="!isHourlyRoomProperty">
             <h3>Type</h3>
             <p>{{ typeWithBhk }}</p>
           </div>
@@ -80,13 +80,17 @@
             <h3>Palace Name</h3>
             <p>{{ hourlyPropertyName }}</p>
           </div>
-          <div class="grid-item" *ngIf="!isPGProperty">
+          <div class="grid-item" *ngIf="!isPGProperty && !isHourlyRoomProperty">
             <h3>Total {{ typeDisplayName }}</h3>
             <p>{{ totalTypeValue }}</p>
           </div>
           <div class="grid-item" *ngIf="isHourlyRoomProperty && hourlyGuestCapacity != null">
             <h3>Guests Allowed</h3>
             <p>{{ hourlyGuestCapacity }}</p>
+          </div>
+          <div class="grid-item" *ngIf="isHourlyRoomProperty && hourlyTotalRooms != null">
+            <h3>Total Room</h3>
+            <p>{{ hourlyTotalRooms }}</p>
           </div>
           <div class="grid-item" *ngIf="isPGProperty">
             <h3>PG Type</h3>
@@ -104,11 +108,11 @@
             <h3>Luxury Tier</h3>
             <p>{{ hourlyLuxuryTier }}</p>
           </div>
-          <div class="grid-item">
+          <div class="grid-item" *ngIf="!isHourlyRoomProperty">
             <h3>Water Supply</h3>
             <p>{{ details.specs.waterSupply }}</p>
           </div>
-          <div class="grid-item">
+          <div class="grid-item" *ngIf="!isHourlyRoomProperty">
             <h3>Power Backup</h3>
             <p>{{ details.specs.powerBackup }}</p>
           </div>
@@ -120,7 +124,7 @@
             <h3>Food Available</h3>
             <p>{{ foodAvailableValue || 'N/A' }}</p>
           </div>
-          <div class="grid-item" *ngIf="details.noticePeriod">
+          <div class="grid-item" *ngIf="details.noticePeriod && !isHourlyRoomProperty">
             <h3>Notice Period</h3>
             <p>{{ details.noticePeriod }}</p>
           </div>
@@ -141,7 +145,7 @@
             <p>{{ careTakerValue }}</p>
           </div>
         </div>
-        <div class="info-section isx">
+        <div class="info-section isx" *ngIf="!isHourlyRoomProperty">
           <h2>Offer</h2>
           <p>{{ details.offer }}</p>
         </div>
@@ -177,7 +181,7 @@
           <h2>{{ typeDisplayName }} Inside Facilities :</h2>
           <ul class="facility-list">
             <li *ngFor="let item of insideFacilitiesList">
-              <i class="fas fa-check"></i> {{ formatDisplayName(item) }}
+              <i class="fas fa-check"></i> {{ formatFacilityLabel(item) }}
             </li>
           </ul>
         </div>
@@ -186,7 +190,7 @@
           <h2>{{ typeDisplayName }} Outside Facilities :</h2>
           <ul class="facility-list">
             <li *ngFor="let item of outsideFacilitiesList">
-              <i class="fas fa-check"></i> {{ formatDisplayName(item) }}
+              <i class="fas fa-check"></i> {{ formatFacilityLabel(item) }}
             </li>
           </ul>
         </div>

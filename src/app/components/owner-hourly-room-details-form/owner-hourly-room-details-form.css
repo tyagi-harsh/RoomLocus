@@ -70,6 +70,13 @@
   letter-spacing: 0.02em;
 }
 
+.form-label.required::after,
+.section-title.required::after {
+  content: ' *';
+  color: #dc2626;
+  margin-left: 0.15rem;
+}
+
 /* Form Controls */
 .form-control {
   width: 100%;

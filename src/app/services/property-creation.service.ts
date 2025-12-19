@@ -123,9 +123,11 @@ export interface HourlyRoomPayload {
   townSector: string;
   location?: string;
   landmark?: string;
+  luxury?: string;
   luxuryTier?: string;
   bedCount?: number;
   guestCapacity?: number;
+  noOfGuests?: number;
   totalFloor: number;
   palaceName?: string;
   totalRoom: number;
@@ -145,6 +147,8 @@ export interface HourlyRoomPayload {
   preferTenants: string[];
   insideFacilities: string[];
   outsideFacilities: string[];
+  roomInside?: string[];
+  roomOutside?: string[];
   verificationPending?: boolean;
   isDraft?: boolean;
 }
