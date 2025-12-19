@@ -148,7 +148,7 @@
   margin-top: 5px;
 }
 
-.form-label.required::after {
+.form-label.required::after,.section-title.required::after {
   content: '*';
   color: #dc2626;
   margin-left: 0.2rem;

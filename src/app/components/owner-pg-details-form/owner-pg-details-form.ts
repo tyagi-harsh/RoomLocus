@@ -1,6 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormsModule,
+  ReactiveFormsModule,
+  FormGroup,
+  FormBuilder,
+  ValidatorFn,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -71,6 +80,10 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
   showContactResendOption = false;
   showOtpDialog = false;
   otpDialogMessage = '';
+  showSuccessDialog = false;
+  successDialogMessage = '';
+  successDialogButtonLabel = 'Upload Images';
+  private successDialogAction: (() => void) | null = null;
   private readonly formStorageKey = 'owner-pg-details-form-state';
   private readonly formStorageTtl = 4 * 60 * 1000;
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
@@ -105,7 +118,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       caretaker: [''],
       petAllowed: [''],
       noticePeriod: ['', Validators.required],
-      manager: ['', Validators.required],
+      
       contact: ['', Validators.required],
       whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       address: ['', Validators.required],
@@ -131,8 +144,12 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
         professionals: [false],
         
       }),
-      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES)) ,
-      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES)),
+      insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES), {
+        validators: this.requireCheckboxSelectionValidator(),
+      }),
+      outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES), {
+        validators: this.requireCheckboxSelectionValidator(),
+      }),
     });
 
     this.filteredCities$ = combineLatest([
@@ -392,10 +409,16 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     console.log('Form valid:', this.listingForm.valid);
     console.log('Form errors:', this.listingForm.errors);
 
+    if (!this.isOtpVerified()) {
+      this.showContactVerificationRequired();
+      return;
+    }
+
     if (this.listingForm.invalid) {
       this.listingForm.markAllAsTouched();
-      // Log which controls are invalid
-      Object.keys(this.listingForm.controls).forEach(key => {
+      this.listingForm.get('insideFacility')?.markAsTouched();
+      this.listingForm.get('outsideFacility')?.markAsTouched();
+      Object.keys(this.listingForm.controls).forEach((key) => {
         const control = this.listingForm.get(key);
         if (control?.invalid) {
           console.log(`Invalid field: ${key}`, control.errors);
@@ -420,10 +443,13 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       ownerId,
       timestamp: Date.now(),
     });
-    this.toastService.success('PG details saved. Upload images to complete the listing.');
-    this.router
-      .navigate(['/owner/pg/images'], { queryParams: { propertyType: 'pg' } })
-      .catch((err) => console.error('Navigation failed', err));
+    this.openSuccessDialog(
+      'PG details saved. Upload images to complete the listing.',
+      () =>
+        this.router
+          .navigate(['/owner/pg/images'], { queryParams: { propertyType: 'pg' } })
+          .catch((err) => console.error('Navigation failed', err))
+    );
   }
 
   mapFormToPayload(): PGPayload {
@@ -561,6 +587,20 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     this.showOtpDialog = false;
   }
 
+  private openSuccessDialog(message: string, action: () => void, actionLabel = 'Upload Images'): void {
+    this.successDialogMessage = message;
+    this.successDialogAction = action;
+    this.successDialogButtonLabel = actionLabel;
+    this.showSuccessDialog = true;
+  }
+
+  confirmSuccessDialog(): void {
+    this.showSuccessDialog = false;
+    const action = this.successDialogAction;
+    this.successDialogAction = null;
+    action?.();
+  }
+
   onCancel(): void {
     this.showCancelConfirmation = true;
   }
@@ -588,5 +628,23 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
   get otpTargetNumber(): string {
     const value = this.listingForm.get('whatsappNo')?.value;
     return value ? value.toString() : '';
+  }
+
+  isOtpVerified(): boolean {
+    return this.contactOtpVerified;
+  }
+
+  private showContactVerificationRequired(): void {
+    this.toastService.warning('Verify Whatsapp number before proceeding.');
+  }
+
+  private requireCheckboxSelectionValidator(minRequired = 1): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control || typeof control.value !== 'object' || control.value === null) {
+        return { required: true };
+      }
+      const selectedCount = Object.values(control.value).filter(Boolean).length;
+      return selectedCount >= minRequired ? null : { required: true };
+    };
   }
 }

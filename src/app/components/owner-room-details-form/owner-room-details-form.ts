@@ -81,6 +81,10 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
   showOtpDialog = false;
   otpDialogMessage = '';
+  showSuccessDialog = false;
+  successDialogMessage = '';
+  successDialogButtonLabel = 'Upload Images';
+  private successDialogAction: (() => void) | null = null;
   private readonly formStorageKey = 'owner-room-details-form-state';
   private readonly formStorageTtl = 4 * 60 * 1000;
   showCancelConfirmation = false;
@@ -313,6 +317,20 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
     this.showOtpDialog = false;
   }
 
+  private openSuccessDialog(message: string, action: () => void, actionLabel = 'Upload Images'): void {
+    this.successDialogMessage = message;
+    this.successDialogAction = action;
+    this.successDialogButtonLabel = actionLabel;
+    this.showSuccessDialog = true;
+  }
+
+  confirmSuccessDialog(): void {
+    this.showSuccessDialog = false;
+    const action = this.successDialogAction;
+    this.successDialogAction = null;
+    action?.();
+  }
+
   startContactOtpFlow(): void {
     this.resetContactOtpUiFlags();
     this.isSendingContactOtp = true;
@@ -443,10 +461,13 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       ownerId,
       timestamp: Date.now(),
     });
-    this.toastService.success('Room details saved. Upload images to complete the listing.');
-    this.router
-      .navigate(['/owner/room/images'], { queryParams: { propertyType: 'room' } })
-      .catch((err) => console.error('Navigation failed', err));
+    this.openSuccessDialog(
+      'Room details saved. Upload images to complete the listing.',
+      () =>
+        this.router
+          .navigate(['/owner/room/images'], { queryParams: { propertyType: 'room' } })
+          .catch((err) => console.error('Navigation failed', err))
+    );
   }
 
   /**

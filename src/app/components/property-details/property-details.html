@@ -140,7 +140,7 @@
             <h3>Time Restrict</h3>
             <p>{{ timeRestrictValue }}</p>
           </div>
-          <div class="grid-item" *ngIf="isPGProperty && careTakerValue">
+          <div class="grid-item" *ngIf="!isPGProperty ">
             <h3>Care Taker</h3>
             <p>{{ careTakerValue }}</p>
           </div>

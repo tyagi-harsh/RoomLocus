@@ -83,6 +83,10 @@ export class OwnerPropertyImageUpload implements OnInit {
   headingText = 'Upload Images';
   propertyTypeKey: PropertyTypeKey = 'flat';
   isSaving = false;
+  showSuccessDialog = false;
+  successDialogMessage = '';
+  successDialogButtonLabel = 'Go to Dashboard';
+  private successDialogAction: (() => void) | null = null;
 
   constructor(
     private readonly router: Router,
@@ -163,12 +167,16 @@ export class OwnerPropertyImageUpload implements OnInit {
       next: (result) => {
         this.isSaving = false;
         if (result.success) {
-          this.toastService.success(`${this.getPropertyTypeLabel(this.propertyTypeKey)} listing created successfully!`);
           this.recordPropertySummary(ownerId, result.data?.id, this.propertyTypeKey, draft.payload);
           this.creationDraftService.clearDraft();
-          this.router
-            .navigate(['/owner-dashboard'])
-            .catch((err) => console.error('Navigation failed', err));
+          this.openSuccessDialog(
+            `${this.getPropertyTypeLabel(this.propertyTypeKey)} listing created successfully!`,
+            () =>
+              this.router
+                .navigate(['/owner-dashboard'])
+                .catch((err) => console.error('Navigation failed', err)),
+            'Go to Dashboard'
+          );
         } else {
           this.toastService.error(result.error || 'Failed to create listing. Please try again.');
         }
@@ -185,6 +193,20 @@ export class OwnerPropertyImageUpload implements OnInit {
     const propertyTypeParam = this.route.snapshot.queryParamMap.get('propertyType');
     this.propertyTypeKey = this.normalizePropertyType(propertyTypeParam);
     this.headingText = this.getHeadingForType(this.propertyTypeKey);
+  }
+
+  private openSuccessDialog(message: string, action: () => void, actionLabel = 'Go to Dashboard'): void {
+    this.successDialogMessage = message;
+    this.successDialogAction = action;
+    this.successDialogButtonLabel = actionLabel;
+    this.showSuccessDialog = true;
+  }
+
+  confirmSuccessDialog(): void {
+    this.showSuccessDialog = false;
+    const action = this.successDialogAction;
+    this.successDialogAction = null;
+    action?.();
   }
 
   private normalizePropertyType(value: string | null): PropertyTypeKey {

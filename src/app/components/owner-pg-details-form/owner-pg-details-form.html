@@ -13,7 +13,7 @@
   <form [formGroup]="listingForm">
     <div class="form-group">
       <mat-form-field appearance="outline" class="full-width">
-          <mat-label class="required">Select City</mat-label>
+        <mat-label class="required">Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
         <input
           matInput
@@ -33,12 +33,16 @@
           </mat-option>
           <mat-option *ngIf="(filteredCities$ | async)?.length === 0" disabled>No cities found</mat-option>
         </mat-autocomplete>
+        <mat-error
+          *ngIf="listingForm.get('cityControl')?.hasError('required') && (listingForm.get('cityControl')?.dirty || listingForm.get('cityControl')?.touched)">
+          City is required.
+        </mat-error>
       </mat-form-field>
     </div>
 
     <div class="form-group">
       <mat-form-field appearance="outline" class="full-width">
-          <mat-label class="required">Town & Sector</mat-label>
+        <mat-label class="required">Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
         <input
           matInput
@@ -61,27 +65,43 @@
             No locations found
           </mat-option>
         </mat-autocomplete>
+        <mat-error
+          *ngIf="listingForm.get('townControl')?.hasError('required') && (listingForm.get('townControl')?.dirty || listingForm.get('townControl')?.touched)">
+          Town/Sector is required.
+        </mat-error>
       </mat-form-field>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Area/Colony</label>
       <input type="text" formControlName="location" placeholder="Enter area/colony" class="form-control bg-light-blue">
+      <div class="validation-error" *ngIf="listingForm.get('location')?.hasError('required') && (listingForm.get('location')?.dirty || listingForm.get('location')?.touched)">
+        <small>Area/Colony is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
-      <label class="form-label">Landmark</label>
+      <label class="form-label required">Landmark</label>
       <input type="text" formControlName="landmark" placeholder="Enter landmark" class="form-control bg-light-blue">
+      <div class="validation-error" *ngIf="listingForm.get('landmark')?.hasError('required') && (listingForm.get('landmark')?.dirty || listingForm.get('landmark')?.touched)">
+        <small>Landmark is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Min Price per Month</label>
       <input type="number" formControlName="minPrice" placeholder="Enter min price per month" class="form-control bg-light-blue" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('minPrice')?.hasError('required') && (listingForm.get('minPrice')?.dirty || listingForm.get('minPrice')?.touched)">
+        <small>Minimum price is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Max Price per Month</label>
       <input type="number" formControlName="maxPrice" placeholder="Enter max price per month" class="form-control bg-light-blue" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('maxPrice')?.hasError('required') && (listingForm.get('maxPrice')?.dirty || listingForm.get('maxPrice')?.touched)">
+        <small>Maximum price is required.</small>
+      </div>
     </div>
 
     <!-- Additional fields retained unchanged -->
@@ -89,36 +109,53 @@
     <div class="form-row">
       <label class="form-label required">Security Deposit</label>
       <input type="number" formControlName="security" placeholder="Enter security amount" class="form-control" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('security')?.hasError('required') && (listingForm.get('security')?.dirty || listingForm.get('security')?.touched)">
+        <small>Security deposit is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Maintenance</label>
       <input type="number" formControlName="maintenance" placeholder="Enter maintenance" class="form-control" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('maintenance')?.hasError('required') && (listingForm.get('maintenance')?.dirty || listingForm.get('maintenance')?.touched)">
+        <small>Maintenance is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
-      <label class="form-label required">Total Floor</label>
+      <label class="form-label ">Total Floor</label>
       <input type="number" formControlName="totalFloors" placeholder="Enter total floors" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label required">Total PG</label>
+      <label class="form-label ">Total PG</label>
       <input type="number" formControlName="totalFlat" placeholder="Enter total PGs" class="form-control" appNumericOnly>
     </div>
 
     <div class="form-row">
-      <label class="form-label required">Water Supply in Hours</label>
+      <label class="form-label">Water Supply in Hours</label>
         <input type="number" formControlName="waterSupply" placeholder="Enter water supply in hours" class="form-control bg-light-blue" appNumericOnly min="0" max="24" step="1">
+      <div class="validation-error" *ngIf="listingForm.get('waterSupply')?.invalid && (listingForm.get('waterSupply')?.dirty || listingForm.get('waterSupply')?.touched)">
+        <small *ngIf="listingForm.get('waterSupply')?.hasError('required')">Water supply is required.</small>
+        <small *ngIf="listingForm.get('waterSupply')?.hasError('max')">Water supply cannot exceed 24 hours.</small>
+      </div>
     </div>
 
     <div class="form-row">
-      <label class="form-label required">Power Backup in hours </label>
+      <label class="form-label">Power Backup in hours </label>
         <input type="number" formControlName="powerBackup" placeholder="Enter power backup in hours" class="form-control bg-light-blue" appNumericOnly min="0" max="24" step="1">
+      <div class="validation-error" *ngIf="listingForm.get('powerBackup')?.invalid && (listingForm.get('powerBackup')?.dirty || listingForm.get('powerBackup')?.touched)">
+        <small *ngIf="listingForm.get('powerBackup')?.hasError('required')">Power backup is required.</small>
+        <small *ngIf="listingForm.get('powerBackup')?.hasError('max')">Power backup cannot exceed 24 hours.</small>
+      </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Notice Period</label>
       <input type="number" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('noticePeriod')?.hasError('required') && (listingForm.get('noticePeriod')?.dirty || listingForm.get('noticePeriod')?.touched)">
+        <small>Notice period is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
@@ -129,6 +166,9 @@
     <div class="form-row">
       <label class="form-label required">Bed Count</label>
       <input type="number" formControlName="bedCount" placeholder="Enter bed count" class="form-control" appNumericOnly>
+      <div class="validation-error" *ngIf="listingForm.get('bedCount')?.hasError('required') && (listingForm.get('bedCount')?.dirty || listingForm.get('bedCount')?.touched)">
+        <small>Bed count is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
@@ -215,6 +255,9 @@
     <div class="form-row">
       <label class="form-label required">Contact Name</label>
       <input type="text" formControlName="contact" placeholder="Enter contact name" class="form-control">
+      <div class="validation-error" *ngIf="listingForm.get('contact')?.hasError('required') && (listingForm.get('contact')?.dirty || listingForm.get('contact')?.touched)">
+        <small>Contact name is required.</small>
+      </div>
     </div>
 
     <div class="form-row">
@@ -227,17 +270,31 @@
         <option value="4 BHK">4 BHK</option>
         <option value="Other">Other</option>
       </select>
+      <div class="validation-error" *ngIf="listingForm.get('bhk')?.hasError('required') && (listingForm.get('bhk')?.dirty || listingForm.get('bhk')?.touched)">
+        <small>BHK selection is required.</small>
+      </div>
     </div>
+
+    <!-- <div class="form-row">
+      <label class="form-label required">Manager/Owner</label>
+      <input type="text" formControlName="manager" placeholder="Enter manager/owner name" class="form-control">
+      <div class="validation-error" *ngIf="listingForm.get('manager')?.hasError('required') && (listingForm.get('manager')?.dirty || listingForm.get('manager')?.touched)">
+        <small>Manager or owner name is required.</small>
+      </div>
+    </div> -->
 
    
 
     <div class="form-row align-start">
       <label class="form-label pt-2 required">Full Address</label>
       <textarea formControlName="address" placeholder="Enter full address" rows="4" class="form-control"></textarea>
+      <div class="validation-error" *ngIf="listingForm.get('address')?.hasError('required') && (listingForm.get('address')?.dirty || listingForm.get('address')?.touched)">
+        <small>Full address is required.</small>
+      </div>
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">Furnishing Type *</h3>
+      <h3 class="section-title required">Furnishing Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Fully furnished" formControlName="furnishing"><span>Fully furnished</span></label>
         <label class="radio-item"><input type="radio" value="Semi furnished" formControlName="furnishing"><span>Semi furnished</span></label>
@@ -246,7 +303,7 @@
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">Accommodation Type</h3>
+      <h3 class="section-title required">Accommodation Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation"><span>Independent</span></label>
         <label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation"><span>Apartment</span></label>
@@ -263,7 +320,7 @@
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">Gender Preferences</h3>
+      <h3 class="section-title required">Gender Preferences</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Male" formControlName="gender"><span>Male</span></label>
         <label class="radio-item"><input type="radio" value="Female" formControlName="gender"><span>Female</span></label>
@@ -273,7 +330,7 @@
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">PG Type</h3>
+      <h3 class="section-title required">PG Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Private" formControlName="flatType"><span>Private</span></label>
         <label class="radio-item"><input type="radio" value="Shared" formControlName="flatType"><span>Shared</span></label>
@@ -281,7 +338,7 @@
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">Time Restrictions</h3>
+      <h3 class="section-title required">Time Restrictions</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Yes" formControlName="timeRestrict"><span>Yes</span></label>
         <label class="radio-item"><input type="radio" value="No" formControlName="timeRestrict"><span>No</span></label>
@@ -289,7 +346,7 @@
     </div>
 
     <div class="radio-section">
-      <h3 class="section-title">Food Available</h3>
+      <h3 class="section-title required">Food Available</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Yes" formControlName="foodAvailable"><span>Yes</span></label>
         <label class="radio-item"><input type="radio" value="No" formControlName="foodAvailable"><span>No</span></label>
@@ -305,7 +362,7 @@
     </div>
 
     <div class="radio-section" formGroupName="preferTenant">
-      <h3 class="section-title">Prefer Tenant Type</h3>
+      <h3 class="section-title required">Prefer Tenant Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="checkbox" formControlName="family"><span>Family</span></label>
         <label class="radio-item"><input type="checkbox" formControlName="bachelors"><span>Bachelors</span></label>
@@ -316,7 +373,7 @@
     </div>
 
     <div class="radio-section" formGroupName="insideFacility">
-      <h3 class="section-title">PG Inside Facility</h3>
+      <h3 class="section-title required">PG Inside Facility</h3>
       <div class="radio-group">
         <label class="radio-item" *ngFor="let facility of insideFacilities">
           <input type="checkbox" [formControlName]="facility.key">
@@ -326,7 +383,7 @@
     </div>
 
     <div class="radio-section" formGroupName="outsideFacility">
-      <h3 class="section-title">PG Outside Facility</h3>
+      <h3 class="section-title required">PG Outside Facility</h3>
       <div class="radio-group">
         <label class="radio-item" *ngFor="let facility of outsideFacilities">
           <input type="checkbox" [formControlName]="facility.key">
@@ -336,7 +393,7 @@
     </div>
 
     <div class="button-group">
-      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid">Next</button>
+      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid || !isOtpVerified()">Next</button>
       <button type="button" (click)="onCancel()" class="btn btn-cancel">Cancel</button>
     </div>
     <div *ngIf="showCancelConfirmation" class="cancel-toast">
@@ -351,6 +408,15 @@
         <h2>www.roomlocus.com says</h2>
         <p>{{ otpDialogMessage }}</p>
         <button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
+      </div>
+    </div>
+    <div *ngIf="showSuccessDialog" class="token-dialog-backdrop">
+      <div class="token-dialog">
+        <h2>www.roomlocus.com says</h2>
+        <p>{{ successDialogMessage }}</p>
+        <button type="button" class="token-dialog-btn" (click)="confirmSuccessDialog()">
+          {{ successDialogButtonLabel }}
+        </button>
       </div>
     </div>
   </form>

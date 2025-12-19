@@ -18,7 +18,7 @@
             <div class="input-with-icon">
               <i class="fas fa-mobile-alt icon"></i>
               <input type="tel" id="whatsappNo" formControlName="whatsappNo" placeholder="Number"
-                aria-label="Whatsapp Number" />
+                aria-label="Whatsapp Number" inputmode="numeric" pattern="[0-9]*" />
             </div>
             <div *ngIf="f['whatsappNo'].invalid && (f['whatsappNo'].dirty || f['whatsappNo'].touched)"
               class="validation-error">
@@ -86,6 +86,7 @@
                 *ngIf="signupControls['name'].invalid && (signupControls['name'].dirty || signupControls['name'].touched)"
                 class="validation-error">
                 <div *ngIf="signupControls['name'].errors?.['required']">Full Name is required.</div>
+                <div *ngIf="signupControls['name'].errors?.['pattern']">Full Name cannot contain numbers.</div>
               </div>
             </div>
 
@@ -97,7 +98,7 @@
                 <input type="tel" id="signup-mobile" formControlName="mobile" placeholder="Number"
                   aria-label="Whatsapp Number"
                   [readonly]="signupMobileLocked"
-                  [class.locked-input]="signupMobileLocked" />
+                  [class.locked-input]="signupMobileLocked" inputmode="numeric" pattern="[0-9]*" />
                 <span class="verified-indicator" *ngIf="otpVerifiedFlag" aria-hidden="true">
                   <i class="fas fa-check-circle"></i>
                 </span>
@@ -155,6 +156,10 @@
                         mode="indeterminate"></mat-progress-spinner>
                     </button>
                   </div>
+                </div>
+                <div *ngIf="showSignupOtpVerifiedToast" class="otp-status verified-toast">
+                  <i class="fas fa-check-circle"></i>
+                  <span>OTP Verified</span>
                 </div>
                 
               </div>
@@ -246,7 +251,7 @@
                 <input type="tel" id="forgot-mobile" formControlName="mobile" placeholder="Number"
                   aria-label="Whatsapp Number"
                   [readonly]="forgotMobileLocked"
-                  [class.locked-input]="forgotMobileLocked" />
+                  [class.locked-input]="forgotMobileLocked" inputmode="numeric" pattern="[0-9]*" />
                 <span class="verified-indicator" *ngIf="forgotOtpVerified" aria-hidden="true">
                   <i class="fas fa-check-circle"></i>
                 </span>
@@ -424,5 +429,14 @@
       <p>{{ otpDialogMessage }}</p>
       <button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
     </div>
+  </div>
+</div>
+<div *ngIf="showSuccessDialog" class="token-dialog-backdrop">
+  <div class="token-dialog">
+    <h2>www.roomlocus.com says</h2>
+    <p>{{ successDialogMessage }}</p>
+    <button type="button" class="token-dialog-btn" (click)="confirmSuccessDialog()">
+      {{ successDialogButtonLabel }}
+    </button>
   </div>
 </div>

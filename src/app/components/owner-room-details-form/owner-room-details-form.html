@@ -164,7 +164,16 @@
 			</div>
 		</section>
 
+    
+
 		<section class="section-grid">
+      <div class="form-row">
+				<label class="form-label required">Contact Name</label>
+				<input type="text" formControlName="contactName" placeholder="Enter contact name" class="form-control" />
+				<div class="validation-error" *ngIf="listingForm.get('contactName')?.hasError('required') && (listingForm.get('contactName')?.dirty || listingForm.get('contactName')?.touched)">
+					<small>Contact name is required.</small>
+				</div>
+			</div>
 			<div class="form-row">
 				<label class="form-label required">Contact Number</label>
 				<div class="input-with-indicator">
@@ -188,13 +197,7 @@
 					<small *ngIf="listingForm.get('contact')?.hasError('pattern')">Enter a 10-digit mobile number starting with 6-9.</small>
 				</div>
 			</div>
-			<div class="form-row">
-				<label class="form-label required">Contact Name</label>
-				<input type="text" formControlName="contactName" placeholder="Enter contact name" class="form-control" />
-				<div class="validation-error" *ngIf="listingForm.get('contactName')?.hasError('required') && (listingForm.get('contactName')?.dirty || listingForm.get('contactName')?.touched)">
-					<small>Contact name is required.</small>
-				</div>
-			</div>
+			
 		</section>
 
 		<section class="mobile-extra">
@@ -383,6 +386,15 @@
 				<h2>www.roomlocus.com says</h2>
 				<p>{{ otpDialogMessage }}</p>
 				<button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
+			</div>
+		</div>
+		<div *ngIf="showSuccessDialog" class="token-dialog-backdrop">
+			<div class="token-dialog">
+				<h2>www.roomlocus.com says</h2>
+				<p>{{ successDialogMessage }}</p>
+				<button type="button" class="token-dialog-btn" (click)="confirmSuccessDialog()">
+					{{ successDialogButtonLabel }}
+				</button>
 			</div>
 		</div>
 	</form>

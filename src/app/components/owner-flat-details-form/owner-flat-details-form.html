@@ -397,5 +397,14 @@
         <button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
       </div>
     </div>
+    <div *ngIf="showSuccessDialog" class="token-dialog-backdrop">
+      <div class="token-dialog">
+        <h2>www.roomlocus.com says</h2>
+        <p>{{ successDialogMessage }}</p>
+        <button type="button" class="token-dialog-btn" (click)="confirmSuccessDialog()">
+          {{ successDialogButtonLabel }}
+        </button>
+      </div>
+    </div>
   </form>
 </div>

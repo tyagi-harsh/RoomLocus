@@ -12,8 +12,6 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { TokenDialogComponent } from './token-dialog.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, filter } from 'rxjs';
 import { ApiService } from '../../services/api';
@@ -61,7 +59,7 @@ export function passwordValidator(): ValidatorFn {
 @Component({
   selector: 'app-login-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule, MatDialogModule],
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule],
   templateUrl: './login-signup.html',
   styleUrls: ['./login-signup.css'],
 })
@@ -102,6 +100,10 @@ export class LoginSignup implements OnInit, OnDestroy {
   showForgotResendOption = false;
   forgotUserLookupError: string | null = null;
   zoneType: ZoneType = 'owner';
+  showSuccessDialog = false;
+  successDialogMessage = '';
+  successDialogButtonLabel = 'Go to Login';
+  private successDialogAction: (() => void) | null = null;
   private destroy$ = new Subject<void>();
   private signupOtpVerifiedTimer: ReturnType<typeof setTimeout> | null = null;
   private forgotOtpVerifiedTimer: ReturnType<typeof setTimeout> | null = null;
@@ -156,7 +158,6 @@ export class LoginSignup implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private api: ApiService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog,
     private router: Router,
     private wishlistService: WishlistService
   ) { }
@@ -164,16 +165,36 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.forgotForm
       .get('mobile')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+      .subscribe((value) => {
         this.forgotUserLookupError = null;
         this.clearForgotOtpStateForMobileChange();
+        this.stripNonDigits(this.forgotForm.get('mobile'), value);
       });
 
     this.signupForm
       .get('mobile')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+      .subscribe((value) => {
         this.signupMobileError = null;
+        this.stripNonDigits(this.signupForm.get('mobile'), value);
+      });
+
+    this.signupForm
+      .get('name')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        const current = value ?? '';
+        const normalized = this.normalizeFullName(current);
+        if (current !== normalized) {
+          this.signupForm.get('name')?.setValue(normalized, { emitEvent: false });
+        }
+      });
+
+    this.loginForm
+      .get('whatsappNo')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        this.stripNonDigits(this.loginForm.get('whatsappNo'), value);
       });
 
     this.initializeZoneType();
@@ -208,6 +229,26 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.otpDialogMessage = '';
   }
 
+  private openSuccessDialog(message: string, action: () => void, actionLabel = 'Go to Login'): void {
+    this.successDialogMessage = message;
+    this.successDialogAction = action;
+    this.successDialogButtonLabel = actionLabel;
+    this.showSuccessDialog = true;
+  }
+
+  confirmSuccessDialog(): void {
+    this.showSuccessDialog = false;
+    const action = this.successDialogAction;
+    this.successDialogAction = null;
+    action?.();
+  }
+
+  private navigateToLoginPage(): void {
+    this.router
+      .navigate(['/login'], { queryParams: { userType: this.zoneType } })
+      .catch((err) => console.error('Navigation failed', err));
+  }
+
   private buildLoginForm(): FormGroup {
     return new FormGroup({
       whatsappNo: new FormControl('', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]),
@@ -217,7 +258,7 @@ export class LoginSignup implements OnInit, OnDestroy {
 
   private buildSignupForm(): FormGroup {
     return new FormGroup({
-      name: new FormControl('', [Validators.required]),
+      name: new FormControl('', [Validators.required, Validators.pattern(/^[^0-9]*$/)]),
       email: new FormControl('', [Validators.email]),
       mobile: new FormControl('', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]),
       password: new FormControl('', [Validators.required, Validators.minLength(6), passwordValidator()]),
@@ -289,13 +330,6 @@ export class LoginSignup implements OnInit, OnDestroy {
               }
               this.loginAttempt.emit({ whatsappNo: values.whatsappNo, password: values.password });
               this.navigateToRole(userType);
-              // Show dialog with tokens
-              try {
-                this.dialog.open(TokenDialogComponent, { data: { title: 'Login successful', message: 'You are now logged in.' } });
-              } catch (e) {
-                // Fallback to snackbar if dialog fails
-                this.snackBar.open('Login successful', 'Close', { duration: 2500 });
-              }
               return;
             }
             this.snackBar.open('Login response: ' + JSON.stringify(resp), 'Close', { duration: 4000 });
@@ -353,28 +387,13 @@ export class LoginSignup implements OnInit, OnDestroy {
             this.snackBar.open('Registration failed: ' + (resp.error || 'Unknown error'), 'Close', { duration: 4000 });
             return;
           }
-          if (resp && resp.accessToken) {
-            try {
-              localStorage.setItem('accessToken', resp.accessToken);
-              if (resp.refreshToken) localStorage.setItem('refreshToken', resp.refreshToken);
-              if (resp.userId) localStorage.setItem('userId', resp.userId);
-              else if (resp.id) localStorage.setItem('userId', resp.id.toString());
-              localStorage.setItem('userType', payload.userType);
-              localStorage.setItem('userMobile', values.mobile);
-            } catch (e) {
-              console.warn('Failed to store tokens locally', e);
-            }
-            this.navigateToRole(payload.userType);
-            // Show registration success dialog with id if returned
-            try {
-              this.dialog.open(TokenDialogComponent, { data: { title: 'Registration successful', message: 'Registered successfully', id: resp.id, username: resp.username } });
-            } catch (e) {
-              this.snackBar.open('Registration successful. You are signed in.', 'Close', { duration: 3000 });
-            }
-            this.returnToLogin();
-            return;
-          }
-          this.snackBar.open('Registration result: ' + JSON.stringify(resp), 'Close', { duration: 4000 });
+          const friendlyZone = this.zoneLabels[this.zoneType] || 'User';
+          this.returnToLogin();
+          this.openSuccessDialog(
+            `${friendlyZone} registered successfully. Please sign in.`,
+            () => this.navigateToLoginPage()
+          );
+          return;
         }, (err) => {
           this.isRegistering = false;
           this.snackBar.open('Registration failed. Please try again.', 'Close', { duration: 4000 });
@@ -820,8 +839,8 @@ export class LoginSignup implements OnInit, OnDestroy {
           this.snackBar.open('Password reset failed: ' + (resp.error || 'Unknown error'), 'Close', { duration: 4000 });
           return;
         }
-        this.snackBar.open('Password reset successful. Please sign in.', 'Close', { duration: 3000 });
         this.returnToLogin();
+        this.openSuccessDialog('Password reset successful. Please sign in.', () => this.navigateToLoginPage());
       }, (err) => {
         this.isResettingPassword = false;
         const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Server error';
@@ -955,6 +974,26 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.resetForgotOtpUiFlags();
     this.signupForm.get('password')?.enable({ emitEvent: false });
     this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
+  }
+
+  private normalizeFullName(value: string | null): string {
+    if (!value) {
+      return '';
+    }
+    const withoutDigits = value.replace(/\d/g, '');
+    return withoutDigits.replace(/\b([A-Za-z])/g, (match) => {
+      return match.toUpperCase();
+    });
+  }
+
+  private stripNonDigits(control: AbstractControl | null, value: string | null): void {
+    if (!control || typeof value !== 'string') {
+      return;
+    }
+    const digitsOnly = value.replace(/\D/g, '');
+    if (digitsOnly !== value) {
+      control.setValue(digitsOnly, { emitEvent: false });
+    }
   }
 
   get loginControls() {

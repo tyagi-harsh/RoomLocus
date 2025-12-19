@@ -74,6 +74,10 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
   showContactResendOption = false;
   showOtpDialog = false;
   otpDialogMessage = '';
+  showSuccessDialog = false;
+  successDialogMessage = '';
+  successDialogButtonLabel = 'Upload Images';
+  private successDialogAction: (() => void) | null = null;
   private readonly formStorageKey = 'owner-hourly-room-details-form-state';
   private readonly formStorageTtl = 4 * 60 * 1000;
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
@@ -457,6 +461,20 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     this.showOtpDialog = false;
   }
 
+  private openSuccessDialog(message: string, action: () => void, actionLabel = 'Upload Images'): void {
+    this.successDialogMessage = message;
+    this.successDialogAction = action;
+    this.successDialogButtonLabel = actionLabel;
+    this.showSuccessDialog = true;
+  }
+
+  confirmSuccessDialog(): void {
+    this.showSuccessDialog = false;
+    const action = this.successDialogAction;
+    this.successDialogAction = null;
+    action?.();
+  }
+
   private mapFormToPayload(): HourlyRoomPayload {
     const f = this.listingForm.value;
     const parking: string[] = [];
@@ -550,10 +568,13 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       ownerId,
       timestamp: Date.now(),
     });
-    this.toastService.success('Hourly room details saved. Upload images to complete the listing.');
-    this.router
-      .navigate(['/owner/hourly-room/images'], { queryParams: { propertyType: 'hourly-room' } })
-      .catch((err) => console.error('Navigation failed', err));
+    this.openSuccessDialog(
+      'Hourly room details saved. Upload images to complete the listing.',
+      () =>
+        this.router
+          .navigate(['/owner/hourly-room/images'], { queryParams: { propertyType: 'hourly-room' } })
+          .catch((err) => console.error('Navigation failed', err))
+    );
   }
 
   onCancel(): void {
