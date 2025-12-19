@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Property } from '../../interface/Property';
@@ -12,12 +12,20 @@ import { take } from 'rxjs';
   templateUrl: './property-card.html',
   styleUrl: './property-card.css',
 })
-export class PropertyCard {
+export class PropertyCard implements OnChanges {
   // This 'property' will be passed in from the parent component
   @Input() property!: Property;
 
 
-  constructor(private propertySearchService: PropertySearchService) {}
+  constructor(private propertySearchService: PropertySearchService) { }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if ('property' in changes && this.property) {
+      // Normalize to backend field name: ensure `verified` is populated from legacy `isVerified` if needed
+      (this.property as any).verified =
+        (this.property as any).verified ?? (this.property as any).isVerified ?? false;
+    }
+  }
 
   onCardClick(): void {
     const typeParam = this.detailType;

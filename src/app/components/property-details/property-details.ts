@@ -307,6 +307,10 @@ export class PropertyDetails implements OnInit, OnDestroy {
       guestCapacity: data.noOfGuests ?? this.details.guestCapacity,
     };
 
+    // Map backend `verified` flag into details
+    const verifiedFlag = (data as any)?.verified;
+    (this.details as any).verified = !!verifiedFlag;
+
     if (this.details.gallery.length > 0) {
       this.selectedImage = this.details.gallery[0];
     }

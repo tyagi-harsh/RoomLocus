@@ -181,7 +181,7 @@ export class PropertySearchService {
                 }
                 const content = response.data?.content ?? [];
                 const totalElements = response.data?.totalElements ?? content.length;
-                const results = content.map((item: PropertySearchResult) => ({
+                const results = content.map((item: PropertySearchResult | any) => ({
                     id: item.id,
                     city: item.city,
                     townSector: item.townSector,
@@ -191,6 +191,7 @@ export class PropertySearchService {
                     minPrice: item.minPrice,
                     maxPrice: item.maxPrice,
                     bhk: item.bhk,
+                    verified: typeof item.verified === 'boolean' ? item.verified : (typeof item.isVerified === 'boolean' ? item.isVerified : null),
                 }));
                 return { results, totalElements };
             }),
@@ -201,24 +202,24 @@ export class PropertySearchService {
         );
     }
 
-        getPropertyDetails(type: string, id: number): Observable<any> {
-            const normalizedType = this.normalizeTypeParam(type);
-            const typeParam = normalizedType || type;
-            const params = new HttpParams().set('type', typeParam).set('id', id.toString());            const url = `${this.SEARCH_BASE}/details?${params.toString()}`;
+    getPropertyDetails(type: string, id: number): Observable<any> {
+        const normalizedType = this.normalizeTypeParam(type);
+        const typeParam = normalizedType || type;
+        const params = new HttpParams().set('type', typeParam).set('id', id.toString()); const url = `${this.SEARCH_BASE}/details?${params.toString()}`;
 
-            return this.http.get<ApiResponse<any>>(url).pipe(
-                map((response) => {
-                    if (!response || !response.success) {
-                        throw new Error(response?.message || 'Failed to fetch property details');
-                    }
-                    return response.data;
-                }),
-                catchError((error) => {
-                    console.error('[PropertySearchService] getPropertyDetails error', error);
-                    return of(null);
-                })
-            );
-        }
+        return this.http.get<ApiResponse<any>>(url).pipe(
+            map((response) => {
+                if (!response || !response.success) {
+                    throw new Error(response?.message || 'Failed to fetch property details');
+                }
+                return response.data;
+            }),
+            catchError((error) => {
+                console.error('[PropertySearchService] getPropertyDetails error', error);
+                return of(null);
+            })
+        );
+    }
 
     clearLocationCache(reason: string = 'manual'): void {
         this.locationCache.clear();
@@ -251,7 +252,7 @@ export class PropertySearchService {
         }
         this.locationCache.set(key, { data, timestamp: Date.now() });
     }
-    
+
     private normalizeTypeParam(rawType?: string | null): string {
         if (!rawType) {
             return '';

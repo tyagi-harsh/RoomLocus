@@ -1,26 +1,19 @@
-<a
-  [routerLink]="['/property', property.id]"
-  [queryParams]="{ type: detailType }"
-  class="card-link"
-  (click)="onCardClick()"
->
+<a [routerLink]="['/property', property.id]" [queryParams]="{ type: detailType }" class="card-link"
+  (click)="onCardClick()">
   <div class="card">
     <div class="card-image-container">
       <img [src]="property.imageUrl" [alt]="property.location" />
 
       <img
-        *ngIf="property.isVerified"
-        src="../../../assets/images/icons/new_verified_logo_n.png"
-        alt="Verified Property"
-        class="verified-badge"
-      />
+        [src]="property.verified ? 'assets/images/icons/new_verified_logo_n.png' : 'assets/images/icons/not_verified_n.png'"
+        alt="Verification badge" class="verified-badge" />
     </div>
 
     <div class="card-content">
       <h2>{{ property.location }}, {{ property.subLocation }}</h2>
 
       <div class="details-row">
-               <span class="property-type">{{ property.bhk }}</span>
+        <span class="property-type">{{ property.bhk }}</span>
         <span class="price">
           ₹{{ property.priceMin | number }} - ₹{{ property.priceMax | number }}
         </span>

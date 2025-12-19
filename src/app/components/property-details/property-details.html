@@ -4,8 +4,9 @@
       <div class="main-image-container">
         <img [src]="selectedImage" alt="Main property view" class="property-image" />
 
-        <img *ngIf="!details.isVerified" src="/assets/images/icons/not_verified_n.png" alt="Property not verified"
-          class="not-verified-img" />
+        <img
+          [src]="details.verified ? 'assets/images/icons/new_verified_logo_n.png' : 'assets/images/icons/not_verified_n.png'"
+          alt="Property verification badge" class="not-verified-img" />
 
         <div class="top-right-buttons">
           <button *ngIf="showFavoriteButton" class="fav-btn" [class.liked]="liked" [class.popping]="animateHeart"

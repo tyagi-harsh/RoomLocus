@@ -28,7 +28,7 @@ export class PropertyListings implements OnInit, OnDestroy {
     'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg',
   ];
 
-  constructor(private route: ActivatedRoute, private propertySearchService: PropertySearchService) {}
+  constructor(private route: ActivatedRoute, private propertySearchService: PropertySearchService) { }
 
   ngOnInit() {
     // Get query parameters from the URL
@@ -78,11 +78,12 @@ export class PropertyListings implements OnInit, OnDestroy {
     const basePrice = 2500 + (index % 5) * 500;
     const priceMin = result.minPrice ?? basePrice;
     const priceMax = result.maxPrice ?? priceMin + 1500;
+    const verifiedFlag = !!result.verified;
 
     return {
       id: result.id,
       imageUrl: this.placeholderImages[index % this.placeholderImages.length],
-      isVerified: true,
+      verified: verifiedFlag,
       location: result.location,
       subLocation: result.landmark ?? result.townSector ?? result.location,
       type: result.type ?? 'Unknown',
@@ -109,7 +110,7 @@ export class PropertyListings implements OnInit, OnDestroy {
       // Placeholder image, replace with your asset
       imageUrl:
         'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      isVerified: true,
+      verified: true,
       location: 'Madhav Nagar',
       subLocation: 'Near Highway',
       type: '1 BHK',
@@ -121,7 +122,7 @@ export class PropertyListings implements OnInit, OnDestroy {
       // Placeholder image, replace with your asset
       imageUrl:
         'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      isVerified: true,
+      verified: true,
       location: 'Himmat Nagar',
       subLocation: 'Delhi Road',
       type: '1 RK',
@@ -133,7 +134,7 @@ export class PropertyListings implements OnInit, OnDestroy {
       // Placeholder image, replace with your asset
       imageUrl:
         'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      isVerified: true,
+      verified: true,
       location: 'Varsha Nagar',
       subLocation: 'St. Stefans Road',
       type: '2 RK',
