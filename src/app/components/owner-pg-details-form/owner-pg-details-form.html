@@ -7,7 +7,9 @@
 
   <div class="header-section">
     <h1 class="main-title">I'm listing my PG</h1>
-    <a href="#"><h2 class="sub-title">Show listing Sample</h2></a>
+    <a href="#">
+      <h2 class="sub-title">Show listing Sample</h2>
+    </a>
   </div>
 
   <form [formGroup]="listingForm">
@@ -15,19 +17,10 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label class="required">Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
-        <input
-          matInput
-          [matAutocomplete]="cityAuto"
-          placeholder="Type to search cities"
-          formControlName="cityControl"
-          #cityAutoTrigger="matAutocompleteTrigger"
-          (focus)="cityAutoTrigger.openPanel()"
-        />
-        <mat-autocomplete
-          #cityAuto="matAutocomplete"
-          [displayWith]="displayCityName"
-          (optionSelected)="onCitySelected($event.option.value)"
-        >
+        <input matInput [matAutocomplete]="cityAuto" placeholder="Type to search cities" formControlName="cityControl"
+          #cityAutoTrigger="matAutocompleteTrigger" (focus)="cityAutoTrigger.openPanel()" />
+        <mat-autocomplete #cityAuto="matAutocomplete" [displayWith]="displayCityName"
+          (optionSelected)="onCitySelected($event.option.value)">
           <mat-option *ngFor="let city of filteredCities$ | async" [value]="city">
             {{ city.name }}
           </mat-option>
@@ -44,15 +37,9 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label class="required">Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
-        <input
-          matInput
-          [matAutocomplete]="townAuto"
-          placeholder="Type to search town/sector"
-          formControlName="townControl"
-          #townAutoTrigger="matAutocompleteTrigger"
-          (focus)="townAutoTrigger.openPanel()"
-          [disabled]="!listingForm.get('city')?.value"
-        />
+        <input matInput [matAutocomplete]="townAuto" placeholder="Type to search town/sector"
+          formControlName="townControl" #townAutoTrigger="matAutocompleteTrigger" (focus)="townAutoTrigger.openPanel()"
+          [disabled]="!listingForm.get('city')?.value" />
         <mat-autocomplete #townAuto="matAutocomplete" (optionSelected)="onTownSelected($event.option.value)">
           <mat-option *ngIf="isLocationLoading$ | async" disabled>Loading locations...</mat-option>
           <mat-option *ngFor="let loc of filteredLocations$ | async" [value]="loc">
@@ -60,8 +47,7 @@
           </mat-option>
           <mat-option
             *ngIf="!(locations$ | async)?.length && listingForm.get('city')?.value && !(isLocationLoading$ | async)"
-            disabled
-          >
+            disabled>
             No locations found
           </mat-option>
         </mat-autocomplete>
@@ -75,7 +61,8 @@
     <div class="form-row">
       <label class="form-label required">Area/Colony</label>
       <input type="text" formControlName="location" placeholder="Enter area/colony" class="form-control bg-light-blue">
-      <div class="validation-error" *ngIf="listingForm.get('location')?.hasError('required') && (listingForm.get('location')?.dirty || listingForm.get('location')?.touched)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('location')?.hasError('required') && (listingForm.get('location')?.dirty || listingForm.get('location')?.touched)">
         <small>Area/Colony is required.</small>
       </div>
     </div>
@@ -83,23 +70,28 @@
     <div class="form-row">
       <label class="form-label required">Landmark</label>
       <input type="text" formControlName="landmark" placeholder="Enter landmark" class="form-control bg-light-blue">
-      <div class="validation-error" *ngIf="listingForm.get('landmark')?.hasError('required') && (listingForm.get('landmark')?.dirty || listingForm.get('landmark')?.touched)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('landmark')?.hasError('required') && (listingForm.get('landmark')?.dirty || listingForm.get('landmark')?.touched)">
         <small>Landmark is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Min Price per Month</label>
-      <input type="number" formControlName="minPrice" placeholder="Enter min price per month" class="form-control bg-light-blue" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('minPrice')?.hasError('required') && (listingForm.get('minPrice')?.dirty || listingForm.get('minPrice')?.touched)">
+      <input type="number" formControlName="minPrice" placeholder="Enter min price per month"
+        class="form-control bg-light-blue" appNumericOnly>
+      <div class="validation-error"
+        *ngIf="listingForm.get('minPrice')?.hasError('required') && (listingForm.get('minPrice')?.dirty || listingForm.get('minPrice')?.touched)">
         <small>Minimum price is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Max Price per Month</label>
-      <input type="number" formControlName="maxPrice" placeholder="Enter max price per month" class="form-control bg-light-blue" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('maxPrice')?.hasError('required') && (listingForm.get('maxPrice')?.dirty || listingForm.get('maxPrice')?.touched)">
+      <input type="number" formControlName="maxPrice" placeholder="Enter max price per month"
+        class="form-control bg-light-blue" appNumericOnly>
+      <div class="validation-error"
+        *ngIf="listingForm.get('maxPrice')?.hasError('required') && (listingForm.get('maxPrice')?.dirty || listingForm.get('maxPrice')?.touched)">
         <small>Maximum price is required.</small>
       </div>
     </div>
@@ -108,34 +100,42 @@
 
     <div class="form-row">
       <label class="form-label required">Security Deposit</label>
-      <input type="number" formControlName="security" placeholder="Enter security amount" class="form-control" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('security')?.hasError('required') && (listingForm.get('security')?.dirty || listingForm.get('security')?.touched)">
+      <input type="number" formControlName="security" placeholder="Enter security amount" class="form-control"
+        appNumericOnly>
+      <div class="validation-error"
+        *ngIf="listingForm.get('security')?.hasError('required') && (listingForm.get('security')?.dirty || listingForm.get('security')?.touched)">
         <small>Security deposit is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Maintenance</label>
-      <input type="number" formControlName="maintenance" placeholder="Enter maintenance" class="form-control" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('maintenance')?.hasError('required') && (listingForm.get('maintenance')?.dirty || listingForm.get('maintenance')?.touched)">
+      <input type="number" formControlName="maintenance" placeholder="Enter maintenance" class="form-control"
+        appNumericOnly>
+      <div class="validation-error"
+        *ngIf="listingForm.get('maintenance')?.hasError('required') && (listingForm.get('maintenance')?.dirty || listingForm.get('maintenance')?.touched)">
         <small>Maintenance is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label ">Total Floor</label>
-      <input type="number" formControlName="totalFloors" placeholder="Enter total floors" class="form-control" appNumericOnly>
+      <input type="number" formControlName="totalFloors" placeholder="Enter total floors" class="form-control"
+        appNumericOnly>
     </div>
 
     <div class="form-row">
       <label class="form-label ">Total PG</label>
-      <input type="number" formControlName="totalFlat" placeholder="Enter total PGs" class="form-control" appNumericOnly>
+      <input type="number" formControlName="totalFlat" placeholder="Enter total PGs" class="form-control"
+        appNumericOnly>
     </div>
 
     <div class="form-row">
       <label class="form-label">Water Supply in Hours</label>
-        <input type="number" formControlName="waterSupply" placeholder="Enter water supply in hours" class="form-control bg-light-blue" appNumericOnly min="0" max="24" step="1">
-      <div class="validation-error" *ngIf="listingForm.get('waterSupply')?.invalid && (listingForm.get('waterSupply')?.dirty || listingForm.get('waterSupply')?.touched)">
+      <input type="number" formControlName="waterSupply" placeholder="Enter water supply in hours"
+        class="form-control bg-light-blue" appNumericOnly min="0" max="24" step="1">
+      <div class="validation-error"
+        *ngIf="listingForm.get('waterSupply')?.invalid && (listingForm.get('waterSupply')?.dirty || listingForm.get('waterSupply')?.touched)">
         <small *ngIf="listingForm.get('waterSupply')?.hasError('required')">Water supply is required.</small>
         <small *ngIf="listingForm.get('waterSupply')?.hasError('max')">Water supply cannot exceed 24 hours.</small>
       </div>
@@ -143,8 +143,10 @@
 
     <div class="form-row">
       <label class="form-label">Power Backup in hours </label>
-        <input type="number" formControlName="powerBackup" placeholder="Enter power backup in hours" class="form-control bg-light-blue" appNumericOnly min="0" max="24" step="1">
-      <div class="validation-error" *ngIf="listingForm.get('powerBackup')?.invalid && (listingForm.get('powerBackup')?.dirty || listingForm.get('powerBackup')?.touched)">
+      <input type="number" formControlName="powerBackup" placeholder="Enter power backup in hours"
+        class="form-control bg-light-blue" appNumericOnly min="0" max="24" step="1">
+      <div class="validation-error"
+        *ngIf="listingForm.get('powerBackup')?.invalid && (listingForm.get('powerBackup')?.dirty || listingForm.get('powerBackup')?.touched)">
         <small *ngIf="listingForm.get('powerBackup')?.hasError('required')">Power backup is required.</small>
         <small *ngIf="listingForm.get('powerBackup')?.hasError('max')">Power backup cannot exceed 24 hours.</small>
       </div>
@@ -152,8 +154,10 @@
 
     <div class="form-row">
       <label class="form-label required">Notice Period</label>
-      <input type="number" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('noticePeriod')?.hasError('required') && (listingForm.get('noticePeriod')?.dirty || listingForm.get('noticePeriod')?.touched)">
+      <input type="number" formControlName="noticePeriod" placeholder="Enter notice period" class="form-control"
+        appNumericOnly>
+      <div class="validation-error"
+        *ngIf="listingForm.get('noticePeriod')?.hasError('required') && (listingForm.get('noticePeriod')?.dirty || listingForm.get('noticePeriod')?.touched)">
         <small>Notice period is required.</small>
       </div>
     </div>
@@ -166,7 +170,8 @@
     <div class="form-row">
       <label class="form-label required">Bed Count</label>
       <input type="number" formControlName="bedCount" placeholder="Enter bed count" class="form-control" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('bedCount')?.hasError('required') && (listingForm.get('bedCount')?.dirty || listingForm.get('bedCount')?.touched)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('bedCount')?.hasError('required') && (listingForm.get('bedCount')?.dirty || listingForm.get('bedCount')?.touched)">
         <small>Bed count is required.</small>
       </div>
     </div>
@@ -174,23 +179,15 @@
     <div class="form-row">
       <label class="form-label required">Whatsapp No</label>
       <div class="input-with-indicator">
-        <input
-          type="number"
-          formControlName="whatsappNo"
-          placeholder="Enter whatsapp number"
-          class="form-control"
-          appNumericOnly
-          [readonly]="contactOtpVerified"
-          [class.readonly-input]="contactOtpVerified"
-        >
+        <input type="number" formControlName="whatsappNo" placeholder="Enter whatsapp number" class="form-control"
+          appNumericOnly [readonly]="contactOtpVerified" [class.readonly-input]="contactOtpVerified">
         <span class="verified-indicator" *ngIf="contactOtpVerified" aria-hidden="true">
           <i class="fas fa-check-circle"></i>
         </span>
       </div>
       <div
         *ngIf="listingForm.get('whatsappNo')?.invalid && (listingForm.get('whatsappNo')?.dirty || listingForm.get('whatsappNo')?.touched)"
-        class="validation-error"
-      >
+        class="validation-error">
         <small *ngIf="listingForm.get('whatsappNo')?.errors?.['required']">Whatsapp Number is required.</small>
         <small *ngIf="listingForm.get('whatsappNo')?.errors?.['pattern']">
           Enter a 10-digit mobile number starting with 6-9.
@@ -201,52 +198,34 @@
     <div class="mobile-extra">
       <div class="otp-cta">
         <div class="get-otp-div">
-          <button
-            *ngIf="!contactOtpVerified"
-            type="button"
-            class="otp-button"
-            (click)="startContactOtpFlow()"
-            [disabled]="(contactOtpRequested && !contactOtpVerified) || isSendingContactOtp || !isContactNumberValid"
-          >
+          <button *ngIf="!contactOtpVerified" type="button" class="otp-button" (click)="startContactOtpFlow()"
+            [disabled]="(contactOtpRequested && !contactOtpVerified) || isSendingContactOtp || !isContactNumberValid">
             <span *ngIf="!isSendingContactOtp">Send OTP</span>
             <mat-progress-spinner *ngIf="isSendingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
           </button>
-          <small
-            *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
-            style="display:block;margin-top:4px"
-          >
-            OTP sent successfully  <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
+          <small *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
+            style="display:block;margin-top:4px">
+            OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
           </small>
         </div>
       </div>
       <div *ngIf="contactOtpRequested" class="otp-panel">
         <div class="otp-block">
-          <input
-            id="contact-otp"
-            type="tel"
-            maxlength="6"
-            [(ngModel)]="contactOtpInput"
-            [ngModelOptions]="{ standalone: true }"
-            placeholder="XXXXXX"
-            name="contactOtp"
-            class="form-control otp-input"
-          />
+          <input id="contact-otp" type="tel" maxlength="6" [(ngModel)]="contactOtpInput"
+            [ngModelOptions]="{ standalone: true }" placeholder="XXXXXX" name="contactOtp"
+            class="form-control otp-input" />
         </div>
         <div *ngIf="contactOtpError" class="validation-error" style="margin-top:6px">
           <span><small style="color: red;">{{ contactOtpError }}</small></span>
-          <button
-            *ngIf="showContactResendOption"
-            type="button"
-            class="resend-link"
-            (click)="resendContactOtp()"
-          >
+          <button *ngIf="showContactResendOption" type="button" class="resend-link" (click)="resendContactOtp()">
             Resend OTP
           </button>
         </div>
         <div class="otp-block">
           <button type="button" class="otp-verify-button" (click)="verifyContactOtp()">
             <span *ngIf="!isVerifyingContactOtp">Verify OTP</span>
-            <mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+            <mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18"
+              mode="indeterminate"></mat-progress-spinner>
           </button>
         </div>
       </div>
@@ -254,9 +233,12 @@
 
     <div class="form-row">
       <label class="form-label required">Contact Name</label>
-      <input type="text" formControlName="contact" placeholder="Enter contact name" class="form-control">
-      <div class="validation-error" *ngIf="listingForm.get('contact')?.hasError('required') && (listingForm.get('contact')?.dirty || listingForm.get('contact')?.touched)">
-        <small>Contact name is required.</small>
+      <input type="text" formControlName="contact" placeholder="Enter contact name" class="form-control" maxlength="50">
+      <div class="validation-error"
+        *ngIf="listingForm.get('contact')?.invalid && (listingForm.get('contact')?.dirty || listingForm.get('contact')?.touched)">
+        <small *ngIf="listingForm.get('contact')?.hasError('required')">Contact name is required.</small>
+        <small *ngIf="listingForm.get('contact')?.hasError('pattern')">Only letters and spaces are allowed.</small>
+        <small *ngIf="listingForm.get('contact')?.hasError('maxlength')">Maximum 50 characters.</small>
       </div>
     </div>
 
@@ -270,7 +252,8 @@
         <option value="4 BHK">4 BHK</option>
         <option value="Other">Other</option>
       </select>
-      <div class="validation-error" *ngIf="listingForm.get('bhk')?.hasError('required') && (listingForm.get('bhk')?.dirty || listingForm.get('bhk')?.touched)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('bhk')?.hasError('required') && (listingForm.get('bhk')?.dirty || listingForm.get('bhk')?.touched)">
         <small>BHK selection is required.</small>
       </div>
     </div>
@@ -283,12 +266,13 @@
       </div>
     </div> -->
 
-   
+
 
     <div class="form-row align-start">
       <label class="form-label pt-2 required">Full Address</label>
       <textarea formControlName="address" placeholder="Enter full address" rows="4" class="form-control"></textarea>
-      <div class="validation-error" *ngIf="listingForm.get('address')?.hasError('required') && (listingForm.get('address')?.dirty || listingForm.get('address')?.touched)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('address')?.hasError('required') && (listingForm.get('address')?.dirty || listingForm.get('address')?.touched)">
         <small>Full address is required.</small>
       </div>
     </div>
@@ -296,18 +280,24 @@
     <div class="radio-section">
       <h3 class="section-title required">Furnishing Type</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Fully furnished" formControlName="furnishing"><span>Fully furnished</span></label>
-        <label class="radio-item"><input type="radio" value="Semi furnished" formControlName="furnishing"><span>Semi furnished</span></label>
-        <label class="radio-item"><input type="radio" value="Unfurnished" formControlName="furnishing"><span>Unfurnished</span></label>
+        <label class="radio-item"><input type="radio" value="Fully furnished" formControlName="furnishing"><span>Fully
+            furnished</span></label>
+        <label class="radio-item"><input type="radio" value="Semi furnished" formControlName="furnishing"><span>Semi
+            furnished</span></label>
+        <label class="radio-item"><input type="radio" value="Unfurnished"
+            formControlName="furnishing"><span>Unfurnished</span></label>
       </div>
     </div>
 
     <div class="radio-section">
       <h3 class="section-title required">Accommodation Type</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation"><span>Independent</span></label>
-        <label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation"><span>Apartment</span></label>
-        <label class="radio-item"><input type="radio" value="Builder Floor" formControlName="accommodation"><span>Builder Floor</span></label>
+        <label class="radio-item"><input type="radio" value="Independent"
+            formControlName="accommodation"><span>Independent</span></label>
+        <label class="radio-item"><input type="radio" value="Apartment"
+            formControlName="accommodation"><span>Apartment</span></label>
+        <label class="radio-item"><input type="radio" value="Builder Floor"
+            formControlName="accommodation"><span>Builder Floor</span></label>
       </div>
     </div>
 
@@ -323,8 +313,10 @@
       <h3 class="section-title required">Gender Preferences</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Male" formControlName="gender"><span>Male</span></label>
-        <label class="radio-item"><input type="radio" value="Female" formControlName="gender"><span>Female</span></label>
-        <label class="radio-item"><input type="radio" value="Both M &amp; F" formControlName="gender"><span>Both M &amp; F</span></label>
+        <label class="radio-item"><input type="radio" value="Female"
+            formControlName="gender"><span>Female</span></label>
+        <label class="radio-item"><input type="radio" value="Both M &amp; F" formControlName="gender"><span>Both M &amp;
+            F</span></label>
         <label class="radio-item"><input type="radio" value="Any" formControlName="gender"><span>Any</span></label>
       </div>
     </div>
@@ -332,15 +324,18 @@
     <div class="radio-section">
       <h3 class="section-title required">PG Type</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Private" formControlName="flatType"><span>Private</span></label>
-        <label class="radio-item"><input type="radio" value="Shared" formControlName="flatType"><span>Shared</span></label>
+        <label class="radio-item"><input type="radio" value="Private"
+            formControlName="flatType"><span>Private</span></label>
+        <label class="radio-item"><input type="radio" value="Shared"
+            formControlName="flatType"><span>Shared</span></label>
       </div>
     </div>
 
     <div class="radio-section">
       <h3 class="section-title required">Time Restrictions</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Yes" formControlName="timeRestrict"><span>Yes</span></label>
+        <label class="radio-item"><input type="radio" value="Yes"
+            formControlName="timeRestrict"><span>Yes</span></label>
         <label class="radio-item"><input type="radio" value="No" formControlName="timeRestrict"><span>No</span></label>
       </div>
     </div>
@@ -348,7 +343,8 @@
     <div class="radio-section">
       <h3 class="section-title required">Food Available</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Yes" formControlName="foodAvailable"><span>Yes</span></label>
+        <label class="radio-item"><input type="radio" value="Yes"
+            formControlName="foodAvailable"><span>Yes</span></label>
         <label class="radio-item"><input type="radio" value="No" formControlName="foodAvailable"><span>No</span></label>
       </div>
     </div>
@@ -368,7 +364,8 @@
         <label class="radio-item"><input type="checkbox" formControlName="bachelors"><span>Bachelors</span></label>
         <label class="radio-item"><input type="checkbox" formControlName="girls"><span>Girls</span></label>
         <label class="radio-item"><input type="checkbox" formControlName="boys"><span>Boys</span></label>
-        <label class="radio-item"><input type="checkbox" formControlName="professionals"><span>Professionals</span></label>
+        <label class="radio-item"><input type="checkbox"
+            formControlName="professionals"><span>Professionals</span></label>
       </div>
     </div>
 
@@ -393,7 +390,8 @@
     </div>
 
     <div class="button-group">
-      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid || !isOtpVerified()">Next</button>
+      <button type="button" (click)="onNext()" class="btn btn-next"
+        [disabled]="listingForm.invalid || !isOtpVerified()">Next</button>
       <button type="button" (click)="onCancel()" class="btn btn-cancel">Cancel</button>
     </div>
     <div *ngIf="showCancelConfirmation" class="cancel-toast">

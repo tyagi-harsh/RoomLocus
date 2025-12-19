@@ -9,19 +9,10 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Select City</mat-label>
         <img matPrefix src="/assets/images/icons/city_search.png" alt="City" class="city-search-icon" />
-        <input
-          matInput
-          [matAutocomplete]="cityAuto"
-          placeholder="Type to search cities"
-          formControlName="cityControl"
-          #cityAutoTrigger="matAutocompleteTrigger"
-          (focus)="cityAutoTrigger.openPanel()"
-        />
-        <mat-autocomplete
-          #cityAuto="matAutocomplete"
-          [displayWith]="displayCityName"
-          (optionSelected)="onCitySelected($event.option.value)"
-        >
+        <input matInput [matAutocomplete]="cityAuto" placeholder="Type to search cities" formControlName="cityControl"
+          #cityAutoTrigger="matAutocompleteTrigger" (focus)="cityAutoTrigger.openPanel()" />
+        <mat-autocomplete #cityAuto="matAutocomplete" [displayWith]="displayCityName"
+          (optionSelected)="onCitySelected($event.option.value)">
           <mat-option *ngFor="let city of filteredCities$ | async" [value]="city">
             {{ city.name }}
           </mat-option>
@@ -37,15 +28,9 @@
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Town & Sector</mat-label>
         <img matPrefix src="/assets/images/icons/icon_location.png" alt="Town and Sector" class="village-search-icon" />
-        <input
-          matInput
-          [matAutocomplete]="townAuto"
-          placeholder="Type to search town/sector"
-          formControlName="townControl"
-          #townAutoTrigger="matAutocompleteTrigger"
-          (focus)="townAutoTrigger.openPanel()"
-          [disabled]="!listingForm.get('city')?.value"
-        />
+        <input matInput [matAutocomplete]="townAuto" placeholder="Type to search town/sector"
+          formControlName="townControl" #townAutoTrigger="matAutocompleteTrigger" (focus)="townAutoTrigger.openPanel()"
+          [disabled]="!listingForm.get('city')?.value" />
         <mat-autocomplete #townAuto="matAutocomplete" (optionSelected)="onTownSelected($event.option.value)">
           <mat-option *ngIf="isLocationLoading$ | async" disabled>Loading locations...</mat-option>
           <mat-option *ngFor="let loc of filteredLocations$ | async" [value]="loc">
@@ -53,8 +38,7 @@
           </mat-option>
           <mat-option
             *ngIf="!(locations$ | async)?.length && listingForm.get('city')?.value && !(isLocationLoading$ | async)"
-            disabled
-          >
+            disabled>
             No locations found
           </mat-option>
         </mat-autocomplete>
@@ -66,48 +50,46 @@
 
     <div class="form-row">
       <label class="form-label required">Location</label>
-      <input
-        type="text"
-        formControlName="location"
-        class="form-control bg-light-blue"
-        required
-      >
-      <div
-        class="validation-error"
-        *ngIf="listingForm.get('location')?.hasError('required') && (listingForm.get('location')?.dirty || listingForm.get('location')?.touched)"
-      >
+      <input type="text" formControlName="location" class="form-control bg-light-blue" placeholder="Enter location"
+        required>
+      <div class="validation-error"
+        *ngIf="listingForm.get('location')?.hasError('required') && (listingForm.get('location')?.dirty || listingForm.get('location')?.touched)">
         <small>Location is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Landmark</label>
-      <input type="text" formControlName="landmark" class="form-control bg-light-blue">
-      <div class="validation-error" *ngIf="listingForm.get('landmark')?.hasError('required') && (listingForm.get('landmark')?.dirty || listingForm.get('landmark')?.touched)">
+      <input type="text" formControlName="landmark" class="form-control bg-light-blue" placeholder="Enter landmark">
+      <div class="validation-error"
+        *ngIf="listingForm.get('landmark')?.hasError('required') && (listingForm.get('landmark')?.dirty || listingForm.get('landmark')?.touched)">
         <small>Landmark is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Luxury</label>
-      <input type="text" formControlName="luxury" class="form-control bg-light-blue">
-      <div class="validation-error" *ngIf="listingForm.get('luxury')?.hasError('required') && (listingForm.get('luxury')?.dirty || listingForm.get('luxury')?.touched)">
+      <input type="text" formControlName="luxury" class="form-control bg-light-blue" placeholder="Enter luxury level">
+      <div class="validation-error"
+        *ngIf="listingForm.get('luxury')?.hasError('required') && (listingForm.get('luxury')?.dirty || listingForm.get('luxury')?.touched)">
         <small>Luxury level is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Bedcount</label>
-      <input type="number" formControlName="bedCount" class="form-control" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('bedCount')?.hasError('required') && (listingForm.get('bedCount')?.dirty || listingForm.get('bedCount')?.touched)">
+      <input type="number" formControlName="bedCount" class="form-control" appNumericOnly placeholder="Enter bed count">
+      <div class="validation-error"
+        *ngIf="listingForm.get('bedCount')?.hasError('required') && (listingForm.get('bedCount')?.dirty || listingForm.get('bedCount')?.touched)">
         <small>Bed count is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">No of Guest Allowed</label>
-      <input type="number" formControlName="guests" class="form-control" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('guests')?.hasError('required') && (listingForm.get('guests')?.dirty || listingForm.get('guests')?.touched)">
+      <input type="number" formControlName="guests" class="form-control" appNumericOnly placeholder="Enter guest count">
+      <div class="validation-error"
+        *ngIf="listingForm.get('guests')?.hasError('required') && (listingForm.get('guests')?.dirty || listingForm.get('guests')?.touched)">
         <small>Guest count is required.</small>
       </div>
     </div>
@@ -115,23 +97,28 @@
     <div class="form-row">
       <label class="form-label">Total Floors</label>
       <div class="input-with-artifact">
-        <input type="number" formControlName="totalFloors" class="form-control border-thick" appNumericOnly>
+        <input type="number" formControlName="totalFloors" class="form-control border-thick" appNumericOnly
+          placeholder="Enter total floors">
         <div class="blue-arrow-artifact"></div>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Minimum Price</label>
-      <input type="number" formControlName="minPrice" class="form-control bg-light-blue" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('minPrice')?.hasError('required') && (listingForm.get('minPrice')?.dirty || listingForm.get('minPrice')?.touched)">
+      <input type="number" formControlName="minPrice" class="form-control bg-light-blue" appNumericOnly
+        placeholder="Enter minimum price per hour (₹)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('minPrice')?.hasError('required') && (listingForm.get('minPrice')?.dirty || listingForm.get('minPrice')?.touched)">
         <small>Minimum price is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Maximum Price</label>
-      <input type="number" formControlName="maxPrice" class="form-control bg-light-blue" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('maxPrice')?.hasError('required') && (listingForm.get('maxPrice')?.dirty || listingForm.get('maxPrice')?.touched)">
+      <input type="number" formControlName="maxPrice" class="form-control bg-light-blue" appNumericOnly
+        placeholder="Enter maximum price per hour (₹)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('maxPrice')?.hasError('required') && (listingForm.get('maxPrice')?.dirty || listingForm.get('maxPrice')?.touched)">
         <small>Maximum price is required.</small>
       </div>
     </div>
@@ -139,47 +126,46 @@
     <div class="form-row">
       <label class="form-label required">Palace Name</label>
       <input type="text" formControlName="palaceName" placeholder="Enter palace name" class="form-control">
-      <div class="validation-error" *ngIf="listingForm.get('palaceName')?.hasError('required') && (listingForm.get('palaceName')?.dirty || listingForm.get('palaceName')?.touched)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('palaceName')?.hasError('required') && (listingForm.get('palaceName')?.dirty || listingForm.get('palaceName')?.touched)">
         <small>Palace name is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Total Room</label>
-      <input type="number" formControlName="totalRoom" placeholder="Enter total room count" class="form-control" appNumericOnly>
-      <div class="validation-error" *ngIf="listingForm.get('totalRoom')?.hasError('required') && (listingForm.get('totalRoom')?.dirty || listingForm.get('totalRoom')?.touched)">
+      <input type="number" formControlName="totalRoom" placeholder="Enter total room count" class="form-control"
+        appNumericOnly>
+      <div class="validation-error"
+        *ngIf="listingForm.get('totalRoom')?.hasError('required') && (listingForm.get('totalRoom')?.dirty || listingForm.get('totalRoom')?.touched)">
         <small>Total room count is required.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">Manager/Owner</label>
-      <input type="text" formControlName="manager" placeholder="Enter manager/owner" class="form-control">
-      <div class="validation-error" *ngIf="listingForm.get('manager')?.hasError('required') && (listingForm.get('manager')?.dirty || listingForm.get('manager')?.touched)">
-        <small>Manager/Owner name is required.</small>
+      <input type="text" formControlName="manager" placeholder="Enter manager/owner" class="form-control"
+        maxlength="50">
+      <div class="validation-error"
+        *ngIf="listingForm.get('manager')?.invalid && (listingForm.get('manager')?.dirty || listingForm.get('manager')?.touched)">
+        <small *ngIf="listingForm.get('manager')?.hasError('required')">Manager/Owner name is required.</small>
+        <small *ngIf="listingForm.get('manager')?.hasError('pattern')">Only letters and spaces are allowed.</small>
+        <small *ngIf="listingForm.get('manager')?.hasError('maxlength')">Maximum 50 characters.</small>
       </div>
     </div>
 
     <div class="form-row">
       <label class="form-label required">WhatsApp Number</label>
       <div class="input-with-indicator">
-        <input
-          type="number"
-          formControlName="whatsappNo"
-          placeholder="Enter whatsapp number"
-          class="form-control"
-          appNumericOnly
-          [readonly]="contactOtpVerified"
-          [class.readonly-input]="contactOtpVerified"
-        >
+        <input type="number" formControlName="whatsappNo" placeholder="Enter whatsapp number" class="form-control"
+          appNumericOnly [readonly]="contactOtpVerified" [class.readonly-input]="contactOtpVerified">
         <span class="verified-indicator" *ngIf="contactOtpVerified" aria-hidden="true">
           <i class="fas fa-check-circle"></i>
         </span>
       </div>
       <div
         *ngIf="listingForm.get('whatsappNo')?.invalid && (listingForm.get('whatsappNo')?.dirty || listingForm.get('whatsappNo')?.touched)"
-        class="validation-error"
-      >
+        class="validation-error">
         <small *ngIf="listingForm.get('whatsappNo')?.errors?.['required']">Whatsapp Number is required.</small>
         <small *ngIf="listingForm.get('whatsappNo')?.errors?.['pattern']">
           Enter a 10-digit mobile number starting with 6-9.
@@ -187,23 +173,16 @@
       </div>
     </div>
 
-      <div class="mobile-extra">
+    <div class="mobile-extra">
       <div class="otp-cta">
         <div class="get-otp-div">
-          <button
-            *ngIf="!contactOtpVerified"
-            type="button"
-            class="otp-button"
-            (click)="startContactOtpFlow()"
-            [disabled]="(contactOtpRequested && !contactOtpVerified) || isSendingContactOtp || !isWhatsAppNumberValid"
-          >
+          <button *ngIf="!contactOtpVerified" type="button" class="otp-button" (click)="startContactOtpFlow()"
+            [disabled]="(contactOtpRequested && !contactOtpVerified) || isSendingContactOtp || !isWhatsAppNumberValid">
             <span *ngIf="!isSendingContactOtp">Send OTP</span>
             <mat-progress-spinner *ngIf="isSendingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
           </button>
-          <small
-            *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
-            style="display:block;margin-top:4px"
-          >
+          <small *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
+            style="display:block;margin-top:4px">
             OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
           </small>
           <!-- Inline OTP message removed; overlay dialog used instead -->
@@ -211,32 +190,21 @@
       </div>
       <div *ngIf="contactOtpRequested" class="otp-panel">
         <div class="otp-block">
-          <input
-            id="contact-otp"
-            type="tel"
-            maxlength="6"
-            [(ngModel)]="contactOtpInput"
-            [ngModelOptions]="{ standalone: true }"
-            placeholder="XXXXXX"
-            name="contactOtp"
-            class="form-control otp-input"
-          />
+          <input id="contact-otp" type="tel" maxlength="6" [(ngModel)]="contactOtpInput"
+            [ngModelOptions]="{ standalone: true }" placeholder="XXXXXX" name="contactOtp"
+            class="form-control otp-input" />
         </div>
         <div *ngIf="contactOtpError" class="validation-error" style="margin-top:6px;">
           <span><small style="color: red;">{{ contactOtpError }}</small></span>
-          <button
-            *ngIf="showContactResendOption"
-            type="button"
-            class="resend-link"
-            (click)="resendContactOtp()"
-          >
+          <button *ngIf="showContactResendOption" type="button" class="resend-link" (click)="resendContactOtp()">
             Resend OTP
           </button>
         </div>
         <div class="otp-block">
           <button type="button" class="otp-verify-button" (click)="verifyContactOtp()">
             <span *ngIf="!isVerifyingContactOtp">Verify OTP</span>
-            <mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+            <mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18"
+              mode="indeterminate"></mat-progress-spinner>
           </button>
         </div>
       </div>
@@ -245,7 +213,8 @@
     <div class="form-row align-start">
       <label class="form-label required pt-2">Full Address</label>
       <textarea formControlName="address" placeholder="Enter full address" rows="4" class="form-control"></textarea>
-      <div class="validation-error" *ngIf="listingForm.get('address')?.hasError('required') && (listingForm.get('address')?.dirty || listingForm.get('address')?.touched)">
+      <div class="validation-error"
+        *ngIf="listingForm.get('address')?.hasError('required') && (listingForm.get('address')?.dirty || listingForm.get('address')?.touched)">
         <small>Full address is required.</small>
       </div>
     </div>
@@ -253,9 +222,12 @@
     <div class="radio-section">
       <h3 class="section-title required">Furnishing Type</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Fully furnished" formControlName="furnishing"><span>Fully furnished</span></label>
-        <label class="radio-item"><input type="radio" value="Semi furnished" formControlName="furnishing"><span>Semi furnished</span></label>
-        <label class="radio-item"><input type="radio" value="Unfurnished" formControlName="furnishing"><span>Unfurnished</span></label>
+        <label class="radio-item"><input type="radio" value="Fully furnished" formControlName="furnishing"><span>Fully
+            furnished</span></label>
+        <label class="radio-item"><input type="radio" value="Semi furnished" formControlName="furnishing"><span>Semi
+            furnished</span></label>
+        <label class="radio-item"><input type="radio" value="Unfurnished"
+            formControlName="furnishing"><span>Unfurnished</span></label>
       </div>
       <!-- <div class="validation-error" *ngIf="listingForm.get('furnishing')?.hasError('required') && listingForm.touched">
         <small>Choose a furnishing option.</small>
@@ -265,8 +237,10 @@
     <div class="radio-section">
       <h3 class="section-title required">Accommodation Type</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation"><span>Independent</span></label>
-        <label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation"><span>Apartment</span></label>
+        <label class="radio-item"><input type="radio" value="Independent"
+            formControlName="accommodation"><span>Independent</span></label>
+        <label class="radio-item"><input type="radio" value="Apartment"
+            formControlName="accommodation"><span>Apartment</span></label>
       </div>
       <!-- <div class="validation-error" *ngIf="listingForm.get('accommodation')?.hasError('required') && listingForm.touched">
         <small>Select an accommodation type.</small>
@@ -279,8 +253,10 @@
       <h3 class="section-title required">Gender Preferences</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Male" formControlName="gender"><span>Male</span></label>
-        <label class="radio-item"><input type="radio" value="Female" formControlName="gender"><span>Female</span></label>
-        <label class="radio-item"><input type="radio" value="Both M &amp; F" formControlName="gender"><span>Both M &amp; F</span></label>
+        <label class="radio-item"><input type="radio" value="Female"
+            formControlName="gender"><span>Female</span></label>
+        <label class="radio-item"><input type="radio" value="Both M &amp; F" formControlName="gender"><span>Both M &amp;
+            F</span></label>
       </div>
       <!-- <div class="validation-error" *ngIf="listingForm.get('gender')?.hasError('required') && listingForm.touched">
         <small>Select a gender preference.</small>
@@ -298,8 +274,10 @@
     <div class="radio-section">
       <h3 class="section-title required">Room Type</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Shared Room" formControlName="roomType1"><span>Shared Room</span></label>
-        <label class="radio-item"><input type="radio" value="Private Room" formControlName="roomType1"><span>Private Room</span></label>
+        <label class="radio-item"><input type="radio" value="Shared Room" formControlName="roomType1"><span>Shared
+            Room</span></label>
+        <label class="radio-item"><input type="radio" value="Private Room" formControlName="roomType1"><span>Private
+            Room</span></label>
       </div>
       <!-- <div class="validation-error" *ngIf="listingForm.get('roomType1')?.hasError('required') && listingForm.touched">
         <small>Select a room type.</small>
@@ -310,7 +288,8 @@
       <h3 class="section-title required">AC Type</h3>
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="AC" formControlName="roomType2"><span>AC</span></label>
-        <label class="radio-item"><input type="radio" value="Non AC" formControlName="roomType2"><span>Non AC</span></label>
+        <label class="radio-item"><input type="radio" value="Non AC" formControlName="roomType2"><span>Non
+            AC</span></label>
       </div>
       <!-- <div class="validation-error" *ngIf="listingForm.get('roomType2')?.hasError('required') && listingForm.touched">
         <small>Choose an AC type.</small>
@@ -335,7 +314,8 @@
         <label class="radio-item"><input type="checkbox" formControlName="bachelors"><span>Bachelors</span></label>
         <label class="radio-item"><input type="checkbox" formControlName="girls"><span>Girls</span></label>
         <label class="radio-item"><input type="checkbox" formControlName="boys"><span>Boys</span></label>
-        <label class="radio-item"><input type="checkbox" formControlName="professionals"><span>Professionals</span></label>
+        <label class="radio-item"><input type="checkbox"
+            formControlName="professionals"><span>Professionals</span></label>
       </div>
     </div>
 
@@ -366,14 +346,10 @@
     </div>
 
     <div class="button-group">
-      <button type="button" (click)="onNext()" class="btn btn-next" [disabled]="listingForm.invalid || isSaving || !isOtpVerified()">
+      <button type="button" (click)="onNext()" class="btn btn-next"
+        [disabled]="listingForm.invalid || isSaving || !isOtpVerified()">
         <span *ngIf="!isSaving">Next</span>
-        <mat-progress-spinner
-          *ngIf="isSaving"
-          color="accent"
-          diameter="18"
-          mode="indeterminate"
-        ></mat-progress-spinner>
+        <mat-progress-spinner *ngIf="isSaving" color="accent" diameter="18" mode="indeterminate"></mat-progress-spinner>
       </button>
       <button type="button" (click)="onCancel()" class="btn btn-cancel">Cancel</button>
     </div>

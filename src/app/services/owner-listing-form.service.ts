@@ -5,7 +5,7 @@ import {
   OUTSIDE_FACILITIES,
   buildFacilityControls,
 } from '../constants/facility-options';
-import { MOBILE_NUMBER_PATTERN } from '../constants/validation-patterns';
+import { MOBILE_NUMBER_PATTERN, NAME_PATTERN } from '../constants/validation-patterns';
 
 const atLeastOneChecked = (control: AbstractControl): ValidationErrors | null => {
   if (!control || typeof control.value !== 'object') {
@@ -40,7 +40,7 @@ export class OwnerListingFormService {
       maxPrice: ['', Validators.required],
       palaceName: ['', Validators.required],
       totalRoom: ['', Validators.required],
-      manager: ['', Validators.required],
+      manager: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(NAME_PATTERN)]],
       whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       address: ['', Validators.required],
       petAllowed: [''],

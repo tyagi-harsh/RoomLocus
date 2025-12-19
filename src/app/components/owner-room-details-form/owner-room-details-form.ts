@@ -32,7 +32,7 @@ import {
 } from '../../constants/facility-options';
 import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
 import { parseBackendErrorString } from '../../utils/error-utils';
-import { MOBILE_NUMBER_PATTERN, MOBILE_NUMBER_REGEX } from '../../constants/validation-patterns';
+import { MOBILE_NUMBER_PATTERN, MOBILE_NUMBER_REGEX, NAME_PATTERN } from '../../constants/validation-patterns';
 
 @Component({
   selector: 'app-owner-room-details-form',
@@ -115,8 +115,8 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       noticePeriod: ['', Validators.required],
       offer: [''],
       contact: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
-      contactName: ['', Validators.required],
-        bhk: ['', Validators.required],
+      contactName: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(NAME_PATTERN)]],
+      bhk: ['', Validators.required],
       manager: ['', Validators.required],
       address: ['', Validators.required],
       availableFor: ['', Validators.required],
@@ -125,8 +125,8 @@ export class OwnerRoomDetailsForm implements OnInit, OnDestroy {
       petAllowed: [''],
       gender: ['', Validators.required],
       roomType: ['', Validators.required],
-        waterSupply: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
-        powerBackup: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
+      waterSupply: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
+      powerBackup: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
       parking: this.fb.group({
         car: [false],
         bike: [false],
