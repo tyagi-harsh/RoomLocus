@@ -1,6 +1,7 @@
 .listings-container {
   padding: 39px;
-  background-color: #ffffff; /* Light grey background for the page */
+  background-color: #ffffff;
+  /* Light grey background for the page */
   font-family: Arial, sans-serif;
 }
 
@@ -92,4 +93,19 @@ mat-paginator {
 ::ng-deep .mat-mdc-paginator-container {
   justify-content: center;
   padding: 12px 16px;
+}
+
+/* Hide page size selector entirely for this page */
+::ng-deep .mat-mdc-paginator-page-size {
+  display: none !important;
+}
+
+/* Optional: tighten spacing so the controls fit the page aesthetic */
+::ng-deep .mat-mdc-paginator-range-label {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+::ng-deep .mat-mdc-icon-button {
+  margin: 0 4px;
 }

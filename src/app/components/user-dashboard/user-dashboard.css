@@ -1,7 +1,8 @@
 /* ================= CONTAINER & LAYOUT ================= */
 .dashboard-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 1200px; /* Laptop width */
+  max-width: 1200px;
+  /* Laptop width */
   width: 95%;
   background-color: #ffffff;
   min-height: 100vh;
@@ -50,28 +51,35 @@
 .content-area {
   padding: 25px;
   display: grid;
-  grid-template-columns: 1fr; /* Mobile default */
+  grid-template-columns: 1fr;
+  /* Mobile default */
   gap: 30px;
 }
 
 /* Tablet */
 @media (min-width: 768px) {
-  .content-area { grid-template-columns: repeat(2, 1fr); }
+  .content-area {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .dashboard-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 1200px; /* Laptop width */
-  margin: 20px auto;
-  width: 95%;
-  background-color: #ffffff;
-  min-height: 100vh;
-  border: 1px solid #eee;
-  border-radius: 8px;
-}
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 1200px;
+    /* Laptop width */
+    margin: 20px auto;
+    width: 95%;
+    background-color: #ffffff;
+    min-height: 100vh;
+    border: 1px solid #eee;
+    border-radius: 8px;
+  }
 }
 
 /* Laptop/Desktop */
 @media (min-width: 1024px) {
-  .content-area { grid-template-columns: repeat(3, 1fr); }
+  .content-area {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* ================= CARD STYLING ================= */
@@ -98,14 +106,17 @@
 /* The body holds the Text (Left) and Buttons (Right) */
 .card-body {
   display: flex;
-  justify-content: space-between; /* Pushes items to edges */
-  align-items: center;            /* Vertically centers them */
+  justify-content: space-between;
+  /* Pushes items to edges */
+  align-items: center;
+  /* Vertically centers them */
   width: 100%;
 }
 
 /* Left side: Text */
 .info-col {
-  flex: 1; /* Takes up remaining space */
+  flex: 1;
+  /* Takes up remaining space */
 }
 
 .name-row {
@@ -133,13 +144,16 @@
 .action-col {
   display: flex;
   align-items: center;
-  gap: 10px; /* Space between Call and Delete */
-  margin-left: 10px; /* Ensure space between text and buttons */
+  gap: 10px;
+  /* Space between Call and Delete */
+  margin-left: 10px;
+  /* Ensure space between text and buttons */
 }
 
 /* CALL BUTTON - Green Pill */
 .btn-call {
-  background-color: #02c553 !important; /* Force Green */
+  background-color: #02c553 !important;
+  /* Force Green */
   color: white !important;
   border: none;
   padding: 8px 20px;
@@ -147,7 +161,8 @@
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  white-space: nowrap; /* Prevent text wrapping */
+  white-space: nowrap;
+  /* Prevent text wrapping */
   transition: background 0.3s ease;
 }
 
@@ -159,7 +174,8 @@
 .btn-delete {
   background: #fff !important;
   border: 1px solid #ffCDD2;
-  color: #ef5350 !important; /* Red Icon */
+  color: #ef5350 !important;
+  /* Red Icon */
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -184,16 +200,20 @@
    The image implies the card has padding but the image is inside. 
    Let's keep the standard card padding. */
 .wishlist-card {
-  padding: 10px !important; /* Slightly tighter padding for image look */
-  text-align: center;       /* Center text like in the screenshot */
+  padding: 10px !important;
+  /* Slightly tighter padding for image look */
+  text-align: center;
+  /* Center text like in the screenshot */
   position: relative;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.123);
 }
 
 .wishlist-img-container {
-  position: relative; /* Needed for absolute positioning of the delete button */
+  position: relative;
+  /* Needed for absolute positioning of the delete button */
   width: 100%;
-  height: 180px;      /* Fixed height for uniformity */
+  height: 180px;
+  /* Fixed height for uniformity */
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -202,7 +222,8 @@
 .wishlist-img-container img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Ensures image fills box without stretching */
+  object-fit: cover;
+  /* Ensures image fills box without stretching */
 }
 
 /* Overlay Delete Button (Top Right of Image) */
@@ -220,7 +241,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   transition: all 0.4s ease;
   z-index: 2;
 }
@@ -254,20 +275,22 @@
 .w-price {
   font-size: 1.1rem;
   font-weight: 500;
-  color: #08b737; /* Green Price */
+  color: #08b737;
+  /* Green Price */
   margin: 2px 0;
 }
 
 .w-link {
   font-size: 0.95rem;
-  color: #0c60cf; /* Link Blue */
+  color: #0c60cf;
+  /* Link Blue */
   text-decoration: none;
   font-weight: 500;
   margin-bottom: 8px;
 }
 
 .w-link:hover {
-  text-decoration: underline;  
+  text-decoration: underline;
 }
 
 /* Paginator Styling */
@@ -285,4 +308,20 @@ mat-paginator {
 ::ng-deep .mat-mdc-paginator-container {
   justify-content: center;
   padding: 12px 16px;
+}
+
+/* Hide page size selector for user dashboard */
+::ng-deep .mat-mdc-paginator-page-size {
+  display: none !important;
+}
+
+/* Responsive tweaks for paginator */
+@media (max-width: 768px) {
+  ::ng-deep .mat-mdc-paginator-range-label {
+    font-size: 0.85rem;
+  }
+
+  ::ng-deep .mat-mdc-icon-button {
+    margin: 0 2px;
+  }
 }

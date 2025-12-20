@@ -163,7 +163,7 @@ export class PropertySearchService {
             .filter((name: string | undefined): name is string => !!name);
     }
 
-    searchProperties(type: string, city: string, townSector: string, page = 0, size = 10): Observable<PropertySearchResponse> {
+    searchProperties(type: string, city: string, townSector: string, page = 0, size = 12): Observable<PropertySearchResponse> {
         const normalizedType = this.normalizeTypeParam(type);
         let params = new HttpParams()
             .set('type', normalizedType)

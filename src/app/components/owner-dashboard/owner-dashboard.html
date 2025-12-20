@@ -1,5 +1,5 @@
 <div class="owner-container">
-  
+
   <!-- Top Section: Lead Counter -->
   <div class="top-stats">
     <h2>Lead Left: {{ leadCount }}</h2>
@@ -8,32 +8,23 @@
 
   <!-- Teal Tab Bar -->
   <div class="owner-tabs">
-    <div 
-      class="tab-item" 
-      [class.active]="activeTab === 'rentals'" 
-      (click)="setActiveTab('rentals')">
+    <div class="tab-item" [class.active]="activeTab === 'rentals'" (click)="setActiveTab('rentals')">
       My Rentals
     </div>
-    <div 
-      class="tab-item" 
-      [class.active]="activeTab === 'used-lead'" 
-      (click)="setActiveTab('used-lead')">
+    <div class="tab-item" [class.active]="activeTab === 'used-lead'" (click)="setActiveTab('used-lead')">
       Used Lead
     </div>
-    <div 
-      class="tab-item" 
-      [class.active]="activeTab === 'guide'" 
-      (click)="setActiveTab('guide')">
+    <div class="tab-item" [class.active]="activeTab === 'guide'" (click)="setActiveTab('guide')">
       Guide
     </div>
   </div>
 
   <!-- Content Area -->
   <div class="main-content">
-    
+
     <!-- SECTION: Used Lead (Active) -->
     <div *ngIf="activeTab === 'used-lead'">
-      
+
       <!-- Sub Header (Gray Bar) -->
       <div class="sub-header">
         Customer Visited Your Profile
@@ -42,11 +33,11 @@
       <!-- Responsive Grid for Cards -->
       <div class="card-grid">
         <div class="card" *ngFor="let item of paginatedLeads">
-          
+
           <!-- Card Header -->
           <div class="card-top">
-            <span class="cat">{{ item.category }}</span> | 
-            <span class="loc">{{ item.location }}</span> | 
+            <span class="cat">{{ item.category }}</span> |
+            <span class="loc">{{ item.location }}</span> |
             <span class="loc">{{ item.subLocation }}</span>
           </div>
 
@@ -71,14 +62,8 @@
         </div>
       </div>
 
-      <mat-paginator
-        *ngIf="leads.length > leadsPageSize"
-        [length]="leads.length"
-        [pageSize]="leadsPageSize"
-        [pageSizeOptions]="[12, 24, 48]"
-        [pageIndex]="leadsCurrentPage"
-        (page)="onLeadsPageChange($event)"
-        showFirstLastButtons
+      <mat-paginator *ngIf="leads.length > leadsPageSize" [length]="leads.length" [pageSize]="leadsPageSize"
+        [hidePageSize]="true" [pageIndex]="leadsCurrentPage" (page)="onLeadsPageChange($event)" showFirstLastButtons
         aria-label="Select page">
       </mat-paginator>
 
@@ -99,19 +84,14 @@
             <span class="type">{{ property.propertyType }}</span>
             <span class="date">Added {{ property.createdAt | date:'mediumDate' }}</span>
           </div>
-          <a class="property-card-title" [routerLink]="['/property', property.propertyId]">{{ property.displayName }}</a>
+          <a class="property-card-title" [routerLink]="['/property', property.propertyId]">{{ property.displayName
+            }}</a>
           <p class="property-card-location">{{ property.location }}</p>
         </article>
       </div>
-      <mat-paginator
-        *ngIf="properties && properties.length > rentalsPageSize"
-        [length]="properties.length"
-        [pageSize]="rentalsPageSize"
-        [pageSizeOptions]="[12, 24, 48]"
-        [pageIndex]="rentalsCurrentPage"
-        (page)="onRentalsPageChange($event)"
-        showFirstLastButtons
-        aria-label="Select page">
+      <mat-paginator *ngIf="properties && properties.length > rentalsPageSize" [length]="properties.length"
+        [pageSize]="rentalsPageSize" [hidePageSize]="true" [pageIndex]="rentalsCurrentPage"
+        (page)="onRentalsPageChange($event)" showFirstLastButtons aria-label="Select page">
       </mat-paginator>
     </div>
 

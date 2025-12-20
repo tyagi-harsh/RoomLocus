@@ -1,5 +1,5 @@
 <div class="listings-container">
-  
+
 
   <div class="search-header">
     <div class="location-info">
@@ -15,21 +15,15 @@
   </div>
 
   <div class="listings-grid">
-   
+
     <app-property-card *ngFor="let property of paginatedProperties" [property]="property">
     </app-property-card>
-  
+
     <!-- <app-property-card *ngFor="let prop of properties" [property]="prop"> </app-property-card> -->
   </div>
 
-  <mat-paginator
-    *ngIf="filteredProperties.length > pageSize"
-    [length]="filteredProperties.length"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="[12, 24, 48]"
-    [pageIndex]="currentPage"
-    (page)="onPageChange($event)"
-    showFirstLastButtons
+  <mat-paginator *ngIf="(totalResults ?? 0) > pageSize" [length]="totalResults ?? 0" [pageSize]="pageSize"
+    [hidePageSize]="true" [pageIndex]="currentPage" (page)="onPageChange($event)" showFirstLastButtons
     aria-label="Select page">
   </mat-paginator>
 </div>

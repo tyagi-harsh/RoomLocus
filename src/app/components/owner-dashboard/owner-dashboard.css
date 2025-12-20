@@ -24,7 +24,8 @@
 }
 
 .btn-buy-lead {
-  background-color: #28a745; /* Standard Green */
+  background-color: #28a745;
+  /* Standard Green */
   color: white;
   border: none;
   padding: 6px 16px;
@@ -42,7 +43,8 @@
 /* ================= TEAL TAB BAR ================= */
 .owner-tabs {
   display: flex;
-  background-color: #17a2b8; /* The specific Teal color from image */
+  background-color: #17a2b8;
+  /* The specific Teal color from image */
   color: white;
 }
 
@@ -67,20 +69,23 @@
 
 .tab-item:hover {
   opacity: 1;
-  background-color: rgba(255,255,255,0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Active State */
 .tab-item.active {
   opacity: 1;
   font-weight: 600;
-  background-color: rgba(0,0,0,0.05); /* Slight darken effect */
-  border-bottom: 3px solid #fff; /* White underline for active tab */
+  background-color: rgba(0, 0, 0, 0.05);
+  /* Slight darken effect */
+  border-bottom: 3px solid #fff;
+  /* White underline for active tab */
 }
 
 /* ================= SUB HEADER ================= */
 .sub-header {
-  background-color: #f1f3f5; /* Light Gray */
+  background-color: #f1f3f5;
+  /* Light Gray */
   padding: 15px;
   text-align: center;
   font-size: 1rem;
@@ -100,27 +105,33 @@
 .card-grid {
   padding: 20px;
   display: grid;
-  grid-template-columns: 1fr; /* Mobile Default */
+  grid-template-columns: 1fr;
+  /* Mobile Default */
   gap: 20px;
 }
 
 /* Tablet Responsive */
 @media (min-width: 768px) {
-  .card-grid { grid-template-columns: repeat(2, 1fr); }
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .owner-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 1800px;
-  margin: 20px auto;
-  background-color: #fff;
-  min-height: 100vh;
-  border-left: 1px solid #eee;
-  border-right: 1px solid #eee;
-}
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 1800px;
+    margin: 20px auto;
+    background-color: #fff;
+    min-height: 100vh;
+    border-left: 1px solid #eee;
+    border-right: 1px solid #eee;
+  }
 }
 
 /* Laptop Responsive */
 @media (min-width: 1024px) {
-  .card-grid { grid-template-columns: repeat(3, 1fr); }
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* ================= CARD STYLING ================= */
@@ -128,7 +139,7 @@
   background: #fff;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   border: 1px solid #e9ecef;
   display: flex;
   flex-direction: column;
@@ -351,4 +362,20 @@ mat-paginator {
 ::ng-deep .mat-mdc-paginator-container {
   justify-content: center;
   padding: 12px 16px;
+}
+
+/* Hide page size selector for owner dashboard */
+::ng-deep .mat-mdc-paginator-page-size {
+  display: none !important;
+}
+
+/* Responsive tweaks for paginator */
+@media (max-width: 768px) {
+  ::ng-deep .mat-mdc-paginator-range-label {
+    font-size: 0.85rem;
+  }
+
+  ::ng-deep .mat-mdc-icon-button {
+    margin: 0 2px;
+  }
 }

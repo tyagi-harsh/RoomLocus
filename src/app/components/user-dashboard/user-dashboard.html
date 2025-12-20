@@ -4,16 +4,10 @@
   </header>
 
   <div class="tabs">
-    <div 
-      class="tab-item" 
-      [class.active]="activeTab === 'wishlist'" 
-      (click)="setActiveTab('wishlist')">
+    <div class="tab-item" [class.active]="activeTab === 'wishlist'" (click)="setActiveTab('wishlist')">
       Wishlist ({{ wishlistItems.length }})
     </div>
-    <div 
-      class="tab-item" 
-      [class.active]="activeTab === 'recent'" 
-      (click)="setActiveTab('recent')">
+    <div class="tab-item" [class.active]="activeTab === 'recent'" (click)="setActiveTab('recent')">
       Recent Contacts ({{ contacts.length }})
     </div>
   </div>
@@ -37,25 +31,19 @@
         </div>
       </div>
     </div>
-    <mat-paginator
-      *ngIf="contacts.length > contactsPageSize"
-      [length]="contacts.length"
-      [pageSize]="contactsPageSize"
-      [pageSizeOptions]="[12, 24, 48]"
-      [pageIndex]="contactsCurrentPage"
-      (page)="onContactsPageChange($event)"
-      showFirstLastButtons
+    <mat-paginator *ngIf="contacts.length > contactsPageSize" [length]="contacts.length" [pageSize]="contactsPageSize"
+      [hidePageSize]="true" [pageIndex]="contactsCurrentPage" (page)="onContactsPageChange($event)" showFirstLastButtons
       aria-label="Select page">
     </mat-paginator>
   </div>
 
   <div class="content-area" *ngIf="activeTab === 'wishlist'">
     <div class="card wishlist-card" *ngFor="let item of paginatedWishlist">
-      
+
       <div class="wishlist-img-container">
         <img [src]="item.imageUrl" alt="Property Image">
         <button class="btn-wishlist-delete" (click)="deleteWishlistItem(item.id)">
-           <i class="fa-regular fa-trash-can"></i>
+          <i class="fa-regular fa-trash-can"></i>
         </button>
       </div>
 
@@ -63,25 +51,16 @@
         <div class="w-location">{{ item.location }} , {{ formatCity(item.city) }}</div>
         <div class="w-subtext">{{ item.hotelName }} | {{ item.type }}</div>
         <div class="w-price">{{ item.price }}</div>
-        <a
-          class="w-link"
-          [routerLink]="['/property', item.id]"
-          [queryParams]="item.propertyCategory ? { type: item.propertyCategory } : undefined"
-        >
+        <a class="w-link" [routerLink]="['/property', item.id]"
+          [queryParams]="item.propertyCategory ? { type: item.propertyCategory } : undefined">
           View Details
         </a>
       </div>
 
     </div>
-    <mat-paginator
-      *ngIf="wishlistItems.length > wishlistPageSize"
-      [length]="wishlistItems.length"
-      [pageSize]="wishlistPageSize"
-      [pageSizeOptions]="[12, 24, 48]"
-      [pageIndex]="wishlistCurrentPage"
-      (page)="onWishlistPageChange($event)"
-      showFirstLastButtons
-      aria-label="Select page">
+    <mat-paginator *ngIf="wishlistItems.length > wishlistPageSize" [length]="wishlistItems.length"
+      [pageSize]="wishlistPageSize" [hidePageSize]="true" [pageIndex]="wishlistCurrentPage"
+      (page)="onWishlistPageChange($event)" showFirstLastButtons aria-label="Select page">
     </mat-paginator>
   </div>
 
