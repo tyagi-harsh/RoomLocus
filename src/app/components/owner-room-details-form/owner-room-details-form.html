@@ -182,7 +182,7 @@
 
 		<section class="section-grid">
 			<div class="form-row">
-				<label class="form-label required">Contact Name</label>
+				<label class="form-label required">Owner/CareTaker</label>
 				<input type="text" formControlName="contactName" placeholder="Enter contact name" class="form-control"
 					maxlength="50" />
 				<div class="validation-error"
@@ -208,7 +208,7 @@
 					*ngIf="listingForm.get('contact')?.invalid && (listingForm.get('contact')?.dirty || listingForm.get('contact')?.touched)">
 					<small *ngIf="listingForm.get('contact')?.hasError('required')">Contact number is required.</small>
 					<small *ngIf="listingForm.get('contact')?.hasError('pattern')">Enter a 10-digit mobile number
-						starting with 6-9.</small>
+						.</small>
 				</div>
 			</div>
 

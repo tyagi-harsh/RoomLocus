@@ -190,7 +190,7 @@
         class="validation-error">
         <small *ngIf="listingForm.get('whatsappNo')?.errors?.['required']">Whatsapp Number is required.</small>
         <small *ngIf="listingForm.get('whatsappNo')?.errors?.['pattern']">
-          Enter a 10-digit mobile number starting with 6-9.
+          Enter a 10-digit mobile number.
         </small>
       </div>
     </div>
@@ -217,12 +217,8 @@
         </div>
         <div *ngIf="contactOtpError" class="validation-error" style="margin-top:6px">
           <span><small style="color: red;">{{ contactOtpError }}</small></span>
-          <button
-            *ngIf="showContactResendOption && contactResendCooldown === 0"
-            type="button"
-            class="resend-link"
-            (click)="resendContactOtp()"
-          >
+          <button *ngIf="showContactResendOption && contactResendCooldown === 0" type="button" class="resend-link"
+            (click)="resendContactOtp()">
             Resend OTP
           </button>
           <span *ngIf="showContactResendOption && contactResendCooldown > 0" class="resend-cooldown">
@@ -240,7 +236,7 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label required">Contact Name</label>
+      <label class="form-label required">Owner/CareTaker</label>
       <input type="text" formControlName="contact" placeholder="Enter contact name" class="form-control" maxlength="50">
       <div class="validation-error"
         *ngIf="listingForm.get('contact')?.invalid && (listingForm.get('contact')?.dirty || listingForm.get('contact')?.touched)">
@@ -300,9 +296,12 @@
     <div class="radio-section">
       <h3 class="section-title required">Accommodation Type</h3>
       <div class="radio-group">
-        <label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation"><span>Independent</span></label>
-        <label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation"><span>Apartment</span></label>
-        <label class="radio-item"><input type="radio" value="NotSure" formControlName="accommodation"><span>Not Sure</span></label>
+        <label class="radio-item"><input type="radio" value="Independent"
+            formControlName="accommodation"><span>Independent</span></label>
+        <label class="radio-item"><input type="radio" value="Apartment"
+            formControlName="accommodation"><span>Apartment</span></label>
+        <label class="radio-item"><input type="radio" value="NotSure" formControlName="accommodation"><span>Not
+            Sure</span></label>
       </div>
     </div>
 
@@ -426,14 +425,12 @@
       <div class="token-dialog">
         <h2>www.roomlocus.com says</h2>
         <p>{{ alertDialogMessage }}</p>
-        <button type="button" class="token-dialog-btn" 
-          [ngClass]="{
+        <button type="button" class="token-dialog-btn" [ngClass]="{
             'error-btn': alertDialogType === 'error',
             'warning-btn': alertDialogType === 'warning',
             'success-btn': alertDialogType === 'success',
             'info-btn': alertDialogType === 'info'
-          }"
-          (click)="closeAlertDialog()">OK</button>
+          }" (click)="closeAlertDialog()">OK</button>
       </div>
     </div>
   </form>

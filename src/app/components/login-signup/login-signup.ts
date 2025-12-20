@@ -139,6 +139,12 @@ export class LoginSignup implements OnInit, OnDestroy {
     agent: 'Agent Zone',
     user: 'User Zone',
   };
+  // Friendly singular labels for displaying in messages
+  private readonly zoneFriendlyLabels: Record<ZoneType, string> = {
+    owner: 'Owner',
+    agent: 'Agent',
+    user: 'User',
+  };
   private readonly zoneParamMap: Record<ZoneParam, ZoneType> = {
     OWNER: 'owner',
     AGENT: 'agent',
@@ -328,7 +334,8 @@ export class LoginSignup implements OnInit, OnDestroy {
           this.api.login(payload).subscribe((resp: any) => {
             this.isLoadingLogin = false;
             if (resp && resp.success === false) {
-              this.openAlertDialog('Login failed: ' + (resp.error || 'Unknown'), 'error');
+              const friendlyType = this.zoneFriendlyLabels[this.zoneType] || 'User';
+              this.openAlertDialog(`Login failed: Invalid credentials or ${friendlyType} not found`, 'error');
               return;
             }
             if (resp && resp.accessToken) {

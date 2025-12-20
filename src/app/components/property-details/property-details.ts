@@ -174,6 +174,24 @@ export class PropertyDetails implements OnInit, OnDestroy {
   private readonly facilityOptions = [...INSIDE_FACILITIES, ...OUTSIDE_FACILITIES];
 
   ngOnInit(): void {
+    // Normalize stub to use the same field the template binds to
+    (this.details as any).verified = (this.details as any).verified ?? (this.details as any).isVerified ?? false;
+
+    // Initialize verified badge from router state to avoid flicker
+    const nav = this.router.getCurrentNavigation();
+    const stateVerified = nav?.extras?.state?.['verified'];
+    if (typeof stateVerified === 'boolean') {
+      (this.details as any).verified = !!stateVerified;
+    } else {
+      // Fallback: try history.state if available (e.g., on reload)
+      try {
+        const hv = (window?.history?.state as any)?.verified;
+        if (typeof hv === 'boolean') {
+          (this.details as any).verified = !!hv;
+        }
+      } catch { /* no-op */ }
+    }
+
     // Only allow non-OWNER users to use favorites
     const userType = localStorage.getItem('userType');
     this.canUseFavorites = userType === 'END_USER';

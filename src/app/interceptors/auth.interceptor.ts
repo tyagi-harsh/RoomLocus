@@ -27,8 +27,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err) => {
-      if (err && err.status === 401) {
-        // Force a single auto-logout on unauthorized responses
+      // Only trigger auto-logout on unauthorized responses for requests that required auth
+      // Avoid showing session-expired dialog for auth endpoints like /auth/login
+      if (isPrivateApi && err && err.status === 401) {
         auth.handleUnauthorizedOnce();
       }
       return throwError(() => err);
