@@ -1,0 +1,66 @@
+.admin-dashboard-root {
+  min-height: calc(100vh - 4rem);
+  padding: 3rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #f4f5fb;
+  border-radius: 26px;
+  box-shadow: 0 35px 60px rgba(15, 23, 42, 0.15);
+}
+
+.admin-hero .badge {
+  display: inline-flex;
+  padding: 0.25rem 0.8rem;
+  background: #151c3c;
+  color: #f7f7ff;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-hero h1 {
+  margin-top: 0.6rem;
+  font-size: clamp(2.2rem, 3vw, 3rem);
+  color: #0f1b3a;
+}
+
+.admin-hero .intro {
+  margin-top: 0.6rem;
+  max-width: 560px;
+  color: #2d3b63;
+}
+
+.panels {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+}
+
+.panel {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: 1px solid rgba(15, 27, 58, 0.06);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+.panel p {
+  margin: 0;
+  color: #6c7aa4;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+}
+
+.panel strong {
+  display: block;
+  margin: 0.75rem 0;
+  font-size: 2.1rem;
+  color: #121936;
+}
+
+.panel small {
+  color: #535b7b;
+}

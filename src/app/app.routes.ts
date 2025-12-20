@@ -7,7 +7,9 @@ import { PropertyDetails } from './components/property-details/property-details'
 import { LoginSignup } from './components/login-signup/login-signup';
 import { UserDashboard } from './components/user-dashboard/user-dashboard';
 import { OwnerDashboard } from './components/owner-dashboard/owner-dashboard';
-import { ownerGuard, userGuard } from './guards/role.guard';
+import { AdminDashboard } from './components/admin-dashboard/admin-dashboard';
+import { AgentDashboard } from './components/agent-dashboard/agent-dashboard';
+import { ownerGuard, userGuard, agentGuard, adminGuard } from './guards/role.guard';
 import { OwnerHourlyRoomDetailsForm } from './components/owner-hourly-room-details-form/owner-hourly-room-details-form';
 import { OwnerPropertyImageUpload } from './components/owner-property-image-upload/owner-property-image-upload';
 import { OwnerFlatDetailsForm } from './components/owner-flat-details-form/owner-flat-details-form';
@@ -35,6 +37,10 @@ export const routes: Routes = [
 
   // Owner dashboard
   { path: 'owner-dashboard', component: OwnerDashboard, canActivate: [ownerGuard] },
+
+  { path: 'agent-dashboard', component: AgentDashboard, canActivate: [agentGuard] },
+
+  { path: 'admin-dashboard', component: AdminDashboard, canActivate: [adminGuard] },
 
   // Hourly Room property routes
   { path: 'owner/hourly-room', redirectTo: 'owner/hourly-room/details', pathMatch: 'full' },

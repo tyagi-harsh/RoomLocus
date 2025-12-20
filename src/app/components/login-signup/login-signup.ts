@@ -441,12 +441,14 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.wishlistService.refreshForCurrentUser();
     const resolvedReturnUrl = this.resolveReturnUrl();
     this.clearStoredReturnUrl();
-    if (resolvedReturnUrl) {
-      this.router.navigateByUrl(resolvedReturnUrl).catch((err) => console.warn('Navigation failed', err));
+    const defaultRoute = this.dashboardRouteFor(userType);
+    const isEndUser = userType === 'END_USER';
+    if (isEndUser && resolvedReturnUrl) {
+      this.router
+        .navigateByUrl(resolvedReturnUrl)
+        .catch((err) => console.warn('Navigation failed', err));
       return;
     }
-    // Redirect to appropriate dashboard based on user type instead of home
-    const defaultRoute = userType === 'OWNER' ? '/owner-dashboard' : '/dashboard';
     this.router.navigate([defaultRoute]).catch((err) => console.warn('Navigation failed', err));
   }
 
@@ -468,10 +470,29 @@ export class LoginSignup implements OnInit, OnDestroy {
     }
     const basePath = trimmed.split('?')[0];
     // Filter out login page and dashboard routes (user should land on dashboard after login if they came from login page)
-    if (basePath === '/login' || basePath === '/dashboard' || basePath === '/owner-dashboard') {
+    if (
+      basePath === '/login' ||
+      basePath === '/dashboard' ||
+      basePath === '/owner-dashboard' ||
+      basePath === '/agent-dashboard' ||
+      basePath === '/admin-dashboard'
+    ) {
       return null;
     }
     return trimmed;
+  }
+
+  private dashboardRouteFor(userType: string): string {
+    switch (userType) {
+      case 'OWNER':
+        return '/owner-dashboard';
+      case 'AGENT':
+        return '/agent-dashboard';
+      case 'ADMIN':
+        return '/admin-dashboard';
+      default:
+        return '/dashboard';
+    }
   }
 
   private readStoredReturnUrl(): string | null {

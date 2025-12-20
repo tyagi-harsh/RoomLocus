@@ -73,8 +73,21 @@ export class Header implements OnInit, OnDestroy {
     if (!this.userType) {
       return;
     }
-    const target = this.userType === 'OWNER' ? '/owner-dashboard' : '/dashboard';
+    const target = this.dashboardRouteFor(this.userType);
     this.router.navigate([target]).catch((err) => console.warn('Navigation failed', err));
+  }
+
+  private dashboardRouteFor(userType: string): string {
+    switch (userType) {
+      case 'OWNER':
+        return '/owner-dashboard';
+      case 'AGENT':
+        return '/agent-dashboard';
+      case 'ADMIN':
+        return '/admin-dashboard';
+      default:
+        return '/dashboard';
+    }
   }
 
   logout(): void {

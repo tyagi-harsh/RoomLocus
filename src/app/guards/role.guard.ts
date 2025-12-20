@@ -30,3 +30,7 @@ function ensureRole(expectedRole: string, state: RouterStateSnapshot): boolean |
 export const userGuard: CanActivateFn = (_route, state) => ensureRole('END_USER', state);
 
 export const ownerGuard: CanActivateFn = (_route, state) => ensureRole('OWNER', state);
+
+export const agentGuard: CanActivateFn = (_route, state) => ensureRole('AGENT', state);
+
+export const adminGuard: CanActivateFn = (_route, state) => ensureRole('ADMIN', state);

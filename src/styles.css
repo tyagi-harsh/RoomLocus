@@ -1,5 +1,13 @@
+@import '../node_modules/ngx-owl-carousel-o/lib/styles/prebuilt-themes/owl.carousel.min.css';
+@import '../node_modules/ngx-owl-carousel-o/lib/styles/prebuilt-themes/owl.theme.default.min.css';
+
 /* You can add global styles to this file, and also import other style files */
 /* Global token dialog styles to match registration/login dialogs */
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
 .token-dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -41,6 +49,11 @@
   color: #4d4c4c;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 .token-dialog-btn {
   margin-top: 1.5rem;
   border: none;
@@ -56,19 +69,6 @@
 
 .token-dialog-btn:hover {
   transform: translateY(-1px);
-}
-
-@import '../node_modules/ngx-owl-carousel-o/lib/styles/prebuilt-themes/owl.carousel.min.css';
-@import '../node_modules/ngx-owl-carousel-o/lib/styles/prebuilt-themes/owl.theme.default.min.css';
-
-html,
-body {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
 /* =====================================================
