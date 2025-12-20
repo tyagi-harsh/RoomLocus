@@ -23,7 +23,7 @@ import {
 } from '../../constants/facility-options';
 import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
 import { parseBackendErrorString } from '../../utils/error-utils';
-import { MOBILE_NUMBER_PATTERN, MOBILE_NUMBER_REGEX } from '../../constants/validation-patterns';
+import { MOBILE_NUMBER_PATTERN, MOBILE_NUMBER_REGEX, NAME_PATTERN } from '../../constants/validation-patterns';
 
 // Validator: require at least one checkbox in a FormGroup to be selected
 const atLeastOneChecked = (control: AbstractControl): ValidationErrors | null => {
@@ -118,7 +118,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       town: [''],
       townControl: ['', Validators.required],
       location: ['', Validators.required],
-      landmark: ['',Validators.required],
+      landmark: ['', Validators.required],
       bhk: ['', Validators.required],
       totalFlat: [''],
       totalFloors: [''],
@@ -131,7 +131,7 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       petAllowed: [''],
       noticePeriod: ['', Validators.required],
       // manager: ['', Validators.required ],
-      contact: ['', Validators.required],
+      contact: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(NAME_PATTERN)]],
       whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       address: ['', Validators.required],
       furnishing: ['', Validators.required],
@@ -147,14 +147,14 @@ export class OwnerFlatDetailsForm implements OnInit, OnDestroy {
       parking: this.fb.group({
         car: [false],
         bike: [false],
-      } ),
+      }),
       preferTenant: this.fb.group({
         family: [false],
         bachelors: [false],
         girls: [false],
         boys: [false],
         professionals: [false],
-      } ),
+      }),
       insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES), { validators: atLeastOneChecked }),
       outsideFacility: this.fb.group(buildFacilityControls(OUTSIDE_FACILITIES), { validators: atLeastOneChecked })
     });

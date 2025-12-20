@@ -32,7 +32,7 @@ import {
 } from '../../constants/facility-options';
 import { NumericOnlyDirective } from '../../directives/numeric-only.directive';
 import { parseBackendErrorString } from '../../utils/error-utils';
-import { MOBILE_NUMBER_PATTERN, MOBILE_NUMBER_REGEX } from '../../constants/validation-patterns';
+import { MOBILE_NUMBER_PATTERN, MOBILE_NUMBER_REGEX, NAME_PATTERN } from '../../constants/validation-patterns';
 
 @Component({
   selector: 'app-owner-pg-details-form',
@@ -124,8 +124,8 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       caretaker: [''],
       petAllowed: [''],
       noticePeriod: ['', Validators.required],
-      
-      contact: ['', Validators.required],
+
+      contact: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(NAME_PATTERN)]],
       whatsappNo: ['', [Validators.required, Validators.pattern(MOBILE_NUMBER_PATTERN)]],
       address: ['', Validators.required],
       furnishing: ['', Validators.required],
@@ -140,7 +140,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       parking: this.fb.group({
         car: [false],
         bike: [false],
-        
+
       }),
       preferTenant: this.fb.group({
         family: [false],
@@ -148,7 +148,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
         girls: [false],
         boys: [false],
         professionals: [false],
-        
+
       }),
       insideFacility: this.fb.group(buildFacilityControls(INSIDE_FACILITIES), {
         validators: this.requireCheckboxSelectionValidator(),
