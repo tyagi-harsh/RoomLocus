@@ -10,7 +10,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, filter } from 'rxjs';
@@ -20,6 +19,7 @@ import { encryptWithBackendRsa } from '../../utils/rsa-encryption';
 import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
 import { parseBackendErrorString } from '../../utils/error-utils';
 import { MOBILE_NUMBER_PATTERN } from '../../constants/validation-patterns';
+import { ToastService } from '../../services/toast.service';
 
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'otp';
@@ -59,7 +59,7 @@ export function passwordValidator(): ValidatorFn {
 @Component({
   selector: 'app-login-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule],
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, FormsModule, MatProgressSpinnerModule],
   templateUrl: './login-signup.html',
   styleUrls: ['./login-signup.css'],
 })
@@ -78,6 +78,7 @@ export class LoginSignup implements OnInit, OnDestroy {
   showForgotOtpSentMessage = false;
   showOtpDialog = false;
   otpDialogMessage = '';
+  otpDialogType: 'info' | 'success' = 'info';
   forgotResetToken: string | null = null;
   otpCode = '';
   otpContext: 'signup' | 'forgot' = 'signup';
@@ -98,12 +99,21 @@ export class LoginSignup implements OnInit, OnDestroy {
   showForgotOtpVerifiedToast = false;
   showResendOtpOption = false;
   showForgotResendOption = false;
+  // OTP resend cooldown timer (30 seconds)
+  signupResendCooldown = 0;
+  forgotResendCooldown = 0;
+  private signupResendTimer: ReturnType<typeof setInterval> | null = null;
+  private forgotResendTimer: ReturnType<typeof setInterval> | null = null;
   forgotUserLookupError: string | null = null;
   zoneType: ZoneType = 'owner';
   showSuccessDialog = false;
   successDialogMessage = '';
   successDialogButtonLabel = 'Go to Login';
   private successDialogAction: (() => void) | null = null;
+  // Alert dialog state (replaces toast notifications)
+  showAlertDialog = false;
+  alertDialogMessage = '';
+  alertDialogType: 'error' | 'warning' | 'info' | 'success' = 'info';
   private destroy$ = new Subject<void>();
   private signupOtpVerifiedTimer: ReturnType<typeof setTimeout> | null = null;
   private forgotOtpVerifiedTimer: ReturnType<typeof setTimeout> | null = null;
@@ -157,7 +167,7 @@ export class LoginSignup implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private api: ApiService,
-    private snackBar: MatSnackBar,
+    private toastService: ToastService,
     private router: Router,
     private wishlistService: WishlistService
   ) { }
@@ -219,14 +229,16 @@ export class LoginSignup implements OnInit, OnDestroy {
     });
   }
 
-  private openOtpDialog(message: string): void {
+  private openOtpDialog(message: string, type: 'info' | 'success' = 'info'): void {
     this.otpDialogMessage = message;
+    this.otpDialogType = type;
     this.showOtpDialog = true;
   }
 
   closeOtpDialog(): void {
     this.showOtpDialog = false;
     this.otpDialogMessage = '';
+    this.otpDialogType = 'info';
   }
 
   private openSuccessDialog(message: string, action: () => void, actionLabel = 'Go to Login'): void {
@@ -241,6 +253,17 @@ export class LoginSignup implements OnInit, OnDestroy {
     const action = this.successDialogAction;
     this.successDialogAction = null;
     action?.();
+  }
+
+  private openAlertDialog(message: string, type: 'error' | 'warning' | 'info' | 'success' = 'info'): void {
+    this.alertDialogMessage = message;
+    this.alertDialogType = type;
+    this.showAlertDialog = true;
+  }
+
+  closeAlertDialog(): void {
+    this.showAlertDialog = false;
+    this.alertDialogMessage = '';
   }
 
   private navigateToLoginPage(): void {
@@ -292,7 +315,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.api.getPublicKey().subscribe(async (pubKey: string) => {
         if (!pubKey) {
           this.isLoadingLogin = false;
-          this.snackBar.open('Unable to fetch public key. Login cannot proceed.', 'Close', { duration: 4000 });
+          this.openAlertDialog('Unable to fetch public key. Login cannot proceed.', 'error');
           return;
         }
 
@@ -303,7 +326,7 @@ export class LoginSignup implements OnInit, OnDestroy {
           this.api.login(payload).subscribe((resp: any) => {
             this.isLoadingLogin = false;
             if (resp && resp.success === false) {
-              this.snackBar.open('Login failed: ' + (resp.error || 'Unknown'), 'Close', { duration: 4000 });
+              this.openAlertDialog('Login failed: ' + (resp.error || 'Unknown'), 'error');
               return;
             }
             if (resp && resp.accessToken) {
@@ -332,16 +355,16 @@ export class LoginSignup implements OnInit, OnDestroy {
               this.navigateToRole(userType);
               return;
             }
-            this.snackBar.open('Login response: ' + JSON.stringify(resp), 'Close', { duration: 4000 });
+            this.openAlertDialog('Login response: ' + JSON.stringify(resp), 'info');
           });
         } catch (e) {
           this.isLoadingLogin = false;
           console.error('Encryption failed for login', e);
-          this.snackBar.open('Encryption failed. Please try again.', 'Close', { duration: 4000 });
+          this.openAlertDialog('Encryption failed. Please try again.', 'error');
         }
       }, (err) => {
         this.isLoadingLogin = false;
-        this.snackBar.open('Failed to fetch public key', 'Close', { duration: 4000 });
+        this.openAlertDialog('Failed to fetch public key', 'error');
       });
     } else {
       this.loginForm.markAllAsTouched();
@@ -364,7 +387,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.api.getPublicKey().subscribe(async (pubKey: string) => {
         if (!pubKey) {
           this.isRegistering = false;
-          this.snackBar.open('Unable to fetch public key from server. Registration cannot proceed.', 'Close', { duration: 4000 });
+          this.openAlertDialog('Unable to fetch public key from server. Registration cannot proceed.', 'error');
           return;
         }
 
@@ -374,7 +397,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         } catch (e) {
           this.isRegistering = false;
           console.error('Encryption failed', e);
-          this.snackBar.open('Encryption failed. Please try again later.', 'Close', { duration: 4000 });
+          this.openAlertDialog('Encryption failed. Please try again later.', 'error');
           return;
         }
 
@@ -384,7 +407,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         this.api.register(payload).subscribe((resp: any) => {
           this.isRegistering = false;
           if (resp && resp.success === false) {
-            this.snackBar.open('Registration failed: ' + (resp.error || 'Unknown error'), 'Close', { duration: 4000 });
+            this.openAlertDialog('Registration failed: ' + (resp.error || 'Unknown error'), 'error');
             return;
           }
           const friendlyZone = this.zoneLabels[this.zoneType] || 'User';
@@ -396,11 +419,11 @@ export class LoginSignup implements OnInit, OnDestroy {
           return;
         }, (err) => {
           this.isRegistering = false;
-          this.snackBar.open('Registration failed. Please try again.', 'Close', { duration: 4000 });
+          this.openAlertDialog('Registration failed. Please try again.', 'error');
         });
       }, (err) => {
         this.isRegistering = false;
-        this.snackBar.open('Failed to fetch public key', 'Close', { duration: 4000 });
+        this.openAlertDialog('Failed to fetch public key', 'error');
       });
     } else {
       this.signupForm.markAllAsTouched();
@@ -512,7 +535,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       if (resp && resp.success === false) {
         const message = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Failed to send OTP.';
         this.signupMobileError = message;
-        this.snackBar.open(message, 'Close', { duration: 4000 });
+        this.openAlertDialog(message, 'error');
         this.signupForm.get('password')?.enable({ emitEvent: false });
         this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
         this.showSignupOtpSentMessage = false;
@@ -524,11 +547,10 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.otpVerifiedFlag = false;
       this.showSignupOtpSentMessage = true;
       if (resp && resp.message) {
-        this.snackBar.open(isResend ? 'OTP resent successfully.' : resp.message, 'Close', { duration: 3000 });
+        this.openAlertDialog(isResend ? 'OTP resent successfully.' : resp.message, 'info');
         if (resp.otp) console.log('DEV OTP:', resp.otp);
       }
       this.otpSent.emit({ mobile, context: 'signup' });
-      this.openOtpDialog('OTP sent successfully');
     }, (err) => {
       this.isSendingOtp = false;
       const message = parseBackendErrorString(err?.error) || parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
@@ -536,7 +558,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.signupForm.get('password')?.enable({ emitEvent: false });
       this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
       this.showSignupOtpSentMessage = false;
-      this.snackBar.open(message, 'Close', { duration: 4000 });
+      this.openAlertDialog(message, 'error');
     });
   }
 
@@ -577,7 +599,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         const toastMessage = errorMessage && errorMessage.toLowerCase().includes('no user')
           ? 'User not found / Invalid Number'
           : errorMessage;
-        this.snackBar.open(toastMessage, 'Close', { duration: 4000 });
+        this.openAlertDialog(toastMessage, 'error');
         return;
       }
       const responseMessage: string = (
@@ -595,7 +617,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         const friendly = responseMessage || 'User with this role/number does not exist.';
         this.forgotUserLookupError = friendly;
         this.showForgotOtpSentMessage = false;
-        this.snackBar.open(friendly, 'Close', { duration: 4000 });
+        this.openAlertDialog(friendly, 'error');
         return;
       }
       this.forgotOtpInput = '';
@@ -603,17 +625,16 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.forgotOtpVerified = false;
       this.showForgotOtpSentMessage = true;
       if (resp && resp.message) {
-        this.snackBar.open(isResend ? 'OTP resent successfully.' : resp.message, 'Close', { duration: 3000 });
+        this.openAlertDialog(isResend ? 'OTP resent successfully.' : resp.message, 'info');
         if (resp.otp) console.log('DEV OTP:', resp.otp);
       }
       this.otpSent.emit({ mobile, context: 'forgot' });
-      this.openOtpDialog('OTP sent successfully to registered WhatsApp number');
     }, (err) => {
       this.isSendingOtp = false;
       const errMsg = parseBackendErrorString(err?.error) || parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
       this.forgotUserLookupError = errMsg;
       this.showForgotOtpSentMessage = false;
-      this.snackBar.open('Failed to send OTP: ' + errMsg, 'Close', { duration: 4000 });
+      this.openAlertDialog('Failed to send OTP: ' + errMsg, 'error');
       console.error('Forgot OTP request failed', errMsg);
     });
   }
@@ -641,7 +662,7 @@ export class LoginSignup implements OnInit, OnDestroy {
 
     // Validate payload before sending
     if (!payload.mobile || !payload.userType || !payload.otp || !payload.purpose) {
-      this.snackBar.open('Missing required OTP fields. Please request OTP again and retry.', 'Close', { duration: 4000 });
+      this.openAlertDialog('Missing required OTP fields. Please request OTP again and retry.', 'error');
       console.warn('verifySignupOtp aborted due to missing fields', payload);
       return;
     }
@@ -667,8 +688,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         this.triggerOtpVerifiedToast('signup');
         this.otpVerified.emit({ mobile: this.pendingMobile, context: 'signup' });
         this.signupMobileLocked = true;
-        this.snackBar.open('OTP verified', 'Close', { duration: 2000 });
-        this.openOtpDialog('WhatsApp number verified successfully!');
+        this.openOtpDialog('WhatsApp number verified successfully!', 'success');
         // Debug: show resulting states so it's easy to confirm in browser console
         console.debug('verifySignupOtp: enabled password controls', {
           allowPasswordEntry: this.allowPasswordEntry,
@@ -683,14 +703,16 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.otpError = errMsg;
       this.showSignupOtpSentMessage = false;
       this.showResendOtpOption = true;
-      this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
+      this.startSignupResendCooldown();
+      this.openAlertDialog('OTP verification failed: ' + errMsg, 'error');
     }, (err) => {
       this.isVerifyingOtp = false;
       const errMsg = parseBackendErrorString(err) || 'Server error';
       this.otpError = errMsg;
       this.showSignupOtpSentMessage = false;
       this.showResendOtpOption = true;
-      this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
+      this.startSignupResendCooldown();
+      this.openAlertDialog('OTP verification failed: ' + errMsg, 'error');
     });
   }
 
@@ -717,7 +739,7 @@ export class LoginSignup implements OnInit, OnDestroy {
     const payload = { mobile, userType: userTypeMap[this.zoneType], otp, purpose: 'F' };
 
     if (!payload.mobile || !payload.userType || !payload.otp || !payload.purpose) {
-      this.snackBar.open('Missing required OTP fields. Please request OTP again and retry.', 'Close', { duration: 4000 });
+      this.openAlertDialog('Missing required OTP fields. Please request OTP again and retry.', 'error');
       console.warn('verifyForgotOtp aborted due to missing fields', payload);
       return;
     }
@@ -741,8 +763,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         this.triggerOtpVerifiedToast('forgot');
         this.otpVerified.emit({ mobile: this.pendingMobile, context: 'forgot' });
         this.forgotMobileLocked = true;
-        this.snackBar.open('OTP verified', 'Close', { duration: 2000 });
-        this.openOtpDialog('WhatsApp number verified successfully!');
+        this.openOtpDialog('WhatsApp number verified successfully!', 'success');
         return;
       }
 
@@ -751,7 +772,8 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.showForgotOtpSentMessage = false;
       this.showForgotResendOption = true;
       this.forgotResetToken = null;
-      this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
+      this.startForgotResendCooldown();
+      this.openAlertDialog('OTP verification failed: ' + errMsg, 'error');
     }, (err) => {
       this.isVerifyingForgotOtp = false;
       const errMsg = parseBackendErrorString(err) || 'Server error';
@@ -759,14 +781,15 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.showForgotOtpSentMessage = false;
       this.showForgotResendOption = true;
       this.forgotResetToken = null;
-      this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
+      this.startForgotResendCooldown();
+      this.openAlertDialog('OTP verification failed: ' + errMsg, 'error');
     });
   }
 
   onResetPassword(): void {
     this.forgotForm.markAllAsTouched();
     if (!this.forgotOtpVerified) {
-      this.snackBar.open('Please verify the OTP before resetting your password.', 'Close', { duration: 4000 });
+      this.openAlertDialog('Please verify the OTP before resetting your password.', 'error');
       return;
     }
 
@@ -792,18 +815,18 @@ export class LoginSignup implements OnInit, OnDestroy {
     }
 
     if (!this.lastVerifiedForgotOtp) {
-      this.snackBar.open('Missing OTP verification. Please verify again.', 'Close', { duration: 4000 });
+      this.openAlertDialog('Missing OTP verification. Please verify again.', 'error');
       return;
     }
 
     if (!this.forgotResetToken) {
-      this.snackBar.open('Missing reset authorization token. Please verify the OTP again.', 'Close', { duration: 4000 });
+      this.openAlertDialog('Missing reset authorization token. Please verify the OTP again.', 'error');
       return;
     }
 
     const mobile = ((this.pendingMobile as string) || mobileControl.value || '').trim();
     if (!mobile) {
-      this.snackBar.open('Mobile number missing. Please re-enter and request OTP again.', 'Close', { duration: 4000 });
+      this.openAlertDialog('Mobile number missing. Please re-enter and request OTP again.', 'error');
       return;
     }
 
@@ -811,7 +834,7 @@ export class LoginSignup implements OnInit, OnDestroy {
     this.api.getPublicKey().subscribe(async (pubKey: string) => {
       if (!pubKey) {
         this.isResettingPassword = false;
-        this.snackBar.open('Unable to fetch public key. Reset cannot proceed.', 'Close', { duration: 4000 });
+        this.openAlertDialog('Unable to fetch public key. Reset cannot proceed.', 'error');
         return;
       }
 
@@ -821,7 +844,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       } catch (e) {
         this.isResettingPassword = false;
         console.error('Encryption failed for reset password', e);
-        this.snackBar.open('Encryption failed. Please try again later.', 'Close', { duration: 4000 });
+        this.openAlertDialog('Encryption failed. Please try again later.', 'error');
         return;
       }
 
@@ -836,7 +859,7 @@ export class LoginSignup implements OnInit, OnDestroy {
       this.api.resetPassword(payload, { authorizationToken: this.forgotResetToken || undefined }).subscribe((resp: any) => {
         this.isResettingPassword = false;
         if (resp && resp.success === false) {
-          this.snackBar.open('Password reset failed: ' + (resp.error || 'Unknown error'), 'Close', { duration: 4000 });
+          this.openAlertDialog('Password reset failed: ' + (resp.error || 'Unknown error'), 'error');
           return;
         }
         this.returnToLogin();
@@ -844,12 +867,12 @@ export class LoginSignup implements OnInit, OnDestroy {
       }, (err) => {
         this.isResettingPassword = false;
         const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Server error';
-        this.snackBar.open('Password reset failed: ' + errMsg, 'Close', { duration: 4000 });
+        this.openAlertDialog('Password reset failed: ' + errMsg, 'error');
       });
     }, (err) => {
       this.isResettingPassword = false;
       const errMsg = (err && err.error && (err.error.message || err.error.error)) || err.message || 'Server error';
-      this.snackBar.open('Failed to fetch public key: ' + errMsg, 'Close', { duration: 4000 });
+      this.openAlertDialog('Failed to fetch public key: ' + errMsg, 'error');
     });
   }
 
@@ -884,7 +907,7 @@ export class LoginSignup implements OnInit, OnDestroy {
     const payload = { mobile, userType: userTypeMap[this.zoneType], otp: this.otpCode.trim(), purpose };
 
     if (!payload.mobile || !payload.userType || !payload.otp || !payload.purpose) {
-      this.snackBar.open('Missing required OTP fields. Please request OTP again and retry.', 'Close', { duration: 4000 });
+      this.openAlertDialog('Missing required OTP fields. Please request OTP again and retry.', 'error');
       console.warn('confirmOtp aborted due to missing fields', payload);
       return;
     }
@@ -906,7 +929,7 @@ export class LoginSignup implements OnInit, OnDestroy {
         this.signupForm.get('password')?.enable({ emitEvent: false });
         this.signupForm.get('confirmPassword')?.enable({ emitEvent: false });
         this.otpVerified.emit({ mobile: this.pendingMobile, context: this.otpContext });
-        this.snackBar.open('OTP verified! You can now enter your password below.', 'Close', { duration: 2500 });
+        this.openAlertDialog('OTP verified! You can now enter your password below.', 'success');
         console.debug('OTP verified — password enabled', {
           allowPasswordEntry: this.allowPasswordEntry,
           passwordDisabled: this.signupForm.get('password')?.disabled,
@@ -916,12 +939,12 @@ export class LoginSignup implements OnInit, OnDestroy {
       const respBody = resp && resp.body ? resp.body : resp;
       const errMsg = parseBackendErrorString(respBody) || 'Invalid OTP';
       this.otpError = errMsg;
-      this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
+      this.openAlertDialog('OTP verification failed: ' + errMsg, 'error');
     }, (err) => {
       this.isVerifyingOtp = false;
       const errMsg = parseBackendErrorString(err) || 'Server error';
       this.otpError = errMsg;
-      this.snackBar.open('OTP verification failed: ' + errMsg, 'Close', { duration: 4000 });
+      this.openAlertDialog('OTP verification failed: ' + errMsg, 'error');
     });
   }
 
@@ -1145,8 +1168,50 @@ export class LoginSignup implements OnInit, OnDestroy {
       clearTimeout(this.forgotOtpVerifiedTimer);
       this.forgotOtpVerifiedTimer = null;
     }
+    if (this.signupResendTimer) {
+      clearInterval(this.signupResendTimer);
+      this.signupResendTimer = null;
+    }
+    if (this.forgotResendTimer) {
+      clearInterval(this.forgotResendTimer);
+      this.forgotResendTimer = null;
+    }
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private startSignupResendCooldown(): void {
+    this.signupResendCooldown = 30;
+    if (this.signupResendTimer) {
+      clearInterval(this.signupResendTimer);
+    }
+    this.signupResendTimer = setInterval(() => {
+      this.signupResendCooldown--;
+      if (this.signupResendCooldown <= 0) {
+        this.signupResendCooldown = 0;
+        if (this.signupResendTimer) {
+          clearInterval(this.signupResendTimer);
+          this.signupResendTimer = null;
+        }
+      }
+    }, 1000);
+  }
+
+  private startForgotResendCooldown(): void {
+    this.forgotResendCooldown = 30;
+    if (this.forgotResendTimer) {
+      clearInterval(this.forgotResendTimer);
+    }
+    this.forgotResendTimer = setInterval(() => {
+      this.forgotResendCooldown--;
+      if (this.forgotResendCooldown <= 0) {
+        this.forgotResendCooldown = 0;
+        if (this.forgotResendTimer) {
+          clearInterval(this.forgotResendTimer);
+          this.forgotResendTimer = null;
+        }
+      }
+    }, 1000);
   }
 
   private triggerOtpVerifiedToast(context: 'signup' | 'forgot'): void {

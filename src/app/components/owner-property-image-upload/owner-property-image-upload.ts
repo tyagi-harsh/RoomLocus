@@ -87,6 +87,10 @@ export class OwnerPropertyImageUpload implements OnInit {
   successDialogMessage = '';
   successDialogButtonLabel = 'Go to Dashboard';
   private successDialogAction: (() => void) | null = null;
+  // Alert dialog state (replaces toast notifications)
+  showAlertDialog = false;
+  alertDialogMessage = '';
+  alertDialogType: 'error' | 'warning' | 'info' | 'success' = 'info';
 
   constructor(
     private readonly router: Router,
@@ -144,7 +148,7 @@ export class OwnerPropertyImageUpload implements OnInit {
   onUpload(): void {
     const draft = this.creationDraftService.getDraft();
     if (!draft) {
-      this.toastService.error('Please complete the details form before uploading images.');
+      this.openAlertDialog('Please complete the details form before uploading images.', 'error');
       return;
     }
 
@@ -158,7 +162,7 @@ export class OwnerPropertyImageUpload implements OnInit {
     const ownerId = draft.ownerId;
     const createObservable = this.buildCreateObservable(this.propertyTypeKey, ownerId, draft.payload);
     if (!createObservable) {
-      this.toastService.error('Unsupported property type. Please try again.');
+      this.openAlertDialog('Unsupported property type. Please try again.', 'error');
       return;
     }
 
@@ -178,13 +182,13 @@ export class OwnerPropertyImageUpload implements OnInit {
             'Go to Dashboard'
           );
         } else {
-          this.toastService.error(result.error || 'Failed to create listing. Please try again.');
+          this.openAlertDialog(result.error || 'Failed to create listing. Please try again.', 'error');
         }
       },
       error: (err) => {
         this.isSaving = false;
         console.error('Property creation error:', err);
-        this.toastService.error('Failed to create listing. Please try again.');
+        this.openAlertDialog('Failed to create listing. Please try again.', 'error');
       },
     });
   }
@@ -207,6 +211,17 @@ export class OwnerPropertyImageUpload implements OnInit {
     const action = this.successDialogAction;
     this.successDialogAction = null;
     action?.();
+  }
+
+  private openAlertDialog(message: string, type: 'error' | 'warning' | 'info' | 'success' = 'info'): void {
+    this.alertDialogMessage = message;
+    this.alertDialogType = type;
+    this.showAlertDialog = true;
+  }
+
+  closeAlertDialog(): void {
+    this.showAlertDialog = false;
+    this.alertDialogMessage = '';
   }
 
   private normalizePropertyType(value: string | null): PropertyTypeKey {

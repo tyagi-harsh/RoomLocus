@@ -69,7 +69,7 @@
 
 /* Form Groups & Rows */
 .form-group {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.9rem;
 }
 
 .form-row {
@@ -224,6 +224,8 @@
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
+
 
 .btn-next {
   background-color: #007ba7;
@@ -411,6 +413,23 @@
   transform: translateY(-1px);
 }
 
+/* Alert dialog button color variants */
+.token-dialog-btn.error-btn {
+  background: #dc3545;
+}
+
+.token-dialog-btn.warning-btn {
+  background: #fd7e14;
+}
+
+.token-dialog-btn.success-btn {
+  background: #28a745;
+}
+
+.token-dialog-btn.info-btn {
+  background: #03a4d4;
+}
+
 .mobile-extra {
   margin-top: -0.5rem;
   margin-bottom: 1rem;
@@ -460,6 +479,13 @@
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
+  margin-left: 10px;
+}
+
+.resend-cooldown {
+  color: #6c757d;
+  font-size: 0.75rem;
+  font-weight: 500;
   margin-left: 10px;
 }
 

@@ -19,7 +19,7 @@
   </div>
 
   <div class="content-area" *ngIf="activeTab === 'recent'">
-    <div class="card" *ngFor="let item of contacts">
+    <div class="card" *ngFor="let item of paginatedContacts">
       <div class="card-top">
         <span>{{ item.category }}</span> | <span>{{ item.location }}</span> | <span>{{ item.subLocation }}</span>
       </div>
@@ -37,10 +37,20 @@
         </div>
       </div>
     </div>
+    <mat-paginator
+      *ngIf="contacts.length > contactsPageSize"
+      [length]="contacts.length"
+      [pageSize]="contactsPageSize"
+      [pageSizeOptions]="[12, 24, 48]"
+      [pageIndex]="contactsCurrentPage"
+      (page)="onContactsPageChange($event)"
+      showFirstLastButtons
+      aria-label="Select page">
+    </mat-paginator>
   </div>
 
   <div class="content-area" *ngIf="activeTab === 'wishlist'">
-    <div class="card wishlist-card" *ngFor="let item of wishlistItems">
+    <div class="card wishlist-card" *ngFor="let item of paginatedWishlist">
       
       <div class="wishlist-img-container">
         <img [src]="item.imageUrl" alt="Property Image">
@@ -63,6 +73,16 @@
       </div>
 
     </div>
+    <mat-paginator
+      *ngIf="wishlistItems.length > wishlistPageSize"
+      [length]="wishlistItems.length"
+      [pageSize]="wishlistPageSize"
+      [pageSizeOptions]="[12, 24, 48]"
+      [pageIndex]="wishlistCurrentPage"
+      (page)="onWishlistPageChange($event)"
+      showFirstLastButtons
+      aria-label="Select page">
+    </mat-paginator>
   </div>
 
 </div>

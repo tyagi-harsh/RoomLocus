@@ -459,6 +459,23 @@
   transform: translateY(-1px);
 }
 
+/* Alert dialog button color variants */
+.token-dialog-btn.error-btn {
+  background: #dc3545;
+}
+
+.token-dialog-btn.warning-btn {
+  background: #fd7e14;
+}
+
+.token-dialog-btn.success-btn {
+  background: #28a745;
+}
+
+.token-dialog-btn.info-btn {
+  background: #03a4d4;
+}
+
 .forgot-password-link:hover,
 .sign-up-link:hover {
   text-decoration: underline;
@@ -490,6 +507,13 @@
   cursor: pointer;
   font-size: 0.8rem;
   padding: 0;
+}
+
+.resend-cooldown {
+  color: #6c757d;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-left: 8px;
 }
 
 .resend-link:focus {

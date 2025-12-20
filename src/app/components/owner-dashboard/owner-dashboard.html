@@ -41,7 +41,7 @@
 
       <!-- Responsive Grid for Cards -->
       <div class="card-grid">
-        <div class="card" *ngFor="let item of leads">
+        <div class="card" *ngFor="let item of paginatedLeads">
           
           <!-- Card Header -->
           <div class="card-top">
@@ -71,6 +71,17 @@
         </div>
       </div>
 
+      <mat-paginator
+        *ngIf="leads.length > leadsPageSize"
+        [length]="leads.length"
+        [pageSize]="leadsPageSize"
+        [pageSizeOptions]="[12, 24, 48]"
+        [pageIndex]="leadsCurrentPage"
+        (page)="onLeadsPageChange($event)"
+        showFirstLastButtons
+        aria-label="Select page">
+      </mat-paginator>
+
     </div>
     <!-- End Used Lead Section -->
 
@@ -83,7 +94,7 @@
       <p class="subtext" *ngIf="!ownerId">Log in as an owner to view your rentals.</p>
       <p class="subtext" *ngIf="ownerId && properties?.length === 0">No rentals yet. Add a property to see it here.</p>
       <div *ngIf="properties?.length" class="property-list">
-        <article class="property-card" *ngFor="let property of properties; trackBy: trackByPropertyId">
+        <article class="property-card" *ngFor="let property of paginatedProperties; trackBy: trackByPropertyId">
           <div class="property-card-header">
             <span class="type">{{ property.propertyType }}</span>
             <span class="date">Added {{ property.createdAt | date:'mediumDate' }}</span>
@@ -92,6 +103,16 @@
           <p class="property-card-location">{{ property.location }}</p>
         </article>
       </div>
+      <mat-paginator
+        *ngIf="properties && properties.length > rentalsPageSize"
+        [length]="properties.length"
+        [pageSize]="rentalsPageSize"
+        [pageSizeOptions]="[12, 24, 48]"
+        [pageIndex]="rentalsCurrentPage"
+        (page)="onRentalsPageChange($event)"
+        showFirstLastButtons
+        aria-label="Select page">
+      </mat-paginator>
     </div>
 
     <div *ngIf="activeTab === 'guide'" class="placeholder-tab">

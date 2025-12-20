@@ -76,3 +76,20 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Paginator Styling */
+mat-paginator {
+  margin-top: 24px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+::ng-deep .mat-mdc-paginator {
+  background: transparent !important;
+}
+
+::ng-deep .mat-mdc-paginator-container {
+  justify-content: center;
+  padding: 12px 16px;
+}

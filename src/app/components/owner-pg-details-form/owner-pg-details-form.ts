@@ -78,12 +78,18 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
   isVerifyingContactOtp = false;
   showContactOtpSentMessage = false;
   showContactResendOption = false;
+  contactResendCooldown = 0;
+  private contactResendTimer: ReturnType<typeof setInterval> | null = null;
   showOtpDialog = false;
   otpDialogMessage = '';
   showSuccessDialog = false;
   successDialogMessage = '';
   successDialogButtonLabel = 'Upload Images';
   private successDialogAction: (() => void) | null = null;
+  // Alert dialog state (replaces toast notifications)
+  showAlertDialog = false;
+  alertDialogMessage = '';
+  alertDialogType: 'error' | 'warning' | 'info' | 'success' = 'info';
   private readonly formStorageKey = 'owner-pg-details-form-state';
   private readonly formStorageTtl = 4 * 60 * 1000;
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
@@ -216,6 +222,9 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     this.destroy$.complete();
     this.clearContactOtpTimer();
     this.clearSavedFormState();
+    if (this.contactResendTimer) {
+      clearInterval(this.contactResendTimer);
+    }
   }
 
   private loadCities(forceRefresh = false): void {
@@ -299,20 +308,19 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
         if (resp && resp.success === false) {
           const message = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Failed to send OTP';
           this.contactOtpError = message;
-          this.toastService.error(message);
+          this.openAlertDialog(message, 'error');
           return;
         }
         this.contactOtpRequested = true;
         this.showContactOtpSentMessage = true;
         this.showContactResendOption = true;
-        this.openOtpDialog('OTP sent successfully to registered WhatsApp number');
       },
       error: (err) => {
         this.isSendingContactOtp = false;
         console.error('getOtp error:', err);
         const message = parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
         this.contactOtpError = message;
-        this.toastService.error(message);
+        this.openAlertDialog(message, 'error');
       },
     });
   }
@@ -343,12 +351,12 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
           this.showContactResendOption = false;
           this.showContactOtpSentMessage = false;
           this.contactOtpInput = '';
-          this.openOtpDialog('Mobile verified successfully');
         } else {
           const message = parseBackendErrorString(resp.body) || parseBackendErrorString(resp) || 'Invalid or expired OTP';
           this.contactOtpError = message;
           this.showContactResendOption = true;
-          this.toastService.error(message);
+          this.startContactResendCooldown();
+          this.openAlertDialog(message, 'error');
         }
       },
       error: (err) => {
@@ -357,7 +365,8 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
         const message = parseBackendErrorString(err) || 'Verification failed. Please try again.';
         this.contactOtpError = message;
         this.showContactResendOption = true;
-        this.toastService.error(message);
+        this.startContactResendCooldown();
+        this.openAlertDialog(message, 'error');
       },
     });
   }
@@ -375,6 +384,20 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
       clearTimeout(this.contactOtpTimer);
       this.contactOtpTimer = null;
     }
+  }
+
+  private startContactResendCooldown(): void {
+    if (this.contactResendTimer) {
+      clearInterval(this.contactResendTimer);
+    }
+    this.contactResendCooldown = 30;
+    this.contactResendTimer = setInterval(() => {
+      this.contactResendCooldown--;
+      if (this.contactResendCooldown <= 0) {
+        clearInterval(this.contactResendTimer!);
+        this.contactResendTimer = null;
+      }
+    }, 1000);
   }
 
   displayCityName(city: City | string | null): string {
@@ -424,14 +447,14 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
           console.log(`Invalid field: ${key}`, control.errors);
         }
       });
-      this.toastService.error('Please fill all required fields');
+      this.openAlertDialog('Please fill all required fields', 'error');
       return;
     }
 
     const ownerId = this.propertyCreationService.getOwnerId();
     console.log('Owner ID:', ownerId);
     if (!ownerId) {
-      this.toastService.error('Owner ID not found. Please login again.');
+      this.openAlertDialog('Owner ID not found. Please login again.', 'error');
       return;
     }
 
@@ -601,6 +624,17 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
     action?.();
   }
 
+  private openAlertDialog(message: string, type: 'error' | 'warning' | 'info' | 'success' = 'info'): void {
+    this.alertDialogMessage = message;
+    this.alertDialogType = type;
+    this.showAlertDialog = true;
+  }
+
+  closeAlertDialog(): void {
+    this.showAlertDialog = false;
+    this.alertDialogMessage = '';
+  }
+
   onCancel(): void {
     this.showCancelConfirmation = true;
   }
@@ -635,7 +669,7 @@ export class OwnerPgDetailsForm implements OnInit, OnDestroy {
   }
 
   private showContactVerificationRequired(): void {
-    this.toastService.warning('Verify Whatsapp number before proceeding.');
+    this.openAlertDialog('Verify Whatsapp number before proceeding.', 'warning');
   }
 
   private requireCheckboxSelectionValidator(minRequired = 1): ValidatorFn {

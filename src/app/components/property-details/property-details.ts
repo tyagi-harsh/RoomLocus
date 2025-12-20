@@ -347,6 +347,17 @@ export class PropertyDetails implements OnInit, OnDestroy {
     return `${value} hr`;
   }
 
+  formatAccommodation(value?: string): string {
+    const normalized = value?.trim() ?? '';
+    if (!normalized) {
+      return 'N/A';
+    }
+    if (normalized.toLowerCase() === 'notsure') {
+      return 'Not Sure';
+    }
+    return value as string;
+  }
+
 
   get typeDisplayName(): string {
     switch (this.propertyCategory) {
@@ -591,14 +602,14 @@ export class PropertyDetails implements OnInit, OnDestroy {
       return;
     }
 
-    // Only END_USER can like/unlike; silently ignore otherwise
+    // Require login before allowing wishlist interaction.
     const userType = localStorage.getItem('userType');
-    if (userType !== 'END_USER') {
+    if (!userType) {
+      this.redirectToLogin();
       return;
     }
 
-    if (!userType) {
-      this.redirectToLogin();
+    if (userType !== 'END_USER') {
       return;
     }
 

@@ -200,49 +200,62 @@
 			
 		</section>
 
-		<section class="mobile-extra">
-			<div class="otp-cta">
-				<button
-					*ngIf="!contactOtpVerified"
-					type="button"
-					class="otp-button"
-					(click)="startContactOtpFlow()"
-					[disabled]="(contactOtpRequested && !contactOtpVerified) || isSendingContactOtp || !isContactNumberValid"
-				>
-					<span *ngIf="!isSendingContactOtp">Send OTP</span>
-					<mat-progress-spinner *ngIf="isSendingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
-				</button>
-				<small *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified" class="otp-feedback">
-					OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
-				</small>
-			</div>
-			<div *ngIf="contactOtpRequested" class="otp-panel">
-				<div class="otp-block">
-					<input
-						id="contact-otp"
-						type="tel"
-						maxlength="6"
-						[(ngModel)]="contactOtpInput"
-						[ngModelOptions]="{ standalone: true }"
-						placeholder="XXXXXX"
-						name="contactOtp"
-						class="form-control otp-input"
-					/>
-				</div>
-				<div *ngIf="contactOtpError" class="validation-error" style="margin-top:6px;">
-					<span><small style="color: red;">{{ contactOtpError }}</small></span>
-					<button *ngIf="showContactResendOption" type="button" class="resend-link" (click)="resendContactOtp()">
-						Resend OTP
-					</button>
-				</div>
-				<div class="otp-block">
-					<button type="button" class="otp-verify-button" (click)="verifyContactOtp()">
-						<span *ngIf="!isVerifyingContactOtp">Verify OTP</span>
-						<mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
-					</button>
-				</div>
-			</div>
-		</section>
+		   <div class="mobile-extra">
+      <div class="otp-cta">
+        <div class="get-otp-div">
+          <button
+            *ngIf="!contactOtpVerified"
+            type="button"
+            class="otp-button"
+            (click)="startContactOtpFlow()"
+            [disabled]="(contactOtpRequested && !contactOtpVerified) || isSendingContactOtp || !isContactNumberValid"
+          >
+            <span *ngIf="!isSendingContactOtp">Send OTP</span>
+            <mat-progress-spinner *ngIf="isSendingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+          </button>
+          <small
+            *ngIf="showContactOtpSentMessage && contactOtpRequested && !contactOtpVerified"
+            style="display:block;margin-top:4px"
+          >
+            OTP sent successfully <i class="fas fa-check-circle" style="color: rgb(3, 152, 3);"></i>
+          </small>
+        </div>
+      </div>
+      <div *ngIf="contactOtpRequested" class="otp-panel">
+        <div class="otp-block">
+          <input
+            id="contact-otp"
+            type="tel"
+            maxlength="6"
+            [(ngModel)]="contactOtpInput"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="XXXXXX"
+            name="contactOtp"
+            class="form-control otp-input"
+          />
+        </div>
+        <div *ngIf="contactOtpError" class="validation-error" style="margin-top:6px margin-left:auto">
+          <span><small style="color: red;">{{ contactOtpError }}</small></span>
+          <button
+            *ngIf="showContactResendOption && contactResendCooldown === 0"
+            type="button"
+            class="resend-link"
+            (click)="resendContactOtp()"
+          >
+            Resend OTP
+          </button>
+          <span *ngIf="showContactResendOption && contactResendCooldown > 0" class="resend-cooldown">
+            Resend in {{ contactResendCooldown }}s
+          </span>
+        </div>
+        <div class="otp-block">
+          <button type="button" class="otp-verify-button" (click)="verifyContactOtp()">
+            <span *ngIf="!isVerifyingContactOtp">Verify OTP</span>
+            <mat-progress-spinner *ngIf="isVerifyingContactOtp" diameter="18" mode="indeterminate"></mat-progress-spinner>
+          </button>
+        </div>
+      </div>
+    </div>
 
 		<section class="section-grid">
 			<div class="form-row">
@@ -299,7 +312,7 @@
 			<div class="radio-group">
 				<label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation" /><span>Independent</span></label>
 				<label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation" /><span>Apartment</span></label>
-				<label class="radio-item"><input type="radio" value="Builder Floor" formControlName="accommodation" /><span>Builder Floor</span></label>
+				<label class="radio-item"><input type="radio" value="NotSure" formControlName="accommodation" /><span>Not Sure</span></label>
 			</div>
 		</section>
 
@@ -395,6 +408,20 @@
 				<button type="button" class="token-dialog-btn" (click)="confirmSuccessDialog()">
 					{{ successDialogButtonLabel }}
 				</button>
+			</div>
+		</div>
+		<div *ngIf="showAlertDialog" class="token-dialog-backdrop">
+			<div class="token-dialog">
+				<h2>www.roomlocus.com says</h2>
+				<p>{{ alertDialogMessage }}</p>
+				<button type="button" class="token-dialog-btn" 
+					[ngClass]="{
+						'error-btn': alertDialogType === 'error',
+						'warning-btn': alertDialogType === 'warning',
+						'success-btn': alertDialogType === 'success',
+						'info-btn': alertDialogType === 'info'
+					}"
+					(click)="closeAlertDialog()">OK</button>
 			</div>
 		</div>
 	</form>

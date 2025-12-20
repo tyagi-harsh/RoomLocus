@@ -8,13 +8,14 @@ import { Lead } from '../../interface/owner-dash';
 import { AddRentalDialogComponent } from './add-rental-dialog.component';
 import { OwnerPropertySummary, OwnerPropertyStoreService } from '../../services/owner-property-store.service';
 import { PropertyCreationService } from '../../services/property-creation.service';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 
 
 @Component({
   selector: 'app-owner-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatDialogModule],
+  imports: [CommonModule, RouterModule, MatDialogModule, MatPaginatorModule],
   templateUrl: './owner-dashboard.html',
   styleUrl: './owner-dashboard.css',
 })
@@ -24,6 +25,34 @@ export class OwnerDashboard implements OnInit, OnDestroy {
   leadCount: number = 24;
   properties: OwnerPropertySummary[] = [];
   ownerId: number | null = null;
+
+  // Pagination for leads
+  leadsPageSize = 12;
+  leadsCurrentPage = 0;
+
+  // Pagination for rentals
+  rentalsPageSize = 12;
+  rentalsCurrentPage = 0;
+
+  get paginatedLeads(): Lead[] {
+    const start = this.leadsCurrentPage * this.leadsPageSize;
+    return this.leads.slice(start, start + this.leadsPageSize);
+  }
+
+  get paginatedProperties(): OwnerPropertySummary[] {
+    const start = this.rentalsCurrentPage * this.rentalsPageSize;
+    return this.properties.slice(start, start + this.rentalsPageSize);
+  }
+
+  onLeadsPageChange(event: PageEvent): void {
+    this.leadsCurrentPage = event.pageIndex;
+    this.leadsPageSize = event.pageSize;
+  }
+
+  onRentalsPageChange(event: PageEvent): void {
+    this.rentalsCurrentPage = event.pageIndex;
+    this.rentalsPageSize = event.pageSize;
+  }
 
   private readonly destroy$ = new Subject<void>();
 

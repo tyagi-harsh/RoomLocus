@@ -225,13 +225,16 @@
         <div *ngIf="contactOtpError" class="validation-error" style="margin-top:6px;">
           <span><small style="color: red;">{{ contactOtpError }}</small></span>
           <button
-            *ngIf="showContactResendOption"
+            *ngIf="showContactResendOption && contactResendCooldown === 0"
             type="button"
             class="resend-link"
             (click)="resendContactOtp()"
           >
             Resend OTP
           </button>
+          <span *ngIf="showContactResendOption && contactResendCooldown > 0" class="resend-cooldown">
+            Resend in {{ contactResendCooldown }}s
+          </span>
         </div>
         <div class="otp-block">
           <button type="button" class="otp-verify-button" (click)="verifyContactOtp()">
@@ -267,6 +270,7 @@
       <div class="radio-group">
         <label class="radio-item"><input type="radio" value="Independent" formControlName="accommodation"><span>Independent</span></label>
         <label class="radio-item"><input type="radio" value="Apartment" formControlName="accommodation"><span>Apartment</span></label>
+        <label class="radio-item"><input type="radio" value="NotSure" formControlName="accommodation"><span>Not Sure</span></label>
       </div>
       <!-- <div class="validation-error" *ngIf="listingForm.get('accommodation')?.hasError('required') && listingForm.touched">
         <small>Select an accommodation type.</small>
@@ -398,6 +402,20 @@
         <button type="button" class="token-dialog-btn" (click)="confirmSuccessDialog()">
           {{ successDialogButtonLabel }}
         </button>
+      </div>
+    </div>
+    <div *ngIf="showAlertDialog" class="token-dialog-backdrop">
+      <div class="token-dialog">
+        <h2>www.roomlocus.com says</h2>
+        <p>{{ alertDialogMessage }}</p>
+        <button type="button" class="token-dialog-btn" 
+          [ngClass]="{
+            'error-btn': alertDialogType === 'error',
+            'warning-btn': alertDialogType === 'warning',
+            'success-btn': alertDialogType === 'success',
+            'info-btn': alertDialogType === 'info'
+          }"
+          (click)="closeAlertDialog()">OK</button>
       </div>
     </div>
   </form>

@@ -4,18 +4,47 @@ import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Contact, WishlistItem } from '../../interface/user-dash';
 import { WishlistService } from '../../services/wishlist.service';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule], // Make sure to import CommonModule for *ngFor and RouterModule for routerLink
+  imports: [CommonModule, RouterModule, MatPaginatorModule],
   templateUrl: './user-dashboard.html',
   styleUrl: './user-dashboard.css',
 })
 export class UserDashboard implements OnInit, OnDestroy {
 
   activeTab: string = 'wishlist'; // 'wishlist' or 'recent'
+
+  // Pagination for wishlist
+  wishlistPageSize = 12;
+  wishlistCurrentPage = 0;
+
+  // Pagination for contacts
+  contactsPageSize = 12;
+  contactsCurrentPage = 0;
+
+  get paginatedWishlist(): WishlistItem[] {
+    const start = this.wishlistCurrentPage * this.wishlistPageSize;
+    return this.wishlistItems.slice(start, start + this.wishlistPageSize);
+  }
+
+  get paginatedContacts(): Contact[] {
+    const start = this.contactsCurrentPage * this.contactsPageSize;
+    return this.contacts.slice(start, start + this.contactsPageSize);
+  }
+
+  onWishlistPageChange(event: PageEvent): void {
+    this.wishlistCurrentPage = event.pageIndex;
+    this.wishlistPageSize = event.pageSize;
+  }
+
+  onContactsPageChange(event: PageEvent): void {
+    this.contactsCurrentPage = event.pageIndex;
+    this.contactsPageSize = event.pageSize;
+  }
 
  // Mock Data for Recent Contacts
   contacts: Contact[] = [

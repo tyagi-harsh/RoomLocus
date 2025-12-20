@@ -259,4 +259,19 @@
   transform: translateY(-1px);
 }
 
+/* Alert dialog button color variants */
+.token-dialog-btn.error-btn {
+  background: #dc3545;
+}
 
+.token-dialog-btn.warning-btn {
+  background: #fd7e14;
+}
+
+.token-dialog-btn.success-btn {
+  background: #28a745;
+}
+
+.token-dialog-btn.info-btn {
+  background: #03a4d4;
+}

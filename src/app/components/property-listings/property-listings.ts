@@ -6,11 +6,12 @@ import { PropertyCard } from '../property-card/property-card';
 import { Subject, takeUntil } from 'rxjs';
 import { PropertySearchService } from '../../services/property-search.service';
 import { PropertySearchResponse, PropertySearchResult } from '../../interface/api-response';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-property-listings',
   standalone: true,
-  imports: [CommonModule, PropertyCard],
+  imports: [CommonModule, PropertyCard, MatPaginatorModule],
   templateUrl: './property-listings.html',
   styleUrl: './property-listings.css',
 })
@@ -27,6 +28,20 @@ export class PropertyListings implements OnInit, OnDestroy {
     'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg',
     'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg',
   ];
+
+  // Pagination
+  pageSize = 12;
+  currentPage = 0;
+
+  get paginatedProperties(): Property[] {
+    const start = this.currentPage * this.pageSize;
+    return this.filteredProperties.slice(start, start + this.pageSize);
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+  }
 
   constructor(private route: ActivatedRoute, private propertySearchService: PropertySearchService) { }
 
@@ -107,9 +122,7 @@ export class PropertyListings implements OnInit, OnDestroy {
   properties: Property[] = [
     {
       id: 1,
-      // Placeholder image, replace with your asset
-      imageUrl:
-        'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      imageUrl: 'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       verified: true,
       location: 'Madhav Nagar',
       subLocation: 'Near Highway',
@@ -119,9 +132,7 @@ export class PropertyListings implements OnInit, OnDestroy {
     },
     {
       id: 2,
-      // Placeholder image, replace with your asset
-      imageUrl:
-        'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      imageUrl: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       verified: true,
       location: 'Himmat Nagar',
       subLocation: 'Delhi Road',
@@ -131,15 +142,163 @@ export class PropertyListings implements OnInit, OnDestroy {
     },
     {
       id: 3,
-      // Placeholder image, replace with your asset
-      imageUrl:
-        'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      imageUrl: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       verified: true,
       location: 'Varsha Nagar',
       subLocation: 'St. Stefans Road',
       type: '2 RK',
       priceMin: 2600,
       priceMax: 3500,
+    },
+    {
+      id: 4,
+      imageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: false,
+      location: 'Sector 15',
+      subLocation: 'Near Metro Station',
+      type: '2 BHK',
+      priceMin: 8000,
+      priceMax: 9500,
+    },
+    {
+      id: 5,
+      imageUrl: 'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Green Park',
+      subLocation: 'Main Market',
+      type: '3 BHK',
+      priceMin: 12000,
+      priceMax: 15000,
+    },
+    {
+      id: 6,
+      imageUrl: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Lakshmi Nagar',
+      subLocation: 'Near School',
+      type: '1 BHK',
+      priceMin: 5000,
+      priceMax: 6000,
+    },
+    {
+      id: 7,
+      imageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: false,
+      location: 'Rajendra Nagar',
+      subLocation: 'Bus Stand Road',
+      type: '2 BHK',
+      priceMin: 7500,
+      priceMax: 8500,
+    },
+    {
+      id: 8,
+      imageUrl: 'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Shanti Nagar',
+      subLocation: 'Temple Road',
+      type: '1 RK',
+      priceMin: 3000,
+      priceMax: 3500,
+    },
+    {
+      id: 9,
+      imageUrl: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Model Town',
+      subLocation: 'Near Hospital',
+      type: '3 BHK',
+      priceMin: 14000,
+      priceMax: 16000,
+    },
+    {
+      id: 10,
+      imageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Civil Lines',
+      subLocation: 'Park View',
+      type: '2 BHK',
+      priceMin: 9000,
+      priceMax: 11000,
+    },
+    {
+      id: 11,
+      imageUrl: 'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: false,
+      location: 'Indira Nagar',
+      subLocation: 'College Road',
+      type: '1 BHK',
+      priceMin: 4500,
+      priceMax: 5500,
+    },
+    {
+      id: 12,
+      imageUrl: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Gandhi Nagar',
+      subLocation: 'Main Road',
+      type: '2 RK',
+      priceMin: 4000,
+      priceMax: 4800,
+    },
+    {
+      id: 13,
+      imageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Nehru Colony',
+      subLocation: 'Stadium Road',
+      type: '3 BHK',
+      priceMin: 13000,
+      priceMax: 15500,
+    },
+    {
+      id: 14,
+      imageUrl: 'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: false,
+      location: 'Subhash Nagar',
+      subLocation: 'Railway Station',
+      type: '1 RK',
+      priceMin: 2800,
+      priceMax: 3200,
+    },
+    {
+      id: 15,
+      imageUrl: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Patel Nagar',
+      subLocation: 'Near Bank',
+      type: '2 BHK',
+      priceMin: 8500,
+      priceMax: 10000,
+    },
+    {
+      id: 16,
+      imageUrl: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Adarsh Colony',
+      subLocation: 'Shopping Complex',
+      type: '1 BHK',
+      priceMin: 5500,
+      priceMax: 6500,
+    },
+    {
+      id: 17,
+      imageUrl: 'https://images.pexels.com/photos/1454806/pexels-photo-1454806.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: false,
+      location: 'Vikas Nagar',
+      subLocation: 'Industrial Area',
+      type: '2 RK',
+      priceMin: 3500,
+      priceMax: 4200,
+    },
+    {
+      id: 18,
+      imageUrl: 'https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      verified: true,
+      location: 'Ashok Vihar',
+      subLocation: 'Near Mall',
+      type: '3 BHK',
+      priceMin: 16000,
+      priceMax: 18000,
     },
   ];
 }

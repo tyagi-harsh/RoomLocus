@@ -72,12 +72,18 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
   isVerifyingContactOtp = false;
   showContactOtpSentMessage = false;
   showContactResendOption = false;
+  contactResendCooldown = 0;
+  private contactResendTimer: ReturnType<typeof setInterval> | null = null;
   showOtpDialog = false;
   otpDialogMessage = '';
   showSuccessDialog = false;
   successDialogMessage = '';
   successDialogButtonLabel = 'Upload Images';
   private successDialogAction: (() => void) | null = null;
+  // Alert dialog state (replaces toast notifications)
+  showAlertDialog = false;
+  alertDialogMessage = '';
+  alertDialogType: 'error' | 'warning' | 'info' | 'success' = 'info';
   private readonly formStorageKey = 'owner-hourly-room-details-form-state';
   private readonly formStorageTtl = 4 * 60 * 1000;
   private contactOtpTimer: ReturnType<typeof setTimeout> | null = null;
@@ -163,6 +169,9 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     this.destroy$.complete();
     this.clearContactOtpTimer();
     this.clearSavedFormState();
+    if (this.contactResendTimer) {
+      clearInterval(this.contactResendTimer);
+    }
   }
 
   private loadCities(forceRefresh = false): void {
@@ -246,20 +255,19 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
         if (resp && resp.success === false) {
           const message = parseBackendErrorString(resp.error) || parseBackendErrorString(resp) || 'Failed to send OTP';
           this.contactOtpError = message;
-          this.toastService.error(message);
+          this.openAlertDialog(message, 'error');
           return;
         }
         this.contactOtpRequested = true;
         this.showContactOtpSentMessage = true;
         this.showContactResendOption = true;
-        this.openOtpDialog('OTP sent successfully to registered WhatsApp number');
       },
       error: (err) => {
         this.isSendingContactOtp = false;
         console.error('getOtp error:', err);
         const message = parseBackendErrorString(err) || 'Failed to send OTP. Please try again.';
         this.contactOtpError = message;
-        this.toastService.error(message);
+        this.openAlertDialog(message, 'error');
       },
     });
   }
@@ -290,12 +298,12 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
           this.showContactResendOption = false;
           this.showContactOtpSentMessage = false;
           this.contactOtpInput = '';
-          this.openOtpDialog('WhatsApp number verified successfully!');
         } else {
           const message = parseBackendErrorString(resp.body) || parseBackendErrorString(resp) || 'Invalid or expired OTP';
           this.contactOtpError = message;
           this.showContactResendOption = true;
-          this.toastService.error(message);
+          this.startContactResendCooldown();
+          this.openAlertDialog(message, 'error');
         }
       },
       error: (err) => {
@@ -304,7 +312,8 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
         const message = parseBackendErrorString(err) || 'Verification failed. Please try again.';
         this.contactOtpError = message;
         this.showContactResendOption = true;
-        this.toastService.error(message);
+        this.startContactResendCooldown();
+        this.openAlertDialog(message, 'error');
       },
     });
   }
@@ -322,6 +331,20 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
       clearTimeout(this.contactOtpTimer);
       this.contactOtpTimer = null;
     }
+  }
+
+  private startContactResendCooldown(): void {
+    if (this.contactResendTimer) {
+      clearInterval(this.contactResendTimer);
+    }
+    this.contactResendCooldown = 30;
+    this.contactResendTimer = setInterval(() => {
+      this.contactResendCooldown--;
+      if (this.contactResendCooldown <= 0) {
+        clearInterval(this.contactResendTimer!);
+        this.contactResendTimer = null;
+      }
+    }, 1000);
   }
 
   get isWhatsAppNumberValid(): boolean {
@@ -353,7 +376,7 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     } else {
       window.alert('Please fill all required fields before continuing.');
     }
-    this.toastService.warning('Complete required fields before submitting.');
+    this.openAlertDialog('Complete required fields before submitting.', 'warning');
   }
 
   private getMissingRequiredFields(): string[] {
@@ -475,6 +498,17 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     action?.();
   }
 
+  private openAlertDialog(message: string, type: 'error' | 'warning' | 'info' | 'success' = 'info'): void {
+    this.alertDialogMessage = message;
+    this.alertDialogType = type;
+    this.showAlertDialog = true;
+  }
+
+  closeAlertDialog(): void {
+    this.showAlertDialog = false;
+    this.alertDialogMessage = '';
+  }
+
   private mapFormToPayload(): HourlyRoomPayload {
     const f = this.listingForm.value;
     const parking: string[] = [];
@@ -558,7 +592,7 @@ export class OwnerHourlyRoomDetailsForm implements OnInit, OnDestroy {
     }
     const ownerId = this.propertyCreationService.getOwnerId();
     if (!ownerId) {
-      this.toastService.error('You must be logged in as an owner to create a listing');
+      this.openAlertDialog('You must be logged in as an owner to create a listing', 'error');
       return;
     }
     const payload = this.mapFormToPayload();

@@ -68,7 +68,7 @@
 
 /* Form Groups & Rows */
 .form-group {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.9rem;
 }
 
 .form-row {
@@ -365,8 +365,56 @@
 
 .get-otp-div {
   display: flex;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+}
+
+.otp-panel {
+  margin-top: 0.8rem;
+  display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  gap: 0.65rem;
+}
+
+.otp-block {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.otp-input {
+  max-width: 180px;
+  text-align: center;
+  letter-spacing: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.resend-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #036f9c;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.resend-cooldown {
+  color: #6c757d;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 10px;
+}
+
+.validation-error {
+  display: flex;
+  justify-content: flex-end;
+  text-align: right;
+  width: 100%;
+  font-size: 0.85rem;
 }
 
 .cancel-toast {
@@ -404,18 +452,7 @@
   border: 1px solid #853a0d;
 }
 
-.otp-panel {
-  margin-top: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
 
-.otp-block {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
 
 .form-control.readonly-input {
   cursor: not-allowed;
@@ -484,13 +521,30 @@
   transform: translateY(-1px);
 }
 
-.otp-input {
+/* Alert dialog button color variants */
+.token-dialog-btn.error-btn {
+  background: #dc3545;
+}
+
+.token-dialog-btn.warning-btn {
+  background: #fd7e14;
+}
+
+.token-dialog-btn.success-btn {
+  background: #28a745;
+}
+
+.token-dialog-btn.info-btn {
+  background: #03a4d4;
+}
+
+/* .otp-input {
   max-width: 180px;
   text-align: center;
   letter-spacing: 0.35rem;
   font-size: 0.8rem;
   font-weight: 600;
-}
+} */
 
 .resend-link {
   background: none;

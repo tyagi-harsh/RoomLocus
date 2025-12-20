@@ -140,13 +140,16 @@
                   </div>
                   <div class="validation-error" *ngIf="signupOtpModel.invalid && (signupOtpModel.dirty || signupOtpModel.touched)">
                     <small *ngIf="signupOtpModel.errors?.['required']">OTP is required.</small>
-                    <small *ngIf="signupOtpModel.errors?.['pattern']">Enter 4 to 6 digits.</small>
+                    <small *ngIf="signupOtpModel.errors?.['pattern']">Enter 6 digit OTP.</small>
                   </div>
                   <div *ngIf="otpError" class="validation-error" style="margin-top:6px">
                     <!-- {{ otpError }}<span> <small style="color: red;">Invalid OTP</small></span> -->
-                    <button *ngIf="showResendOtpOption" type="button" class="resend-link" (click)="resendSignupOtp()">
+                    <button *ngIf="showResendOtpOption && signupResendCooldown === 0" type="button" class="resend-link" (click)="resendSignupOtp()">
                       Resend OTP
                     </button>
+                    <span *ngIf="showResendOtpOption && signupResendCooldown > 0" class="resend-cooldown">
+                      Resend in {{ signupResendCooldown }}s
+                    </span>
                   </div>
                   <div class="otp-block">
                     <button type="button" class="otp-verify-button" (click)="verifySignupOtp()"
@@ -295,14 +298,17 @@
                 </div>
                 <div class="validation-error" *ngIf="forgotOtpModel.invalid && (forgotOtpModel.dirty || forgotOtpModel.touched)">
                   <small *ngIf="forgotOtpModel.errors?.['required']">OTP is required.</small>
-                  <small *ngIf="forgotOtpModel.errors?.['pattern']">Enter 4 to 6 digits.</small>
+                  <small *ngIf="forgotOtpModel.errors?.['pattern']">Enter 6 digit OTP.</small>
                 </div>
                 <div *ngIf="forgotOtpError" class="validation-error" style="margin-top:6px">
                   <!-- {{ forgotOtpError }}<span> <small style="color: red;">Invalid OTP</small></span> -->
-                  <button *ngIf="showForgotResendOption" type="button" class="resend-link"
+                  <button *ngIf="showForgotResendOption && forgotResendCooldown === 0" type="button" class="resend-link"
                     (click)="resendForgotOtp()">
                     Resend OTP
                   </button>
+                  <span *ngIf="showForgotResendOption && forgotResendCooldown > 0" class="resend-cooldown">
+                    Resend in {{ forgotResendCooldown }}s
+                  </span>
                 </div>
                 <div class="otp-block">
                   <button type="button" class="otp-verify-button" (click)="verifyForgotOtp()"
@@ -427,7 +433,7 @@
     <div class="token-dialog">
       <h2>www.roomlocus.com says</h2>
       <p>{{ otpDialogMessage }}</p>
-      <button type="button" class="token-dialog-btn" (click)="closeOtpDialog()">OK</button>
+      <button type="button" class="token-dialog-btn" [ngClass]="{'success-btn': otpDialogType === 'success'}" (click)="closeOtpDialog()">OK</button>
     </div>
   </div>
 </div>
@@ -438,5 +444,19 @@
     <button type="button" class="token-dialog-btn" (click)="confirmSuccessDialog()">
       {{ successDialogButtonLabel }}
     </button>
+  </div>
+</div>
+<div *ngIf="showAlertDialog" class="token-dialog-backdrop">
+  <div class="token-dialog">
+    <h2>www.roomlocus.com says</h2>
+    <p>{{ alertDialogMessage }}</p>
+    <button type="button" class="token-dialog-btn" 
+      [ngClass]="{
+        'error-btn': alertDialogType === 'error',
+        'warning-btn': alertDialogType === 'warning',
+        'success-btn': alertDialogType === 'success',
+        'info-btn': alertDialogType === 'info'
+      }"
+      (click)="closeAlertDialog()">OK</button>
   </div>
 </div>

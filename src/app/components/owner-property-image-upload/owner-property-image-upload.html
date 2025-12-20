@@ -42,4 +42,18 @@
       </button>
     </div>
   </div>
+  <div *ngIf="showAlertDialog" class="token-dialog-backdrop">
+    <div class="token-dialog">
+      <h2>www.roomlocus.com says</h2>
+      <p>{{ alertDialogMessage }}</p>
+      <button type="button" class="token-dialog-btn" 
+        [ngClass]="{
+          'error-btn': alertDialogType === 'error',
+          'warning-btn': alertDialogType === 'warning',
+          'success-btn': alertDialogType === 'success',
+          'info-btn': alertDialogType === 'info'
+        }"
+        (click)="closeAlertDialog()">OK</button>
+    </div>
+  </div>
 </div>
