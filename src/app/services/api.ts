@@ -297,12 +297,13 @@ export class ApiService {
     const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('accessToken') : null;
     const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
     const options = headers ? { headers } : {} as any;
-    const url = `${this.BASE_URL}/private/end_user`;
     const storedUserId = (typeof localStorage !== 'undefined') ? Number(localStorage.getItem('userId')) : undefined;
+    const effectiveUserId = (payload.userId ?? storedUserId) as number | undefined;
+    const url = `${this.BASE_URL}/private/end_user`;
     const body = {
+      userId: effectiveUserId,
       propertyType: payload.propertyType,
       propertyId: payload.propertyId,
-      userId: payload.userId ?? storedUserId,
     };
 
     try { console.debug('ApiService.likeProperty -> PATCH', url, body); } catch { }
@@ -327,12 +328,13 @@ export class ApiService {
   unlikeProperty(payload: { propertyType: 'FLAT' | 'ROOM' | 'PG' | 'HOURLY_ROOM'; propertyId: number; userId?: string | number }): Observable<{ success: boolean; error?: string }> {
     const token = (typeof localStorage !== 'undefined') ? localStorage.getItem('accessToken') : null;
     const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-    const url = `${this.BASE_URL}/private/end_user`;
     const storedUserId = (typeof localStorage !== 'undefined') ? Number(localStorage.getItem('userId')) : undefined;
+    const effectiveUserId = (payload.userId ?? storedUserId) as number | undefined;
+    const url = `${this.BASE_URL}/private/end_user`;
     const body = {
+      userId: effectiveUserId,
       propertyType: payload.propertyType,
       propertyId: payload.propertyId,
-      userId: payload.userId ?? storedUserId,
     };
 
     try { console.debug('ApiService.unlikeProperty -> DELETE', url, body); } catch { }
@@ -346,6 +348,93 @@ export class ApiService {
         console.error('unlikeProperty API error:', error);
         const msg = parseBackendErrorString(error?.error) || parseBackendErrorString(error) || error?.statusText || error?.message || 'Unknown error';
         return of({ success: false, error: msg });
+      })
+    );
+  }
+
+  /**
+   * Fetch wishlist entries for an END_USER by userId.
+   * Endpoint: GET /api/v1/private/end_user/{userId}
+   * Requires Authorization: Bearer {accessToken}
+   * Returns ApiResponse<{ id, userId, propertyType, propertyId, createdAt }[]>.
+   */
+  getEndUserWishlist(userId: number): Observable<{ success: boolean; data: Array<{ id: number; userId: number; propertyType: 'FLAT' | 'ROOM' | 'PG' | 'HOURLY_ROOM'; propertyId: number; createdAt: string; location?: string; landmark?: string; city?: string; minprice?: number; maxprice?: number }>; error?: string }> {
+    const url = `${this.BASE_URL}/private/end_user/${userId}`;
+
+    try { console.debug('ApiService.getEndUserWishlist -> GET', url); } catch { }
+
+    return this.http.get<any>(url).pipe(
+      map((resp: any) => {
+        // Prefer standard ApiResponse shape
+        if (resp && resp.success !== undefined) {
+          return resp as { success: boolean; data: Array<{ id: number; userId: number; propertyType: 'FLAT' | 'ROOM' | 'PG' | 'HOURLY_ROOM'; propertyId: number; createdAt: string; location?: string; landmark?: string; city?: string; minprice?: number; maxprice?: number }>; error?: string };
+        }
+        // Fallback: wrap raw array
+        const data = Array.isArray(resp) ? resp : [];
+        return { success: true, data } as any;
+      }),
+      catchError((error) => {
+        console.error('getEndUserWishlist API error:', error);
+        const msg = parseBackendErrorString(error?.error) || parseBackendErrorString(error) || error?.statusText || error?.message || 'Unknown error';
+        return of({ success: false, data: [], error: msg });
+      })
+    );
+  }
+
+  /**
+   * Fetch wishlist entries for an END_USER by userId with server-side pagination.
+   * Endpoint: GET /api/v1/private/end_user/{userId}?page={page}&size={size}
+   * Page is 0-based. Size default 12.
+   * Returns ApiResponse<{ content: UserLikeDTO[]; totalElements: number; totalPages: number; pageNumber: number; pageSize: number }>
+   */
+  getEndUserWishlistPaged(userId: number, page: number, size: number): Observable<{
+    success: boolean;
+    data: {
+      content: Array<{
+        id: number;
+        userId: number;
+        propertyType: 'FLAT' | 'ROOM' | 'PG' | 'HOURLY_ROOM';
+        propertyId: number;
+        createdAt: string;
+        location?: string;
+        landmark?: string;
+        city?: string;
+        minprice?: number;
+        maxprice?: number;
+      }>;
+      totalElements: number;
+      totalPages: number;
+      pageNumber: number;
+      pageSize: number;
+    };
+    error?: string;
+  }> {
+    const url = `${this.BASE_URL}/private/end_user/${userId}?page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`;
+    try { console.debug('ApiService.getEndUserWishlistPaged -> GET', url); } catch { }
+
+    return this.http.get<any>(url).pipe(
+      map((resp: any) => {
+        if (resp && resp.success !== undefined && resp.data) {
+          return resp as any;
+        }
+        // Fallback: if backend returns array (non-paginated), wrap it
+        const content = Array.isArray(resp) ? resp : [];
+        const fallback = {
+          success: true,
+          data: {
+            content,
+            totalElements: content.length,
+            totalPages: 1,
+            pageNumber: 0,
+            pageSize: content.length,
+          },
+        };
+        return fallback as any;
+      }),
+      catchError((error) => {
+        console.error('getEndUserWishlistPaged API error:', error);
+        const msg = parseBackendErrorString(error?.error) || parseBackendErrorString(error) || error?.statusText || error?.message || 'Unknown error';
+        return of({ success: false, data: { content: [], totalElements: 0, totalPages: 0, pageNumber: page, pageSize: size }, error: msg });
       })
     );
   }

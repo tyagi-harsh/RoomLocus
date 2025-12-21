@@ -1,5 +1,5 @@
-<a [routerLink]="['/property', property.id]" [queryParams]="{ type: detailType }" class="card-link"
-  (click)="onCardClick()">
+<a [routerLink]="['/property', property.id]" [queryParams]="{ type: detailType }"
+  [state]="{ verified: property.verified }" class="card-link" (click)="onCardClick()">
   <div class="card">
     <div class="card-image-container">
       <img [src]="property.imageUrl" [alt]="property.location" />

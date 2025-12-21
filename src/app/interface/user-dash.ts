@@ -15,9 +15,15 @@ export interface WishlistItem {
   id: number | string;
   imageUrl: string;
   location: string;
+  landmark?: string;
   city: string;
   hotelName: string;
   type: string;
   price: string;
+  pricePeriod?: string;
   propertyCategory?: PropertyCategory;
+  propertyType?: string; // RAW backend type e.g., FLAT/ROOM/PG/HOURLY_ROOM
+  townSector?: string;
+  verified?: boolean;
+  gallery?: string[];
 }

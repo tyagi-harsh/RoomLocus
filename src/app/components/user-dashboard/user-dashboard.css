@@ -325,3 +325,11 @@ mat-paginator {
     margin: 0 2px;
   }
 }
+
+/* Center paginator across the grid */
+.paginator-row {
+  grid-column: 1 / -1;
+  /* span all columns */
+  display: flex;
+  justify-content: center;
+}
