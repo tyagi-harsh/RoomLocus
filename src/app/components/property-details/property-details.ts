@@ -7,7 +7,6 @@ import { PropertyCategory, WishlistItem } from '../../interface/user-dash';
 import { PropertySearchService } from '../../services/property-search.service';
 import { ApiService } from '../../services/api';
 import { Subscription } from 'rxjs';
-import { WishlistService } from '../../services/wishlist.service';
 import { PRE_LOGIN_URL_KEY } from '../../constants/navigation-keys';
 import { DEFAULT_PROPERTY_GALLERY } from '../../constants/property-images';
 import { INSIDE_FACILITIES, OUTSIDE_FACILITIES } from '../../constants/facility-options';
@@ -165,7 +164,6 @@ export class PropertyDetails implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private readonly router: Router,
     private propertySearch: PropertySearchService,
-    private readonly wishlistService: WishlistService,
     private readonly api: ApiService
   ) { }
 
@@ -200,7 +198,6 @@ export class PropertyDetails implements OnInit, OnDestroy {
     this.showFavoriteButton = !userType || userType === 'END_USER';
 
     this.selectedImage = this.details.gallery.length > 0 ? this.details.gallery[0] : '';
-    this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(() => this.syncLikedState());
 
     this.route.paramMap.subscribe((params) => {
       this.propertyId = params.get('id');
@@ -219,7 +216,8 @@ export class PropertyDetails implements OnInit, OnDestroy {
         }
       }
 
-      this.syncLikedState();
+      // Initialize liked state from backend if possible
+      this.initLikedStateFromBackend();
     });
   }
 
@@ -642,28 +640,23 @@ export class PropertyDetails implements OnInit, OnDestroy {
       return;
     }
 
-    // If already liked -> unlike
-    if (this.wishlistService.has(this.propertyId)) {
+    // If already liked -> unlike via backend
+    if (this.liked) {
       this.api.unlikeProperty({ propertyType: type, propertyId: idNum, userId }).subscribe((resp) => {
         if (!resp || resp.success === false) {
           console.error('Unlike failed', resp?.error);
           return;
         }
-        this.wishlistService.remove(this.propertyId!);
         this.liked = false;
       });
       return;
     }
 
-    // Not liked -> like
+    // Not liked -> like via backend
     this.api.likeProperty({ propertyType: type, propertyId: idNum, userId }).subscribe((resp) => {
       if (!resp || resp.success === false) {
         console.error('Like failed', resp?.error);
         return;
-      }
-      const wishlistItem = this.buildWishlistItem();
-      if (wishlistItem) {
-        this.wishlistService.add(wishlistItem);
       }
       this.liked = true;
       this.triggerLikeAnimation();
@@ -677,37 +670,28 @@ export class PropertyDetails implements OnInit, OnDestroy {
     setTimeout(() => (this.showLoved = false), 1000);
   }
 
-  private syncLikedState(): void {
-    if (!this.propertyId || !this.canUseFavorites) {
+  private initLikedStateFromBackend(): void {
+    // For END_USER, check if current property appears in backend wishlist
+    try {
+      const userType = localStorage.getItem('userType');
+      const userId = Number(localStorage.getItem('userId'));
+      if (userType !== 'END_USER' || !userId || !this.propertyId) {
+        this.liked = false;
+        return;
+      }
+      const typeUpper = this.mapCategoryToPropertyType();
+      const idNum = Number(this.propertyId);
+      this.api.getEndUserWishlist(userId).subscribe((resp) => {
+        if (!resp || resp.success === false) {
+          this.liked = false;
+          return;
+        }
+        const found = (resp.data || []).some((e: any) => e.propertyId === idNum && e.propertyType === typeUpper);
+        this.liked = found;
+      });
+    } catch {
       this.liked = false;
-      return;
     }
-    this.liked = this.wishlistService.has(this.propertyId);
-  }
-
-  private buildWishlistItem(): WishlistItem | undefined {
-    if (!this.propertyId) {
-      return undefined;
-    }
-
-    const location = this.details.address.location || this.details.address.area || this.details.location || '';
-    const city = this.details.address.area || this.details.address.location || this.details.location || '';
-    const imageUrl = this.selectedImage || this.details.gallery[0] || 'assets/images/logo.png';
-    const formatter = new Intl.NumberFormat('en-IN');
-    const priceMin = this.details.priceMin ?? 0;
-    const priceMax = this.details.priceMax ?? 0;
-    const price = `₹${formatter.format(priceMin)} - ₹${formatter.format(priceMax)}`;
-
-    return {
-      id: this.propertyId,
-      imageUrl,
-      location,
-      city,
-      hotelName: this.details.propertyName || this.primaryHeading,
-      type: this.typeDisplayName,
-      price,
-      propertyCategory: this.propertyCategory,
-    };
   }
 
   private redirectToLogin(): void {

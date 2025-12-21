@@ -5,7 +5,7 @@
 
   <div class="tabs">
     <div class="tab-item" [class.active]="activeTab === 'wishlist'" (click)="setActiveTab('wishlist')">
-      Wishlist ({{ wishlistItems.length }})
+      Wishlist ({{ wishlistTotalElements }})
     </div>
     <div class="tab-item" [class.active]="activeTab === 'recent'" (click)="setActiveTab('recent')">
       Recent Contacts ({{ contacts.length }})
@@ -31,37 +31,49 @@
         </div>
       </div>
     </div>
-    <mat-paginator *ngIf="contacts.length > contactsPageSize" [length]="contacts.length" [pageSize]="contactsPageSize"
-      [hidePageSize]="true" [pageIndex]="contactsCurrentPage" (page)="onContactsPageChange($event)" showFirstLastButtons
-      aria-label="Select page">
-    </mat-paginator>
+    <div class="paginator-row">
+      <mat-paginator *ngIf="contacts.length > contactsPageSize" [length]="contacts.length" [pageSize]="contactsPageSize"
+        [hidePageSize]="true" [pageIndex]="contactsCurrentPage" (page)="onContactsPageChange($event)"
+        showFirstLastButtons aria-label="Select page">
+      </mat-paginator>
+    </div>
   </div>
 
   <div class="content-area" *ngIf="activeTab === 'wishlist'">
-    <div class="card wishlist-card" *ngFor="let item of paginatedWishlist">
+    <div *ngIf="loadingWishlist" class="loading-indicator">Loading wishlist…</div>
+    <ng-container *ngIf="!loadingWishlist">
+      <div class="card wishlist-card" *ngFor="let item of wishlistItems">
 
-      <div class="wishlist-img-container">
-        <img [src]="item.imageUrl" alt="Property Image">
-        <button class="btn-wishlist-delete" (click)="deleteWishlistItem(item.id)">
-          <i class="fa-regular fa-trash-can"></i>
-        </button>
+        <div class="wishlist-img-container">
+          <img [src]="item.imageUrl" alt="Property Image">
+          <img
+            [src]="item.verified ? 'assets/images/icons/new_verified_logo_n.png' : 'assets/images/icons/not_verified_n.png'"
+            alt="Verification badge" class="verified-badge" />
+          <button class="btn-wishlist-delete" (click)="deleteWishlistItem(item.id)">
+            <i class="fa-regular fa-trash-can"></i>
+          </button>
+        </div>
+
+        <div class="wishlist-details">
+          <div class="w-location">{{ item.location }}<span *ngIf="item.landmark"> , {{ item.landmark }}</span></div>
+          <div class="w-subtext">{{ item.townSector ? item.townSector + ', ' : '' }}{{ formatCity(item.city) }} | {{
+            item.propertyType || 'N/A' }}</div>
+          <div class="w-price">{{ item.price }} <span class="period">{{ item.pricePeriod }}</span></div>
+          <a class="w-link" [routerLink]="['/property', item.id]"
+            [queryParams]="item.propertyCategory ? { type: item.propertyCategory } : undefined"
+            [state]="{ verified: item.verified }">
+            View Details
+          </a>
+        </div>
+
       </div>
-
-      <div class="wishlist-details">
-        <div class="w-location">{{ item.location }} , {{ formatCity(item.city) }}</div>
-        <div class="w-subtext">{{ item.hotelName }} | {{ item.type }}</div>
-        <div class="w-price">{{ item.price }}</div>
-        <a class="w-link" [routerLink]="['/property', item.id]"
-          [queryParams]="item.propertyCategory ? { type: item.propertyCategory } : undefined">
-          View Details
-        </a>
+      <div class="paginator-row">
+        <mat-paginator *ngIf="wishlistTotalElements > wishlistPageSize" [length]="wishlistTotalElements"
+          [pageSize]="wishlistPageSize" [hidePageSize]="true" [pageIndex]="wishlistCurrentPage"
+          (page)="onWishlistPageChange($event)" showFirstLastButtons aria-label="Select page">
+        </mat-paginator>
       </div>
-
-    </div>
-    <mat-paginator *ngIf="wishlistItems.length > wishlistPageSize" [length]="wishlistItems.length"
-      [pageSize]="wishlistPageSize" [hidePageSize]="true" [pageIndex]="wishlistCurrentPage"
-      (page)="onWishlistPageChange($event)" showFirstLastButtons aria-label="Select page">
-    </mat-paginator>
+    </ng-container>
   </div>
 
 </div>
