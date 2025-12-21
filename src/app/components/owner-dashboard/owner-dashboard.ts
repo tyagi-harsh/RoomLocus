@@ -22,7 +22,7 @@ export class OwnerDashboard implements OnInit, OnDestroy {
 
   activeTab: string = 'used-lead'; // Default active tab based on image
   leadCount: number = 24;
-  properties: OwnerRental[] = [];
+  ownerCards: OwnerRentalCard[] = [];
   ownerId: number | null = null;
   totalRentals = 0;
   isLoadingRentals = false;
@@ -133,8 +133,8 @@ export class OwnerDashboard implements OnInit, OnDestroy {
     });
   }
 
-  trackByPropertyId(_: number, property: OwnerRental): number {
-    return property.propertyId;
+  trackByCardId(_: number, property: OwnerRentalCard): number {
+    return property.id;
   }
 
   private loadRentals(): void {
@@ -149,15 +149,82 @@ export class OwnerDashboard implements OnInit, OnDestroy {
       .subscribe({
         next: (page) => {
           this.isLoadingRentals = false;
-          this.properties = page.content;
           this.totalRentals = page.totalElements;
+          this.ownerCards = (page.content || []).map((item) => this.mapRentalToCard(item));
         },
         error: (err) => {
           this.isLoadingRentals = false;
           this.rentalsError = err?.message || 'Failed to load rentals';
-          this.properties = [];
+          this.ownerCards = [];
           this.totalRentals = 0;
         },
       });
   }
+
+  private mapRentalToCard(rental: OwnerRental): OwnerRentalCard {
+    const galleryArr = Array.isArray(rental.gallery) ? rental.gallery : [];
+    const imageUrl = rental.imageUrl || galleryArr[0] || 'assets/images/pexels-photo-106399.jpeg';
+    const formatter = new Intl.NumberFormat('en-IN');
+    const minPrice = Number(rental.minPrice ?? 0);
+    const maxPrice = Number(rental.maxPrice ?? rental.minPrice ?? 0);
+    const price = `₹${formatter.format(minPrice)} - ₹${formatter.format(maxPrice)}`;
+    const propertyCategory = this.mapTypeToCategory(rental.type);
+    const propertyType = rental.type ? rental.type.toUpperCase() : '';
+    return {
+      id: rental.id,
+      imageUrl,
+      location: rental.location || '',
+      landmark: rental.landmark || '',
+      city: rental.city || '',
+      townSector: rental.townSector || '',
+      type: rental.bhk || rental.type || 'N/A',
+      price,
+      pricePeriod: 'Per Month',
+      propertyCategory,
+      propertyType,
+      verified: Boolean(rental.verified),
+      gallery: galleryArr,
+    };
+  }
+
+  private mapTypeToCategory(type?: string | null): string | null {
+    if (!type) return null;
+    switch (type.toLowerCase()) {
+      case 'flat':
+        return 'flat';
+      case 'room':
+        return 'room';
+      case 'pg':
+        return 'pg';
+      case 'hourly_room':
+      case 'hourlyroom':
+        return 'hourlyroom';
+      default:
+        return null;
+    }
+  }
+
+  formatCity(city: string): string {
+    if (!city) {
+      return city;
+    }
+    const lower = city.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }
+}
+
+interface OwnerRentalCard {
+  id: number;
+  imageUrl: string;
+  location: string;
+  landmark: string;
+  city: string;
+  townSector: string;
+  type: string;
+  price: string;
+  pricePeriod: string;
+  propertyCategory: string | null;
+  propertyType: string | null;
+  verified: boolean;
+  gallery: string[];
 }

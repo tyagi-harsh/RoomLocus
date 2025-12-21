@@ -4,19 +4,18 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface OwnerRental {
-  propertyId: number;
-  title: string;
-  propertyType: string;
-  rent?: number | null;
-  status?: string | null;
-  addressLine?: string | null;
+  id: number;
   city?: string | null;
-  state?: string | null;
-  locality?: string | null;
-  pincode?: string | null;
-  thumbnailUrl?: string | null;
-  imageUrls?: string[] | null;
-  createdAt?: string | null;
+  townSector?: string | null;
+  location?: string | null;
+  type?: string | null;
+  landmark?: string | null;
+  maxPrice?: number | null;
+  minPrice?: number | null;
+  bhk?: string | null;
+  gallery?: string[] | null;
+  imageUrl?: string | null;
+  verified?: boolean | null;
 }
 
 export interface OwnerRentalPage {
