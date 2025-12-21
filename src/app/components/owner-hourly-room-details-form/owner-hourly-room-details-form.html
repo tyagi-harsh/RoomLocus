@@ -144,11 +144,11 @@
 
     <div class="form-row">
       <label class="form-label required">Owner/CareTaker</label>
-      <input type="text" formControlName="manager" placeholder="Enter manager/owner" class="form-control"
+      <input type="text" formControlName="manager" placeholder="Enter contact name" class="form-control"
         maxlength="50">
       <div class="validation-error"
         *ngIf="listingForm.get('manager')?.invalid && (listingForm.get('manager')?.dirty || listingForm.get('manager')?.touched)">
-        <small *ngIf="listingForm.get('manager')?.hasError('required')">Manager/Owner name is required.</small>
+        <small *ngIf="listingForm.get('manager')?.hasError('required')">Contact name is required.</small>
         <small *ngIf="listingForm.get('manager')?.hasError('pattern')">Only letters and spaces are allowed.</small>
         <small *ngIf="listingForm.get('manager')?.hasError('maxlength')">Maximum 50 characters.</small>
       </div>

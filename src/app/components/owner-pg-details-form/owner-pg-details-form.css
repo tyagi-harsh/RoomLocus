@@ -370,6 +370,31 @@
   margin-left: 8px;
 }
 
+/* Tighten control sizing on small screens for radio/checkbox inputs, labels, and autocomplete items */
+@media (max-width: 800px) {
+  .radio-item input[type="radio"],
+  .radio-item input[type="checkbox"] {
+    height: 1.05rem;
+    width: 1.05rem;
+  }
+
+  .radio-item span {
+    font-size: 0.95rem;
+  }
+
+  .city-search-icon,
+  .village-search-icon,
+  ::ng-deep img.city-search-icon[matPrefix],
+  ::ng-deep img.village-search-icon[matPrefix] {
+    width: 28px;
+    height: 28px;
+  }
+
+  ::ng-deep .mat-mdc-autocomplete-panel .mdc-list-item__primary-text {
+    font-size: 0.95rem;
+  }
+}
+
 ::ng-deep .mat-form-field-wrapper {
   margin-bottom: -1.25em;
 }

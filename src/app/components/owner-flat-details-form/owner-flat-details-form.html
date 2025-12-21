@@ -180,6 +180,20 @@
     </div>
 
     <div class="form-row">
+				<label class="form-label required">Owner/CareTaker</label>
+				<input type="text" formControlName="contactName" placeholder="Enter contact name" class="form-control"
+					maxlength="50" />
+				<div class="validation-error"
+					*ngIf="listingForm.get('contactName')?.invalid && (listingForm.get('contactName')?.dirty || listingForm.get('contactName')?.touched)">
+					<small *ngIf="listingForm.get('contactName')?.hasError('required')">Contact name is
+						required.</small>
+					<small *ngIf="listingForm.get('contactName')?.hasError('pattern')">Only letters and spaces are
+						allowed.</small>
+					<small *ngIf="listingForm.get('contactName')?.hasError('maxlength')">Maximum 50 characters.</small>
+				</div>
+			</div>
+
+    <div class="form-row">
       <label class="form-label required">Whatsapp No</label>
       <div class="input-with-indicator">
         <input type="number" formControlName="whatsappNo" placeholder="Enter whatsapp number" class="form-control"
@@ -237,7 +251,7 @@
       </div>
     </div>
 
-    <div class="form-row">
+    <!-- <div class="form-row">
       <label class="form-label required">Contact Name</label>
       <input type="text" formControlName="contact" placeholder="Enter contact name" class="form-control" maxlength="50">
       <div class="validation-error"
@@ -246,7 +260,7 @@
         <small *ngIf="listingForm.get('contact')?.hasError('pattern')">Only letters and spaces are allowed.</small>
         <small *ngIf="listingForm.get('contact')?.hasError('maxlength')">Maximum 50 characters.</small>
       </div>
-    </div>
+    </div> -->
 
 
     <div class="form-row">
