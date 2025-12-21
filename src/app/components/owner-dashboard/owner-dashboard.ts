@@ -2,13 +2,12 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, takeUntil } from 'rxjs';
 import { Lead } from '../../interface/owner-dash';
 import { AddRentalDialogComponent } from './add-rental-dialog.component';
-import { OwnerPropertySummary, OwnerPropertyStoreService } from '../../services/owner-property-store.service';
 import { PropertyCreationService } from '../../services/property-creation.service';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { OwnerRentalsService, OwnerRental } from '../../services/owner-rentals.service';
 
 
 
@@ -23,25 +22,23 @@ export class OwnerDashboard implements OnInit, OnDestroy {
 
   activeTab: string = 'used-lead'; // Default active tab based on image
   leadCount: number = 24;
-  properties: OwnerPropertySummary[] = [];
+  properties: OwnerRental[] = [];
   ownerId: number | null = null;
+  totalRentals = 0;
+  isLoadingRentals = false;
+  rentalsError: string | null = null;
 
   // Pagination for leads
   leadsPageSize = 12;
   leadsCurrentPage = 0;
 
-  // Pagination for rentals
-  rentalsPageSize = 12;
+  // Pagination for rentals (server-side)
+  rentalsPageSize = 10;
   rentalsCurrentPage = 0;
 
   get paginatedLeads(): Lead[] {
     const start = this.leadsCurrentPage * this.leadsPageSize;
     return this.leads.slice(start, start + this.leadsPageSize);
-  }
-
-  get paginatedProperties(): OwnerPropertySummary[] {
-    const start = this.rentalsCurrentPage * this.rentalsPageSize;
-    return this.properties.slice(start, start + this.rentalsPageSize);
   }
 
   onLeadsPageChange(event: PageEvent): void {
@@ -52,6 +49,7 @@ export class OwnerDashboard implements OnInit, OnDestroy {
   onRentalsPageChange(event: PageEvent): void {
     this.rentalsCurrentPage = event.pageIndex;
     this.rentalsPageSize = event.pageSize;
+    this.loadRentals();
   }
 
   private readonly destroy$ = new Subject<void>();
@@ -59,8 +57,8 @@ export class OwnerDashboard implements OnInit, OnDestroy {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly dialog: MatDialog,
-    private readonly ownerPropertyStore: OwnerPropertyStoreService,
-    private readonly propertyCreationService: PropertyCreationService
+    private readonly propertyCreationService: PropertyCreationService,
+    private readonly ownerRentalsService: OwnerRentalsService
   ) {}
 
   ngOnInit(): void {
@@ -72,10 +70,7 @@ export class OwnerDashboard implements OnInit, OnDestroy {
     });
     this.ownerId = this.propertyCreationService.getOwnerId();
     if (this.ownerId) {
-      this.ownerPropertyStore
-        .watchProperties(this.ownerId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((list) => (this.properties = list));
+      this.loadRentals();
     }
   }
 
@@ -138,7 +133,31 @@ export class OwnerDashboard implements OnInit, OnDestroy {
     });
   }
 
-  trackByPropertyId(_: number, property: OwnerPropertySummary): number {
+  trackByPropertyId(_: number, property: OwnerRental): number {
     return property.propertyId;
+  }
+
+  private loadRentals(): void {
+    if (!this.ownerId) {
+      return;
+    }
+    this.isLoadingRentals = true;
+    this.rentalsError = null;
+    this.ownerRentalsService
+      .getOwnerRentals(this.ownerId, this.rentalsCurrentPage, this.rentalsPageSize)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (page) => {
+          this.isLoadingRentals = false;
+          this.properties = page.content;
+          this.totalRentals = page.totalElements;
+        },
+        error: (err) => {
+          this.isLoadingRentals = false;
+          this.rentalsError = err?.message || 'Failed to load rentals';
+          this.properties = [];
+          this.totalRentals = 0;
+        },
+      });
   }
 }

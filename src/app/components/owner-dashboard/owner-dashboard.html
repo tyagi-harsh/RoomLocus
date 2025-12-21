@@ -77,19 +77,40 @@
       </div>
       <h3>My Rentals</h3>
       <p class="subtext" *ngIf="!ownerId">Log in as an owner to view your rentals.</p>
-      <p class="subtext" *ngIf="ownerId && properties?.length === 0">No rentals yet. Add a property to see it here.</p>
-      <div *ngIf="properties?.length" class="property-list">
-        <article class="property-card" *ngFor="let property of paginatedProperties; trackBy: trackByPropertyId">
-          <div class="property-card-header">
-            <span class="type">{{ property.propertyType }}</span>
-            <span class="date">Added {{ property.createdAt | date:'mediumDate' }}</span>
+      <p class="subtext" *ngIf="ownerId && !isLoadingRentals && properties?.length === 0">No rentals yet. Add a property to see it here.</p>
+      <div *ngIf="rentalsError" class="error-text">{{ rentalsError }}</div>
+
+      <div *ngIf="isLoadingRentals" class="property-list loading-grid">
+        <div class="property-card skeleton" *ngFor="let _ of [1,2,3]">
+          <div class="image shimmer"></div>
+          <div class="lines">
+            <span></span><span></span><span></span>
           </div>
-          <a class="property-card-title" [routerLink]="['/property', property.propertyId]">{{ property.displayName
-            }}</a>
-          <p class="property-card-location">{{ property.location }}</p>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoadingRentals && properties?.length" class="property-list">
+        <article class="property-card" *ngFor="let property of properties; trackBy: trackByPropertyId">
+          <div class="property-card-media">
+            <img [src]="property.thumbnailUrl || property.imageUrls?.[0] || 'https://placehold.co/320x200?text=No+Image'" alt="Property image">
+          </div>
+          <div class="property-card-body">
+            <div class="property-card-header">
+              <span class="type">{{ property.propertyType || 'Property' }}</span>
+              <span class="status" [ngClass]="property.status?.toLowerCase()">{{ property.status || 'PENDING' }}</span>
+            </div>
+            <a class="property-card-title" [routerLink]="['/property', property.propertyId]">{{ property.title || 'Untitled property' }}</a>
+            <p class="property-card-location">{{ property.addressLine || property.locality || property.city }}</p>
+            <p class="property-card-meta">{{ property.city }}, {{ property.state }} {{ property.pincode }}</p>
+            <div class="property-card-footer">
+              <div class="rent" *ngIf="property.rent">₹ {{ property.rent | number }}</div>
+              <div class="date">Added {{ property.createdAt | date:'mediumDate' }}</div>
+            </div>
+          </div>
         </article>
       </div>
-      <mat-paginator *ngIf="properties && properties.length > rentalsPageSize" [length]="properties.length"
+
+      <mat-paginator *ngIf="!isLoadingRentals && totalRentals > rentalsPageSize" [length]="totalRentals"
         [pageSize]="rentalsPageSize" [hidePageSize]="true" [pageIndex]="rentalsCurrentPage"
         (page)="onRentalsPageChange($event)" showFirstLastButtons aria-label="Select page">
       </mat-paginator>

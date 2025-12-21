@@ -305,12 +305,16 @@
 .property-list {
   display: grid;
   gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 .property-card {
-  padding: 18px;
-  border-radius: 12px;
-  border: 1px solid #dee2e6;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #dde6ee;
   background: #fff;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -320,6 +324,29 @@
   box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
 }
 
+.property-card-media {
+  width: 100%;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e9f2ff, #f7fbff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.property-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.property-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .property-card-header {
   display: flex;
   justify-content: space-between;
@@ -327,6 +354,32 @@
   margin-bottom: 10px;
   font-size: 0.9rem;
   color: #5c5c5c;
+}
+
+.property-card-header .status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  text-transform: capitalize;
+  background: #eef2f7;
+  color: #5a6470;
+}
+
+.property-card-header .status.active,
+.property-card-header .status.approved {
+  background: #e8f7ef;
+  color: #1f9d5c;
+}
+
+.property-card-header .status.pending {
+  background: #fff7e6;
+  color: #c07a00;
+}
+
+.property-card-header .status.inactive,
+.property-card-header .status.rejected {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .property-card-title {
@@ -345,6 +398,83 @@
 .property-card-location {
   margin: 0;
   color: #6c6c6c;
+}
+
+.property-card-meta {
+  margin: 0;
+  color: #8a8a8a;
+  font-size: 0.9rem;
+}
+
+.property-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  font-size: 0.9rem;
+  color: #4a4a4a;
+}
+
+.property-card-footer .rent {
+  font-weight: 700;
+  color: #1a8c43;
+}
+
+.error-text {
+  color: #d33;
+  margin-bottom: 12px;
+}
+
+.loading-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.skeleton .image {
+  height: 140px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.skeleton .lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton .lines span {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+@media (max-width: 860px) {
+  .property-card {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Paginator Styling */
