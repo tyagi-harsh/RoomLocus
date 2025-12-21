@@ -4,9 +4,8 @@
     <div class="card-image-container">
       <img [src]="property.imageUrl" [alt]="property.location" />
 
-      <img
-        [src]="property.verified ? 'assets/images/icons/new_verified_logo_n.png' : 'assets/images/icons/not_verified_n.png'"
-        alt="Verification badge" class="verified-badge" />
+      <img *ngIf="property.verified" src="assets/images/icons/new_verified_logo_n.png" alt="Verified badge"
+        class="verified-badge" />
     </div>
 
     <div class="card-content">

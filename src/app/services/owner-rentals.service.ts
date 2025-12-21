@@ -34,14 +34,25 @@ interface ApiResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class OwnerRentalsService {
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
-  getOwnerRentals(ownerId: number, page = 0, size = 10, type = 'flat'): Observable<OwnerRentalPage> {
+  /**
+   * Fetch properties listed by an owner. If `type` is provided (flat|room|pg|hourlyroom),
+   * the backend will filter by that type; otherwise all property types are returned.
+   */
+  getOwnerRentals(
+    ownerId: number,
+    page = 0,
+    size = 12,
+    type?: 'flat' | 'room' | 'pg' | 'hourlyroom'
+  ): Observable<OwnerRentalPage> {
     const url = `${environment.apiUrl}/api/v1/private/owners/${ownerId}/properties`;
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('page', page)
-      .set('size', size)
-      .set('type', type);
+      .set('size', size);
+    if (type) {
+      params = params.set('type', type);
+    }
 
     return this.http.get<ApiResponse<OwnerRentalPage>>(url, { params }).pipe(
       map((resp) => {

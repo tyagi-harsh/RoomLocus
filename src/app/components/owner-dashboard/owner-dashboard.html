@@ -79,20 +79,22 @@
       <p class="subtext" *ngIf="!ownerId">Log in as an owner to view your rentals.</p>
       <div *ngIf="rentalsError" class="error-text">{{ rentalsError }}</div>
       <div *ngIf="isLoadingRentals" class="loading-indicator">Loading rentals…</div>
-      <p class="subtext" *ngIf="ownerId && !isLoadingRentals && !ownerCards.length && !rentalsError">No rentals yet. Add a property to see it here.</p>
+      <p class="subtext" *ngIf="ownerId && !isLoadingRentals && !ownerCards.length && !rentalsError">No rentals yet. Add
+        a property to see it here.</p>
 
       <div class="wishlist-grid" *ngIf="!isLoadingRentals && ownerCards.length">
         <div class="card wishlist-card" *ngFor="let item of ownerCards; trackBy: trackByCardId">
 
           <div class="wishlist-img-container">
             <img [src]="item.imageUrl" alt="Property Image">
-            <img
-              [src]="item.verified ? 'assets/images/icons/new_verified_logo_n.png' : 'assets/images/icons/not_verified_n.png'"
-              alt="Verification badge" class="verified-badge" />
           </div>
 
           <div class="wishlist-details">
-            <div class="w-location">{{ item.location }}<span *ngIf="item.landmark"> , {{ item.landmark }}</span></div>
+            <div class="w-location">
+              <span *ngIf="item.location">{{ formatTitleCase(item.location) }}</span>
+              <span *ngIf="item.location && item.landmark"> , </span>
+              <span *ngIf="item.landmark">{{ formatTitleCase(item.landmark) }}</span>
+            </div>
             <div class="w-subtext">{{ item.townSector ? item.townSector + ', ' : '' }}{{ formatCity(item.city) }} | {{
               item.propertyType || 'N/A' }}</div>
             <div class="w-price">{{ item.price }} <span class="period">{{ item.pricePeriod }}</span></div>
